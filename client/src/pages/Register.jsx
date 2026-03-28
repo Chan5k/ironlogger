@@ -63,8 +63,11 @@ export default function Register() {
           <p className="rounded-lg bg-red-950/50 px-3 py-2 text-sm text-red-300">{error}</p>
         ) : null}
         <div>
-          <label className="mb-1 block text-xs text-slate-400">Username</label>
+          <label htmlFor="register-name" className="mb-1 block text-xs text-slate-400">
+            Username
+          </label>
           <input
+            id="register-name"
             type="text"
             autoComplete="username"
             value={name}
@@ -76,8 +79,11 @@ export default function Register() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs text-slate-400">Email</label>
+          <label htmlFor="register-email" className="mb-1 block text-xs text-slate-400">
+            Email
+          </label>
           <input
+            id="register-email"
             type="email"
             autoComplete="email"
             value={email}
@@ -87,8 +93,11 @@ export default function Register() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs text-slate-400">Password (min 8)</label>
+          <label htmlFor="register-password" className="mb-1 block text-xs text-slate-400">
+            Password (min 8)
+          </label>
           <input
+            id="register-password"
             type="password"
             autoComplete="new-password"
             value={password}

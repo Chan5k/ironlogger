@@ -46,8 +46,11 @@ export default function Login() {
           <p className="rounded-lg bg-red-950/50 px-3 py-2 text-sm text-red-300">{error}</p>
         ) : null}
         <div>
-          <label className="mb-1 block text-xs text-slate-400">Email</label>
+          <label htmlFor="login-email" className="mb-1 block text-xs text-slate-400">
+            Email
+          </label>
           <input
+            id="login-email"
             type="email"
             autoComplete="email"
             value={email}
@@ -57,8 +60,11 @@ export default function Login() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs text-slate-400">Password</label>
+          <label htmlFor="login-password" className="mb-1 block text-xs text-slate-400">
+            Password
+          </label>
           <input
+            id="login-password"
             type="password"
             autoComplete="current-password"
             value={password}

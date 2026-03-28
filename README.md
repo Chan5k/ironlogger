@@ -67,6 +67,28 @@ Full-stack app for logging exercises, sets, reps, and weight; viewing progress c
    **always** uses that proxy (it ignores `VITE_API_URL`), so a `.env.local` aimed at production will
    not break registration locally.
 
+## Mobile navigation
+
+On **narrow screens** (`md` breakpoint and below), the horizontal nav is replaced by a **hamburger menu** that opens a **left drawer** with the same links (larger tap targets), your **display name**, and **Sign out**. Desktop keeps the original top bar + wrapped nav row.
+
+## Mobile E2E (Playwright)
+
+Simulates a **phone-sized** user (Chromium, Pixel 7 profile): landing → login/register, and optionally the **drawer** after login.
+
+```bash
+cd client
+npx playwright install chromium   # once
+npm run test:e2e                  # starts Vite if not already on :5173
+```
+
+With API running and credentials:
+
+```bash
+E2E_EMAIL='you@example.com' E2E_PASSWORD='yourpassword' npm run test:e2e
+```
+
+Skip auto-starting Vite: `PLAYWRIGHT_SKIP_WEBSERVER=1 npm run test:e2e` (run `npm run dev` yourself first).
+
 ## Production build
 
 ```bash
