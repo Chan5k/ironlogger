@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+@layer utilities {
+  .safe-pb {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+  .safe-pt {
+    padding-top: env(safe-area-inset-top);
+  }
+}
