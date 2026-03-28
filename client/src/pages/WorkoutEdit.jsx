@@ -27,6 +27,7 @@ import {
 } from '../utils/offlineQueue.js';
 import PrCelebrationOverlay, { playPrFanfare } from '../components/PrCelebrationOverlay.jsx';
 import { sharePageUrl } from '../utils/shareLink.js';
+import { offerShareLink } from '../utils/offerShareLink.js';
 
 const emptySet = (type = 'normal') => ({
   reps: 10,
@@ -491,14 +492,11 @@ export default function WorkoutEdit() {
     try {
       const { data } = await api.post(`/share/workouts/${id}`);
       const url = sharePageUrl(data.token);
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-        alert(
-          'Share link copied. Recipients can open it without an account; logging in lets them save a copy to their workouts.'
-        );
-      } else {
-        window.prompt('Copy this link:', url);
-      }
+      await offerShareLink(url, {
+        shareTitle: 'Workout',
+        successMessage:
+          'Share link copied. Recipients can open it without an account; logging in lets them save a copy to their workouts.',
+      });
     } catch (e) {
       alert(e.response?.data?.error || 'Could not create share link');
     }

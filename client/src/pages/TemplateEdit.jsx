@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../api/client.js';
 import { appPath } from '../constants/routes.js';
 import { sharePageUrl } from '../utils/shareLink.js';
+import { offerShareLink } from '../utils/offerShareLink.js';
 import {
   filterExercisesByQuery,
   groupExercisesByCategory,
@@ -142,14 +143,11 @@ export default function TemplateEdit() {
     try {
       const { data } = await api.post(`/share/templates/${id}`);
       const url = sharePageUrl(data.token);
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-        alert(
-          'Share link copied. Anyone with the link can preview; logging in lets them save a copy to their plans.'
-        );
-      } else {
-        window.prompt('Copy this link:', url);
-      }
+      await offerShareLink(url, {
+        shareTitle: 'Workout plan',
+        successMessage:
+          'Share link copied. Anyone with the link can preview; logging in lets them save a copy to their plans.',
+      });
     } catch (e) {
       alert(e.response?.data?.error || 'Could not create share link');
     }

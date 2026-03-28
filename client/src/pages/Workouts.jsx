@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../api/client.js';
 import { appPath } from '../constants/routes.js';
 import { sharePageUrl } from '../utils/shareLink.js';
+import { offerShareLink } from '../utils/offerShareLink.js';
 import { formatWorkoutDuration } from '../utils/workoutDuration.js';
 import { useLiveClock } from '../hooks/useLiveClock.js';
 
@@ -43,12 +44,10 @@ export default function Workouts() {
     try {
       const { data } = await api.post(`/share/workouts/${id}`);
       const url = sharePageUrl(data.token);
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-        alert('Share link copied to clipboard.');
-      } else {
-        window.prompt('Copy this link:', url);
-      }
+      await offerShareLink(url, {
+        shareTitle: 'Workout',
+        successMessage: 'Share link copied to clipboard.',
+      });
     } catch (e) {
       alert(e.response?.data?.error || 'Could not create share link');
     }
