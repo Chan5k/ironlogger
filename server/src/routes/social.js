@@ -81,7 +81,9 @@ router.delete('/follow/:slug', authRequired, param('slug').trim().notEmpty(), as
   res.status(204).send();
 });
 
-/** High-level activity for people you follow (no workout titles or details). */
+const FEED_RECENT_WORKOUTS = 5;
+
+/** Activity for people you follow: session counts plus last completed workouts (title & timing only). */
 router.get('/feed', authRequired, async (req, res) => {
   const follows = await ProfileFollow.find({ followerId: req.user.id }).select('targetUserId').lean();
   const ids = follows.map((f) => f.targetUserId);
@@ -91,6 +93,7 @@ router.get('/feed', authRequired, async (req, res) => {
 
   const since = new Date();
   since.setDate(since.getDate() - 14);
+  const oidIds = ids.map((id) => new mongoose.Types.ObjectId(id));
 
   const users = await User.find({
     _id: { $in: ids },
@@ -99,23 +102,64 @@ router.get('/feed', authRequired, async (req, res) => {
     .select('name publicProfileSlug')
     .lean();
 
-  const agg = await Workout.aggregate([
-    {
-      $match: {
-        userId: { $in: ids.map((id) => new mongoose.Types.ObjectId(id)) },
-        completedAt: { $ne: null, $gte: since },
+  const [agg, recentAgg] = await Promise.all([
+    Workout.aggregate([
+      {
+        $match: {
+          userId: { $in: oidIds },
+          completedAt: { $ne: null, $gte: since },
+        },
       },
-    },
-    {
-      $group: {
-        _id: '$userId',
-        sessions: { $sum: 1 },
-        lastCompletedAt: { $max: '$completedAt' },
+      {
+        $group: {
+          _id: '$userId',
+          sessions: { $sum: 1 },
+          lastCompletedAt: { $max: '$completedAt' },
+        },
       },
-    },
+    ]),
+    Workout.aggregate([
+      {
+        $match: {
+          userId: { $in: oidIds },
+          completedAt: { $ne: null },
+        },
+      },
+      { $sort: { userId: 1, completedAt: -1 } },
+      {
+        $group: {
+          _id: '$userId',
+          workouts: {
+            $push: {
+              id: '$_id',
+              title: '$title',
+              startedAt: '$startedAt',
+              completedAt: '$completedAt',
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          workouts: { $slice: ['$workouts', FEED_RECENT_WORKOUTS] },
+        },
+      },
+    ]),
   ]);
 
   const byUser = new Map(agg.map((r) => [r._id.toString(), r]));
+  const recentByUser = new Map(
+    recentAgg.map((r) => [
+      r._id.toString(),
+      (r.workouts || []).map((w) => ({
+        id: String(w.id),
+        title: w.title,
+        startedAt: w.startedAt,
+        completedAt: w.completedAt,
+      })),
+    ])
+  );
+
   const items = users
     .filter((u) => u.publicProfileSlug)
     .map((u) => {
@@ -125,6 +169,7 @@ router.get('/feed', authRequired, async (req, res) => {
         slug: u.publicProfileSlug,
         completedSessionsLast14Days: row?.sessions ?? 0,
         lastCompletedAt: row?.lastCompletedAt ?? null,
+        recentWorkouts: recentByUser.get(u._id.toString()) ?? [],
       };
     })
     .sort((a, b) => {

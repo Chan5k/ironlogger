@@ -37,5 +37,6 @@ const workoutSchema = new mongoose.Schema(
 );
 
 workoutSchema.index({ userId: 1, startedAt: -1 });
+workoutSchema.index({ userId: 1, completedAt: -1 });
 
 export default mongoose.model('Workout', workoutSchema);
