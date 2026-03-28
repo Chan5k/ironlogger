@@ -34,6 +34,7 @@ export default function Progress() {
   const inputRef = useRef(null);
 
   const [points, setPoints] = useState([]);
+  const [estimatedOneRM, setEstimatedOneRM] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export default function Progress() {
   useEffect(() => {
     if (!selectedId) {
       setPoints([]);
+      setEstimatedOneRM(null);
       return;
     }
     let alive = true;
@@ -54,6 +56,7 @@ export default function Progress() {
       try {
         const { data } = await api.get(`/workouts/progress/${selectedId}`);
         if (!alive) return;
+        setEstimatedOneRM(data.estimatedOneRM || null);
         setPoints(
           (data.points || []).map((p) => ({
             ...p,
@@ -286,6 +289,28 @@ export default function Progress() {
         <p className="text-slate-500">Search and choose an exercise to see charts.</p>
       ) : (
         <div className="space-y-8">
+          {estimatedOneRM ? (
+            <div className="rounded-2xl border border-amber-900/40 bg-amber-950/20 p-4 text-sm">
+              <p className="font-medium text-amber-200/90">Estimated 1RM (from your best logged set)</p>
+              <p className="mt-2 font-mono text-lg text-white">
+                Epley ≈ {fmtWt(weightUnit === 'kg' ? estimatedOneRM.epley : kgToLbs(estimatedOneRM.epley))}
+                {estimatedOneRM.brzycki != null ? (
+                  <>
+                    {' '}
+                    · Brzycki ≈{' '}
+                    {fmtWt(
+                      weightUnit === 'kg' ? estimatedOneRM.brzycki : kgToLbs(estimatedOneRM.brzycki)
+                    )}
+                  </>
+                ) : null}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Based on {estimatedOneRM.fromWeight} {weightUnit} × {estimatedOneRM.fromReps} reps (completed,
+                non–warm-up). {estimatedOneRM.caveat}
+              </p>
+            </div>
+          ) : null}
+
           <div className="h-64 w-full rounded-2xl border border-slate-800 bg-surface-card p-2">
             <p className="mb-2 px-2 text-xs font-medium text-slate-400">
               Max weight ({weightUnit})

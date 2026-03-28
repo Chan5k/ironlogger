@@ -217,4 +217,50 @@ router.patch(
   }
 );
 
+const MAX_PUSH_SUBS = 8;
+
+router.post(
+  '/push-subscribe',
+  authRequired,
+  body('subscription.endpoint').isString().isLength({ min: 10, max: 2048 }),
+  body('subscription.keys.p256dh').optional().isString(),
+  body('subscription.keys.auth').optional().isString(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const sub = req.body.subscription;
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const list = user.pushSubscriptions || [];
+    const filtered = list.filter((s) => s.endpoint !== sub.endpoint);
+    filtered.push({
+      endpoint: sub.endpoint,
+      keys: {
+        p256dh: sub.keys?.p256dh || '',
+        auth: sub.keys?.auth || '',
+      },
+      createdAt: new Date(),
+    });
+    user.pushSubscriptions = filtered.slice(-MAX_PUSH_SUBS);
+    await user.save();
+    res.status(201).json({ ok: true });
+  }
+);
+
+router.delete(
+  '/push-unsubscribe',
+  authRequired,
+  body('endpoint').isString().isLength({ min: 10, max: 2048 }),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    await User.updateOne(
+      { _id: req.user.id },
+      { $pull: { pushSubscriptions: { endpoint: req.body.endpoint } } }
+    );
+    res.status(204).send();
+  }
+);
+
 export default router;

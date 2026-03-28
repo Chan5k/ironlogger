@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../api/client.js';
+import { urlBase64ToUint8Array } from '../utils/pushSubscribe.js';
+import { siteOriginPrefix } from '../utils/siteBase.js';
 
 const DAYS = [
   { v: 0, label: 'Sun' },
@@ -76,6 +78,7 @@ export default function Settings() {
   const [reminderTime, setReminderTime] = useState('18:00');
   const [reminderDays, setReminderDays] = useState([1, 3, 5]);
   const [notifStatus, setNotifStatus] = useState('');
+  const [pushMsg, setPushMsg] = useState('');
   const [saving, setSaving] = useState(false);
   const [weightUnit, setWeightUnit] = useState('kg');
   const [publicProfileEnabled, setPublicProfileEnabled] = useState(false);
@@ -113,6 +116,60 @@ export default function Settings() {
     }
     const p = await Notification.requestPermission();
     setNotifStatus(p === 'granted' ? 'Permission granted.' : `Permission: ${p}`);
+  }
+
+  const vapidPublic = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
+
+  async function enableWebPush() {
+    setPushMsg('');
+    if (!vapidPublic) {
+      setPushMsg(
+        'Not configured: set VITE_VAPID_PUBLIC_KEY on the frontend and VAPID keys on the API (see README).'
+      );
+      return;
+    }
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      setPushMsg('Web Push is not supported in this browser.');
+      return;
+    }
+    try {
+      const swUrl = `${import.meta.env.BASE_URL}sw.js`.replace(/\/+/g, '/');
+      const reg = await navigator.serviceWorker.register(swUrl);
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') {
+        setPushMsg(`Notifications: ${perm}`);
+        return;
+      }
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublic),
+      });
+      await api.post('/auth/push-subscribe', { subscription: sub.toJSON() });
+      setPushMsg(
+        'Saved. You can get reminders when this app is closed if the API runs scheduled POST /api/cron/push-reminders (see README).'
+      );
+    } catch (e) {
+      setPushMsg(apiErr(e));
+    }
+  }
+
+  async function disableWebPush() {
+    setPushMsg('');
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await api.request({
+          method: 'DELETE',
+          url: '/auth/push-unsubscribe',
+          data: { endpoint: sub.endpoint },
+        });
+        await sub.unsubscribe();
+      }
+      setPushMsg('Push disabled on this device.');
+    } catch (e) {
+      setPushMsg(apiErr(e));
+    }
   }
 
   async function saveUsername() {
@@ -252,7 +309,7 @@ export default function Settings() {
   function copyPublicLink() {
     const slug = publicProfileSlug.trim().toLowerCase();
     if (!slug || !publicProfileEnabled) return;
-    const url = `${window.location.origin}/u/${encodeURIComponent(slug)}`;
+    const url = `${siteOriginPrefix()}/u/${encodeURIComponent(slug)}`;
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(url).then(
         () => setPublicProfileMsg('Link copied.'),
@@ -428,7 +485,7 @@ export default function Settings() {
           Profile URL
         </label>
         <div className="mb-2 flex flex-wrap items-center gap-2 text-sm text-slate-400">
-          <span className="font-mono text-slate-500">{window.location.origin}/u/</span>
+          <span className="font-mono text-slate-500">{siteOriginPrefix()}/u/</span>
           <input
             id="public-slug"
             type="text"
@@ -497,6 +554,32 @@ export default function Settings() {
           Enable browser notifications
         </button>
         {notifStatus ? <p className="mb-4 text-xs text-slate-500">{notifStatus}</p> : null}
+
+        <div className="mb-6 rounded-xl border border-slate-700 bg-surface-elevated/40 p-4">
+          <p className="text-sm font-medium text-white">Push when app is closed</p>
+          <p className="mt-1 text-xs text-slate-500">
+            Uses Web Push + a service worker. Your backend must call{' '}
+            <code className="text-slate-400">POST /api/cron/push-reminders</code> every minute with{' '}
+            <code className="text-slate-400">Authorization: Bearer CRON_SECRET</code>.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={enableWebPush}
+              className="rounded-lg border border-slate-600 px-3 py-2 text-xs text-white"
+            >
+              Register this device for push
+            </button>
+            <button
+              type="button"
+              onClick={disableWebPush}
+              className="rounded-lg border border-slate-600 px-3 py-2 text-xs text-slate-400"
+            >
+              Remove push on this device
+            </button>
+          </div>
+          {pushMsg ? <p className="mt-2 text-xs text-slate-500">{pushMsg}</p> : null}
+        </div>
 
         <label className="flex items-center gap-3 py-2">
           <input

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:gh-pages": "vite build && cp dist/index.html dist/404.html && touch dist/.nojekyll",
     "preview": "vite preview",
     "vercel": "vercel",
     "deploy": "npm run build && vercel",

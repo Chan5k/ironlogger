@@ -13,6 +13,17 @@ const userSchema = new mongoose.Schema(
     isAdmin: { type: Boolean, default: false },
     publicProfileEnabled: { type: Boolean, default: false },
     publicProfileSlug: { type: String, trim: true, lowercase: true },
+    /** Web Push subscriptions for reminder notifications when the app is closed */
+    pushSubscriptions: [
+      {
+        endpoint: { type: String, required: true },
+        keys: {
+          p256dh: { type: String, default: '' },
+          auth: { type: String, default: '' },
+        },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );

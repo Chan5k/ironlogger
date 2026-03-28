@@ -1,9 +1,12 @@
 import { Router } from 'express';
-import { param, validationResult } from 'express-validator';
+import { param, query, validationResult } from 'express-validator';
 import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Workout from '../models/Workout.js';
 import ShareLink from '../models/ShareLink.js';
+import ProfileFollow from '../models/ProfileFollow.js';
+import ProfileWallEntry from '../models/ProfileWallEntry.js';
+import { optionalAuth } from '../middleware/optionalAuth.js';
 
 const router = Router();
 
@@ -65,6 +68,8 @@ router.get('/profile/:slug', param('slug').trim().notEmpty(), async (req, res) =
     ]),
   ]);
 
+  const followerCount = await ProfileFollow.countDocuments({ targetUserId: uid });
+
   res.json({
     profile: {
       name: user.name || 'Athlete',
@@ -75,8 +80,53 @@ router.get('/profile/:slug', param('slug').trim().notEmpty(), async (req, res) =
       totalWorkouts,
       workoutsLast30Days: monthCount,
       estimatedTotalVolume: Math.round(volumeAgg[0]?.totalVolume ?? 0),
+      followerCount,
     },
   });
 });
+
+router.get(
+  '/profile/:slug/wall',
+  optionalAuth,
+  param('slug').trim().notEmpty(),
+  query('limit').optional().isInt({ min: 1, max: 100 }),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const slug = String(req.params.slug).toLowerCase().trim();
+    const target = await User.findOne({
+      publicProfileEnabled: true,
+      publicProfileSlug: slug,
+    })
+      .select('_id')
+      .lean();
+    if (!target) return res.status(404).json({ error: 'Profile not found' });
+
+    const limit = Number(req.query.limit) || 40;
+    const entries = await ProfileWallEntry.find({ targetUserId: target._id })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .populate('authorId', 'name')
+      .lean();
+
+    const viewerId = req.user?.id;
+    const ownerId = target._id.toString();
+    res.json({
+      items: entries.map((e) => {
+        const authorId = e.authorId?._id?.toString() || e.authorId?.toString?.() || '';
+        const canDelete =
+          !!viewerId && (viewerId === ownerId || viewerId === authorId);
+        return {
+          id: e._id,
+          kind: e.kind,
+          body: e.kind === 'comment' ? e.body : '',
+          authorName: e.authorId?.name || 'Member',
+          createdAt: e.createdAt,
+          canDelete,
+        };
+      }),
+    });
+  }
+);
 
 export default router;

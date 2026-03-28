@@ -100,24 +100,38 @@ npm start --prefix server
 
 Serve the `client/dist` static files with Express, nginx, or a CDN, and set `CLIENT_URL` to your real front-end origin for CORS.
 
+## GitHub Pages (static client + API elsewhere)
+
+The SPA is built with Vite `base` and React Router `basename` set from **`VITE_BASE_PATH`** so assets and routes work under `https://YOUR_USER.github.io/REPO_NAME/`.
+
+1. **API server `CLIENT_URL`** — Add your Pages origin (no path is enough for CORS if you use the default; if CORS rejects, include the full origin GitHub shows, e.g. `https://YOUR_USER.github.io`, or add both `https://YOUR_USER.github.io` and `https://YOUR_USER.github.io/REPO_NAME` as comma-separated origins depending on how the browser sends `Origin`).
+2. **GitHub Actions** — Workflow **Deploy client to GitHub Pages** (`.github/workflows/deploy-github-pages.yml`):
+   - **Settings → Pages → Source: GitHub Actions.**
+   - **Secrets:** `VITE_API_URL` = API origin only, e.g. `https://my-api.onrender.com` (the client will call `…/api/...`).
+   - Optional: `VITE_VAPID_PUBLIC_KEY` (same value as server `VAPID_PUBLIC_KEY`).
+   - Optional **repository variable** `VITE_BASE_PATH` to override the default (`/REPO/` for normal repos, `/` for `*.github.io` user sites).
+3. **SPA deep links** — The workflow copies `index.html` to **`404.html`** and adds **`.nojekyll`** so client-side routes work on refresh.
+4. **Manual build:** `VITE_BASE_PATH=/your-repo/ VITE_API_URL=https://your-api.com npm run build:gh-pages --prefix client` then upload `client/dist` to the `gh-pages` branch or Pages artifact.
+
 ## Features
 
 | Feature | Notes |
 |--------|--------|
 | Sign up / login | JWT stored in `localStorage`; Bearer token on API calls |
-| Dashboard | Totals, weekly/monthly counts, estimated volume, recent workouts |
+| Dashboard | Totals, weekly/monthly counts, estimated volume, **streak** + **training days (last 7)** (by profile timezone), **this week volume by muscle category**, recent workouts |
 | Workouts | Create, edit, delete; per-workout **notes**; sets (weight, reps, done); mark **complete** (progress charts use completed sessions) |
 | Exercise library | Categories; built-in seed list; **custom** exercises (edit/delete own); optional **demo video** (HTTPS YouTube/Vimeo embed). **Seed** attaches demos to ~27 staple lifts (bench, squat, deadlift, row, pulldown, hip thrust, etc.). Admins can still edit **built-in** demo URLs |
 | Share workouts & plans | **Share link** from a workout or plan (list or edit screen). Public preview at **`/share/:token`**; signed-in users can **save a copy** (import). API: `GET /api/public/share/:token` (no auth), `POST /api/share/...` (auth) |
 | Plans / templates | Build plans from the library; **Start workout** pre-fills sets |
-| Progress | Line charts: max weight, total reps, volume per session |
-| Reminders | Saved on your profile; **browser notifications** when the tab/app is open (interval check). On iPhone, add to **Home Screen** for a better PWA-like experience; full background push needs extra setup |
+| Progress | Line charts: max weight, total reps, volume per session; **estimated 1RM** (Epley + Brzycki from best completed set, with caveats) |
+| Reminders | Saved on your profile; **browser notifications** when the tab/app is open (interval check). Optional **Web Push** when the app is closed (`VAPID` + `CRON_SECRET` + `POST /api/cron/push-reminders` every minute from a scheduler) |
 | Activity | Manual **steps**, **active calories**, **exercise minutes** per day + small chart |
-| Rest timer | While a session is **in progress**, ticking **Done** starts a countdown (60–180s presets, custom default in local storage); optional short tone at zero |
+| Rest timer | While a session is **in progress**, ticking **Done** starts a countdown (60–180s presets, custom default in local storage); optional **tone** and **vibration** at zero (where the OS allows) |
 | PR hints | **Weight PR** badge when a **completed** non–warm-up set beats your prior max on that exercise (completed history; current workout excluded from baseline) |
 | Warm-up sets | **Set type** warm-up (existing) plus **+ Warm-up set** shortcut; warm-ups excluded from volume/progress (unchanged) |
 | Offline queue | Failed **workout** saves (create/update/delete/complete) can be **queued** and replayed when online; header **Sync** banner inside the app |
-| Public profile | Optional `/u/:slug` page: **display name**, **weight unit**, aggregate stats only (no email or workout detail) — enable in **Settings** |
+| Public profile | Optional `/u/:slug`: stats + **follower count**; **wall** (kudos once per visitor, comments with daily limit); **follow** / **Following** feed shows **high-level** activity only (session counts, no workout titles). Enable in **Settings** |
+| Statistics | **Volume by category** (same muscle buckets as dashboard week view); longer windows than dashboard |
 
 ## HealthKit / Apple Health
 
@@ -162,8 +176,11 @@ webapp1/
 - `GET /api/public/share/:token` — public snapshot for shared workout or plan (no auth)  
 - `POST /api/share/workouts/:id`, `POST /api/share/templates/:id` — create share token; `POST /api/share/import-workout`, `POST /api/share/import-template` — save a copy; `DELETE /api/share/:token` — revoke (owner)  
 - `GET/POST/PUT/DELETE /api/templates`, `POST /api/workouts/from-template/:templateId`  
-- `GET/POST/PUT/DELETE /api/workouts`, `GET /api/workouts/summary`, `GET /api/workouts/progress/:exerciseId`, `POST /api/workouts/pr-baselines` (PR baselines for listed exercises)  
+- `GET/POST/PUT/DELETE /api/workouts`, `GET /api/workouts/summary` (includes `streak`), `GET /api/workouts/stats/muscles?days=`, `GET /api/workouts/progress/:exerciseId` (includes `estimatedOneRM`), `POST /api/workouts/pr-baselines`  
+- `POST /api/auth/push-subscribe`, `DELETE /api/auth/push-unsubscribe` (body: `{ endpoint }`)  
+- `POST /api/cron/push-reminders` — `Authorization: Bearer <CRON_SECRET>`; sends Web Push to users whose reminder time matches (requires `VAPID_*`)  
+- `GET /api/social/profile/:slug/status` (optional auth), `POST/DELETE /api/social/follow/:slug`, `GET /api/social/feed`, `POST /api/social/wall/:slug`, `DELETE /api/social/wall/:slug/:entryId`  
 - `GET /api/activity`, `PUT /api/activity/:dayKey` (`dayKey` = `YYYY-MM-DD`)  
-- `GET /api/public/profile/:slug` (no auth; only if user enabled public profile)  
+- `GET /api/public/profile/:slug`, `GET /api/public/profile/:slug/wall` (optional auth on wall for `canDelete` flags)  
 
 All authenticated routes expect: `Authorization: Bearer <token>`.

@@ -37,6 +37,7 @@ const emptySet = (type = 'normal') => ({
 });
 
 const REST_SOUND_KEY = 'ironlog_rest_sound';
+const REST_HAPTIC_KEY = 'ironlog_rest_haptic';
 
 export default function WorkoutEdit() {
   const { id } = useParams();
@@ -64,6 +65,13 @@ export default function WorkoutEdit() {
   const [restSoundEnabled, setRestSoundEnabled] = useState(() => {
     try {
       return localStorage.getItem(REST_SOUND_KEY) !== '0';
+    } catch {
+      return true;
+    }
+  });
+  const [restHapticEnabled, setRestHapticEnabled] = useState(() => {
+    try {
+      return localStorage.getItem(REST_HAPTIC_KEY) !== '0';
     } catch {
       return true;
     }
@@ -114,6 +122,14 @@ export default function WorkoutEdit() {
       /* ignore */
     }
   }, [restSoundEnabled]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(REST_HAPTIC_KEY, restHapticEnabled ? '1' : '0');
+    } catch {
+      /* ignore */
+    }
+  }, [restHapticEnabled]);
 
   useEffect(() => {
     (async () => {
@@ -659,15 +675,28 @@ export default function WorkoutEdit() {
               </button>
             ))}
           </div>
-          <label className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              checked={restSoundEnabled}
-              onChange={(e) => setRestSoundEnabled(e.target.checked)}
-              className="h-5 w-5 accent-accent"
-            />
-            <span className="text-sm text-slate-300">Play a short tone when rest hits zero</span>
-          </label>
+          <div className="space-y-2">
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={restSoundEnabled}
+                onChange={(e) => setRestSoundEnabled(e.target.checked)}
+                className="h-5 w-5 accent-accent"
+              />
+              <span className="text-sm text-slate-300">Play a short tone when rest hits zero</span>
+            </label>
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={restHapticEnabled}
+                onChange={(e) => setRestHapticEnabled(e.target.checked)}
+                className="h-5 w-5 accent-accent"
+              />
+              <span className="text-sm text-slate-300">
+                Vibration when rest ends (supported phones / PWAs only)
+              </span>
+            </label>
+          </div>
         </div>
       ) : null}
 
@@ -932,6 +961,7 @@ export default function WorkoutEdit() {
         onSkip={() => setRestSecondsLeft(0)}
         onAddSeconds={(n) => setRestSecondsLeft((s) => s + n)}
         soundEnabled={restSoundEnabled}
+        hapticEnabled={restHapticEnabled}
       />
 
       {pickerFor !== null ? (

@@ -24,13 +24,22 @@ export default function RestTimerBar({
   onSkip,
   onAddSeconds,
   soundEnabled,
+  hapticEnabled = true,
 }) {
   const prevRef = useRef(secondsLeft);
 
   useEffect(() => {
     const prev = prevRef.current;
     prevRef.current = secondsLeft;
-    if (!soundEnabled || secondsLeft !== 0 || prev === 0) return;
+    if (secondsLeft !== 0 || prev === 0) return;
+    if (hapticEnabled && typeof navigator !== 'undefined' && navigator.vibrate) {
+      try {
+        navigator.vibrate([60, 40, 60]);
+      } catch {
+        /* iOS may ignore */
+      }
+    }
+    if (!soundEnabled) return;
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const o = ctx.createOscillator();
@@ -45,7 +54,7 @@ export default function RestTimerBar({
     } catch {
       /* ignore */
     }
-  }, [secondsLeft, soundEnabled]);
+  }, [secondsLeft, soundEnabled, hapticEnabled]);
 
   if (secondsLeft <= 0) return null;
 

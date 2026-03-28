@@ -20,6 +20,7 @@ import AdminUsers from './pages/AdminUsers.jsx';
 import AdminUserDetail from './pages/AdminUserDetail.jsx';
 import PublicProfile from './pages/PublicProfile.jsx';
 import ShareView from './pages/ShareView.jsx';
+import FollowingFeed from './pages/FollowingFeed.jsx';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -61,6 +62,7 @@ export default function App() {
         <Route path="progress" element={<Progress />} />
         <Route path="statistics" element={<Statistics />} />
         <Route path="activity" element={<Activity />} />
+        <Route path="following" element={<FollowingFeed />} />
         <Route path="settings" element={<Settings />} />
         <Route path="admin" element={<AdminRoute />}>
           <Route index element={<AdminUsers />} />

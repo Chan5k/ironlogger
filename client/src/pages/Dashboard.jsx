@@ -16,9 +16,22 @@ function fmtDate(d) {
   });
 }
 
+const CAT_ORDER = ['chest', 'back', 'shoulders', 'arms', 'legs', 'core', 'cardio', 'other'];
+const CAT_LABEL = {
+  chest: 'Chest',
+  back: 'Back',
+  shoulders: 'Shoulders',
+  arms: 'Arms',
+  legs: 'Legs',
+  core: 'Core',
+  cardio: 'Cardio',
+  other: 'Other',
+};
+
 export default function Dashboard() {
   const weightUnit = useWeightUnit();
   const [summary, setSummary] = useState(null);
+  const [muscleWeek, setMuscleWeek] = useState(null);
   const [recent, setRecent] = useState([]);
   const [err, setErr] = useState('');
 
@@ -26,12 +39,14 @@ export default function Dashboard() {
     let alive = true;
     (async () => {
       try {
-        const [s, w] = await Promise.all([
+        const [s, m, w] = await Promise.all([
           api.get('/workouts/summary'),
+          api.get('/workouts/stats/muscles?days=7'),
           api.get('/workouts?limit=5'),
         ]);
         if (!alive) return;
         setSummary(s.data);
+        setMuscleWeek(m.data);
         setRecent(w.data.workouts || []);
       } catch (e) {
         if (alive) setErr(e.response?.data?.error || 'Failed to load');
@@ -61,6 +76,13 @@ export default function Dashboard() {
       ? Math.round(summary.estimatedTotalVolume * LBS_PER_KG)
       : summary.estimatedTotalVolume;
 
+  const weekVolumes = CAT_ORDER.map((k) => {
+    const raw = muscleWeek?.categories?.[k]?.volume ?? 0;
+    const v = weightUnit === 'kg' ? raw : Math.round(raw * LBS_PER_KG);
+    return { key: k, label: CAT_LABEL[k], volume: v };
+  }).filter((x) => x.volume > 0);
+  const weekVolMax = Math.max(1, ...weekVolumes.map((x) => x.volume));
+
   return (
     <div className="space-y-6">
       <div>
@@ -89,6 +111,48 @@ export default function Dashboard() {
           <p className="mt-1 text-[10px] text-slate-600">Warm-up sets excluded</p>
         </div>
       </div>
+
+      {summary.streak ? (
+        <div className="rounded-2xl border border-slate-800 bg-surface-card p-4">
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Consistency</p>
+          <p className="mt-1 text-sm text-slate-300">
+            <span className="font-semibold text-white">{summary.streak.currentDays}</span>-day streak
+            {summary.streak.currentDays > 0 ? '' : ' — log a workout today or yesterday to start one'}
+          </p>
+          <p className="mt-2 text-sm text-slate-400">
+            Trained on{' '}
+            <span className="font-mono text-slate-200">{summary.streak.trainingDaysLast7}</span> of the
+            last 7 calendar days (by your profile timezone).
+          </p>
+        </div>
+      ) : null}
+
+      {weekVolumes.length > 0 ? (
+        <div className="rounded-2xl border border-slate-800 bg-surface-card p-4">
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+            This week — volume by category
+          </p>
+          <p className="mb-3 mt-1 text-[11px] text-slate-600">
+            Rolling 7 days; {weightUnit}×reps; warm-up sets excluded. Same data as Statistics.
+          </p>
+          <ul className="space-y-2">
+            {weekVolumes.map((row) => (
+              <li key={row.key}>
+                <div className="mb-0.5 flex justify-between text-xs text-slate-400">
+                  <span>{row.label}</span>
+                  <span className="font-mono text-slate-300">{row.volume.toLocaleString()}</span>
+                </div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-slate-800">
+                  <div
+                    className="h-full rounded-full bg-accent/80"
+                    style={{ width: `${(row.volume / weekVolMax) * 100}%` }}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <div className="rounded-2xl border border-slate-800 bg-surface-card p-4">
         <p className="text-xs text-slate-500">Last session</p>

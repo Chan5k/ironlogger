@@ -3,6 +3,14 @@ import { body, param, query, validationResult } from 'express-validator';
 import mongoose from 'mongoose';
 import Workout, { SET_TYPES } from '../models/Workout.js';
 import Exercise, { EXERCISE_CATEGORIES } from '../models/Exercise.js';
+import User from '../models/User.js';
+import { bestEstimated1RMFromSets } from '../lib/estimated1RM.js';
+import {
+  addCalendarDays,
+  computeCurrentStreak,
+  countTrainingDaysInRollingWindow,
+  dateKeyInTimeZone,
+} from '../lib/trainingStreak.js';
 import WorkoutTemplate from '../models/WorkoutTemplate.js';
 import { authRequired } from '../middleware/auth.js';
 
@@ -42,7 +50,10 @@ router.get('/summary', async (req, res) => {
   const monthAgo = new Date(now);
   monthAgo.setDate(monthAgo.getDate() - 30);
 
-  const [totalWorkouts, weekCount, monthCount, lastWorkout, volumeAgg] = await Promise.all([
+  const me = await User.findById(req.user.id).select('timezone').lean();
+  const tz = me?.timezone || 'UTC';
+
+  const [totalWorkouts, weekCount, monthCount, lastWorkout, volumeAgg, completedDates] = await Promise.all([
     Workout.countDocuments({ userId: req.user.id, completedAt: { $ne: null } }),
     Workout.countDocuments({
       userId: req.user.id,
@@ -73,15 +84,33 @@ router.get('/summary', async (req, res) => {
         },
       },
     ]),
+    Workout.find({
+      userId: req.user.id,
+      completedAt: { $ne: null },
+    })
+      .select('completedAt')
+      .lean(),
   ]);
 
   const totalVolume = volumeAgg[0]?.totalVolume ?? 0;
+  const trainingDays = new Set(
+    (completedDates || []).map((w) => dateKeyInTimeZone(new Date(w.completedAt), tz))
+  );
+  const todayKey = dateKeyInTimeZone(now, tz);
+  const yesterdayKey = addCalendarDays(todayKey, -1);
+  const currentStreak = computeCurrentStreak(trainingDays, todayKey, yesterdayKey);
+  const trainingDaysLast7 = countTrainingDaysInRollingWindow(trainingDays, todayKey, 7);
+
   res.json({
     totalWorkouts,
     workoutsThisWeek: weekCount,
     workoutsThisMonth: monthCount,
     lastWorkout,
     estimatedTotalVolume: Math.round(totalVolume),
+    streak: {
+      currentDays: currentStreak,
+      trainingDaysLast7,
+    },
   });
 });
 
@@ -181,6 +210,7 @@ router.get('/progress/:exerciseId', param('exerciseId').isMongoId(), async (req,
     .lean();
 
   const points = [];
+  let best1RM = null;
   for (const w of workouts) {
     const ex = w.exercises.find((x) => x.exerciseId?.toString() === eid);
     if (!ex || !ex.sets?.length) continue;
@@ -196,8 +226,24 @@ router.get('/progress/:exerciseId', param('exerciseId').isMongoId(), async (req,
       volume,
       sets: countSets.length,
     });
+    const sessionBest = bestEstimated1RMFromSets(ex.sets, isCountingSet);
+    if (
+      sessionBest &&
+      (!best1RM || sessionBest.combined > best1RM.combined)
+    ) {
+      best1RM = sessionBest;
+    }
   }
-  res.json({ points });
+
+  const estimatedOneRM = best1RM
+    ? {
+        ...best1RM,
+        caveat:
+          'Estimates from a single top set (Epley and Brzycki). Not a true max test; technique and fatigue matter.',
+      }
+    : null;
+
+  res.json({ points, estimatedOneRM });
 });
 
 /**

@@ -10,6 +10,8 @@ import activityRoutes from './routes/activity.js';
 import adminRoutes from './routes/admin.js';
 import publicRoutes from './routes/public.js';
 import shareRoutes from './routes/share.js';
+import socialRoutes from './routes/social.js';
+import cronRoutes from './routes/cron.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -46,6 +48,8 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/public', publicRoutes);
 app.use('/api/share', shareRoutes);
+app.use('/api/social', socialRoutes);
+app.use('/api/cron', cronRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/exercises', exerciseRoutes);
 app.use('/api/workouts', workoutRoutes);

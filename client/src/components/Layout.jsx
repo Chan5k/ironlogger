@@ -17,6 +17,7 @@ const navBase = [
   { to: appPath('progress'), label: 'Progress' },
   { to: appPath('statistics'), label: 'Statistics' },
   { to: appPath('activity'), label: 'Activity' },
+  { to: appPath('following'), label: 'Following' },
   { to: appPath('settings'), label: 'Settings' },
 ];
 
