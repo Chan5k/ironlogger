@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   LineChart,
   Line,
@@ -12,6 +12,12 @@ import {
 import api from '../api/client.js';
 import { useWeightUnit } from '../hooks/useWeightUnit.js';
 import { kgToLbs, LBS_PER_KG } from '../utils/weightUnits.js';
+import {
+  filterExercisesByQuery,
+  groupExercisesByCategory,
+} from '../utils/exercisePickerFilter.js';
+
+const LISTBOX_ID = 'progress-exercise-suggestions';
 
 function fmtShort(d) {
   return new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -21,6 +27,12 @@ export default function Progress() {
   const weightUnit = useWeightUnit();
   const [exercises, setExercises] = useState([]);
   const [selectedId, setSelectedId] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const wrapRef = useRef(null);
+  const inputRef = useRef(null);
+
   const [points, setPoints] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -57,6 +69,78 @@ export default function Progress() {
     };
   }, [selectedId]);
 
+  const filtered = useMemo(
+    () => filterExercisesByQuery(exercises, searchQuery),
+    [exercises, searchQuery]
+  );
+
+  const groupedFiltered = useMemo(() => groupExercisesByCategory(filtered), [filtered]);
+
+  useEffect(() => {
+    const onDoc = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        setPickerOpen(false);
+        setActiveIndex(-1);
+      }
+    };
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('touchstart', onDoc, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('touchstart', onDoc);
+    };
+  }, []);
+
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [searchQuery]);
+
+  const selected = exercises.find((e) => e._id === selectedId);
+
+  function pickExercise(ex) {
+    setSelectedId(ex._id);
+    setSearchQuery('');
+    setPickerOpen(false);
+    setActiveIndex(-1);
+    inputRef.current?.blur();
+  }
+
+  function clearSelection() {
+    setSelectedId('');
+    setPoints([]);
+    setSearchQuery('');
+    setPickerOpen(false);
+    inputRef.current?.focus();
+  }
+
+  function onSearchKeyDown(e) {
+    if (!pickerOpen || !searchQuery.trim()) {
+      if (e.key === 'Escape') {
+        setPickerOpen(false);
+        inputRef.current?.blur();
+      }
+      return;
+    }
+    const n = filtered.length;
+    if (n === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIndex((i) => (i < n - 1 ? i + 1 : 0));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIndex((i) => (i <= 0 ? n - 1 : i - 1));
+    } else if (e.key === 'Enter' && activeIndex >= 0 && activeIndex < n) {
+      e.preventDefault();
+      pickExercise(filtered[activeIndex]);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setPickerOpen(false);
+      setActiveIndex(-1);
+    }
+  }
+
+  const showSuggestions = pickerOpen && searchQuery.trim().length > 0;
   const chartPoints = useMemo(() => {
     if (weightUnit === 'kg') return points;
     return points.map((p) => ({
@@ -65,8 +149,6 @@ export default function Progress() {
       volume: p.volume * LBS_PER_KG,
     }));
   }, [points, weightUnit]);
-
-  const selected = exercises.find((e) => e._id === selectedId);
 
   const fmtWt = (v) =>
     `${typeof v === 'number' ? (Number.isInteger(v) ? v : v.toFixed(1)) : v} ${weightUnit}`;
@@ -83,34 +165,125 @@ export default function Progress() {
         </p>
       </div>
 
-      <div>
-        <label className="mb-1 block text-xs text-slate-500">Exercise</label>
-        <select
-          value={selectedId}
-          onChange={(e) => setSelectedId(e.target.value)}
-          className="w-full rounded-xl border border-slate-700 bg-surface-card px-4 py-3 text-white"
-        >
-          <option value="">Select…</option>
-          {exercises.map((e) => (
-            <option key={e._id} value={e._id}>
-              {e.name} ({e.category})
-            </option>
-          ))}
-        </select>
-      </div>
+      <div className="space-y-3">
+        <label className="mb-1 block text-xs text-slate-500" htmlFor="progress-exercise-search">
+          Exercise
+        </label>
 
-      {selected ? (
-        <p className="text-sm text-slate-400">
-          Tracking <span className="text-white">{selected.name}</span>
-        </p>
-      ) : null}
+        {selected ? (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-700 bg-surface-card px-4 py-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-slate-500">Selected</p>
+              <p className="truncate font-medium text-white">
+                {selected.name}{' '}
+                <span className="font-normal text-slate-500">({selected.category})</span>
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={clearSelection}
+              className="shrink-0 rounded-lg border border-slate-600 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
+            >
+              Clear
+            </button>
+          </div>
+        ) : null}
+
+        <div ref={wrapRef} className="relative">
+          <input
+            ref={inputRef}
+            id="progress-exercise-search"
+            type="search"
+            enterKeyHint="search"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            role="combobox"
+            aria-expanded={showSuggestions}
+            aria-controls={showSuggestions ? LISTBOX_ID : undefined}
+            aria-activedescendant={
+              showSuggestions && activeIndex >= 0 && filtered[activeIndex]
+                ? `progress-ex-opt-${filtered[activeIndex]._id}`
+                : undefined
+            }
+            placeholder={
+              selected
+                ? 'Search to pick a different exercise…'
+                : 'Type name or category — matches update as you type'
+            }
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPickerOpen(true);
+            }}
+            onFocus={() => setPickerOpen(true)}
+            onKeyDown={onSearchKeyDown}
+            className="min-h-[48px] w-full rounded-xl border border-slate-700 bg-surface-card px-4 py-3 text-base text-white placeholder:text-slate-500 outline-none focus:border-accent"
+          />
+
+          {searchQuery.trim() ? (
+            <p className="mt-1 text-xs text-slate-500">
+              {filtered.length} match{filtered.length !== 1 ? 'es' : ''}
+            </p>
+          ) : null}
+
+          {showSuggestions ? (
+          <div
+            id={LISTBOX_ID}
+            role="listbox"
+            className="absolute left-0 right-0 top-full z-30 mt-1 max-h-[min(50vh,22rem)] overflow-y-auto overscroll-contain rounded-xl border border-slate-700 bg-surface-card py-2 shadow-xl"
+          >
+            {filtered.length === 0 ? (
+              <p className="px-4 py-6 text-center text-sm text-slate-500">
+                No exercises match &quot;{searchQuery.trim()}&quot;. Try fewer words or a category
+                like chest or legs.
+              </p>
+            ) : (
+              Object.entries(groupedFiltered)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([cat, list]) => (
+                  <div key={cat}>
+                    <p className="sticky top-0 bg-surface-card px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      {cat}
+                    </p>
+                    <ul className="px-1 pb-2">
+                      {list.map((e) => {
+                        const idx = filtered.findIndex((x) => x._id === e._id);
+                        const isActive = idx === activeIndex;
+                        return (
+                          <li key={e._id}>
+                            <button
+                              type="button"
+                              role="option"
+                              id={`progress-ex-opt-${e._id}`}
+                              aria-selected={isActive}
+                              className={`w-full rounded-lg px-3 py-3 text-left text-sm text-white sm:py-2.5 ${
+                                isActive ? 'bg-surface-elevated ring-1 ring-slate-600/60' : 'hover:bg-surface-elevated/80'
+                              }`}
+                              onMouseEnter={() => setActiveIndex(idx)}
+                              onClick={() => pickExercise(e)}
+                            >
+                              <span className="font-medium">{e.name}</span>
+                              <span className="ml-2 text-xs text-slate-500">{e.category}</span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))
+            )}
+          </div>
+        ) : null}
+        </div>
+      </div>
 
       {loading ? (
         <p className="text-slate-500">Loading chart…</p>
       ) : points.length === 0 && selectedId ? (
         <p className="text-slate-500">No completed sessions with this exercise yet.</p>
       ) : points.length === 0 ? (
-        <p className="text-slate-500">Choose an exercise to see charts.</p>
+        <p className="text-slate-500">Search and choose an exercise to see charts.</p>
       ) : (
         <div className="space-y-8">
           <div className="h-64 w-full rounded-2xl border border-slate-800 bg-surface-card p-2">
