@@ -10,11 +10,28 @@ import activityRoutes from './routes/activity.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
+
+/** Comma-separated list, e.g. https://app.vercel.app,http://localhost:5173 */
+function corsOrigins() {
+  const raw = process.env.CLIENT_URL || 'http://localhost:5173';
+  return String(raw)
+    .split(',')
+    .map((s) => s.trim().replace(/\/$/, ''))
+    .filter(Boolean);
+}
+
+const allowedOrigins = corsOrigins();
 
 app.use(
   cors({
-    origin: CLIENT_URL,
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      const normalized = origin.replace(/\/$/, '');
+      if (allowedOrigins.includes(normalized)) {
+        return callback(null, true);
+      }
+      callback(null, false);
+    },
     credentials: true,
   })
 );

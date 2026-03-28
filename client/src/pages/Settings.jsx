@@ -37,7 +37,7 @@ function scheduleLocalReminder(enabled, timeStr, daySet, userName) {
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, '1');
 
-    new Notification('IronLog workout reminder', {
+    new Notification('IronLogger workout reminder', {
       body: userName ? `Time to train, ${userName}` : 'Time for your scheduled workout.',
       tag: 'ironlog-daily',
     });
@@ -47,8 +47,31 @@ function scheduleLocalReminder(enabled, timeStr, daySet, userName) {
   reminderTimer = setInterval(tick, 30_000);
 }
 
+function apiErr(e) {
+  const d = e?.response?.data;
+  if (Array.isArray(d?.errors)) {
+    return d.errors.map((x) => x.msg || x.message).filter(Boolean).join(' ') || 'Request failed';
+  }
+  return d?.error || e?.message || 'Something went wrong';
+}
+
 export default function Settings() {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, setToken } = useAuth();
+  const [displayName, setDisplayName] = useState('');
+  const [nameBusy, setNameBusy] = useState(false);
+  const [nameMsg, setNameMsg] = useState('');
+
+  const [newEmail, setNewEmail] = useState('');
+  const [emailPw, setEmailPw] = useState('');
+  const [emailBusy, setEmailBusy] = useState(false);
+  const [emailMsg, setEmailMsg] = useState('');
+
+  const [pwCurrent, setPwCurrent] = useState('');
+  const [pwNew, setPwNew] = useState('');
+  const [pwConfirm, setPwConfirm] = useState('');
+  const [pwBusy, setPwBusy] = useState(false);
+  const [pwMsg, setPwMsg] = useState('');
+
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [reminderTime, setReminderTime] = useState('18:00');
   const [reminderDays, setReminderDays] = useState([1, 3, 5]);
@@ -60,6 +83,7 @@ export default function Settings() {
   useEffect(() => {
     if (!user || initialized.current) return;
     initialized.current = true;
+    setDisplayName(user.name || '');
     setReminderEnabled(!!user.reminderEnabled);
     setReminderTime(user.reminderTime || '18:00');
     setReminderDays(
@@ -83,6 +107,91 @@ export default function Settings() {
     }
     const p = await Notification.requestPermission();
     setNotifStatus(p === 'granted' ? 'Permission granted.' : `Permission: ${p}`);
+  }
+
+  async function saveUsername() {
+    setNameMsg('');
+    const n = displayName.trim();
+    if (!n) {
+      setNameMsg('Username cannot be empty');
+      return;
+    }
+    setNameBusy(true);
+    try {
+      await api.patch('/auth/me', { name: n });
+      await refreshUser();
+      setNameMsg('Username updated.');
+    } catch (e) {
+      setNameMsg(apiErr(e));
+    } finally {
+      setNameBusy(false);
+    }
+  }
+
+  async function saveEmailChange() {
+    setEmailMsg('');
+    const em = newEmail.trim().toLowerCase();
+    if (!em) {
+      setEmailMsg('Enter a new email address');
+      return;
+    }
+    if (user?.email && em === user.email.toLowerCase()) {
+      setEmailMsg('That is already your email');
+      return;
+    }
+    if (!emailPw) {
+      setEmailMsg('Enter your current password');
+      return;
+    }
+    setEmailBusy(true);
+    try {
+      const { data } = await api.patch('/auth/me', {
+        email: em,
+        currentPassword: emailPw,
+      });
+      if (data.token) setToken(data.token, data.user);
+      else await refreshUser();
+      setNewEmail('');
+      setEmailPw('');
+      setEmailMsg('Email updated.');
+    } catch (e) {
+      setEmailMsg(apiErr(e));
+    } finally {
+      setEmailBusy(false);
+    }
+  }
+
+  async function savePasswordChange() {
+    setPwMsg('');
+    if (!pwCurrent) {
+      setPwMsg('Enter your current password');
+      return;
+    }
+    if (pwNew.length < 8) {
+      setPwMsg('New password must be at least 8 characters');
+      return;
+    }
+    if (pwNew !== pwConfirm) {
+      setPwMsg('New passwords do not match');
+      return;
+    }
+    setPwBusy(true);
+    try {
+      const { data } = await api.patch('/auth/me', {
+        currentPassword: pwCurrent,
+        newPassword: pwNew,
+      });
+      if (data.token) setToken(data.token, data.user);
+      else await refreshUser();
+      setPwCurrent('');
+      setPwNew('');
+      setPwConfirm('');
+      setPwMsg('Password updated.');
+    } catch (e) {
+      setPwMsg(apiErr(e));
+    } finally {
+      setPwBusy(false);
+    }
   }
 
   async function savePrefs() {
@@ -111,8 +220,123 @@ export default function Settings() {
     <div className="space-y-8">
       <div>
         <h1 className="text-xl font-bold text-white">Settings</h1>
-        <p className="text-sm text-slate-400">Reminders and preferences</p>
+        <p className="text-sm text-slate-400">Account, reminders, and preferences</p>
       </div>
+
+      <section className="rounded-2xl border border-slate-800 bg-surface-card p-4">
+        <h2 className="mb-2 font-semibold text-white">Account</h2>
+        <p className="mb-4 text-sm text-slate-400">
+          Signed in as <span className="text-slate-200">{user?.email}</span>
+        </p>
+
+        <div className="space-y-6 border-b border-slate-800 pb-6">
+          <div>
+            <label className="mb-1 block text-xs text-slate-500">Username</label>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+              <input
+                type="text"
+                autoComplete="username"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                maxLength={120}
+                className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-surface px-4 py-3 text-white outline-none focus:border-accent"
+              />
+              <button
+                type="button"
+                onClick={saveUsername}
+                disabled={nameBusy}
+                className="rounded-xl bg-surface-elevated px-4 py-3 text-sm font-medium text-white ring-1 ring-slate-600/60 disabled:opacity-50"
+              >
+                {nameBusy ? 'Saving…' : 'Save username'}
+              </button>
+            </div>
+            {nameMsg ? (
+              <p
+                className={`mt-2 text-xs ${nameMsg.includes('updated') ? 'text-emerald-400' : 'text-red-400'}`}
+              >
+                {nameMsg}
+              </p>
+            ) : null}
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs text-slate-500">New email</label>
+            <input
+              type="email"
+              autoComplete="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="mb-2 w-full rounded-xl border border-slate-700 bg-surface px-4 py-3 text-white outline-none focus:border-accent"
+            />
+            <label className="mb-1 block text-xs text-slate-500">Current password (required)</label>
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={emailPw}
+              onChange={(e) => setEmailPw(e.target.value)}
+              className="mb-2 w-full rounded-xl border border-slate-700 bg-surface px-4 py-3 text-white outline-none focus:border-accent"
+            />
+            <button
+              type="button"
+              onClick={saveEmailChange}
+              disabled={emailBusy}
+              className="w-full rounded-xl bg-surface-elevated py-2.5 text-sm font-medium text-white ring-1 ring-slate-600/60 disabled:opacity-50 sm:w-auto sm:px-6"
+            >
+              {emailBusy ? 'Updating…' : 'Update email'}
+            </button>
+            {emailMsg ? (
+              <p
+                className={`mt-2 text-xs ${emailMsg.includes('updated') ? 'text-emerald-400' : 'text-red-400'}`}
+              >
+                {emailMsg}
+              </p>
+            ) : null}
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs text-slate-500">Current password</label>
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={pwCurrent}
+              onChange={(e) => setPwCurrent(e.target.value)}
+              className="mb-2 w-full rounded-xl border border-slate-700 bg-surface px-4 py-3 text-white outline-none focus:border-accent"
+            />
+            <label className="mb-1 block text-xs text-slate-500">New password (min 8)</label>
+            <input
+              type="password"
+              autoComplete="new-password"
+              value={pwNew}
+              onChange={(e) => setPwNew(e.target.value)}
+              className="mb-2 w-full rounded-xl border border-slate-700 bg-surface px-4 py-3 text-white outline-none focus:border-accent"
+            />
+            <label className="mb-1 block text-xs text-slate-500">Confirm new password</label>
+            <input
+              type="password"
+              autoComplete="new-password"
+              value={pwConfirm}
+              onChange={(e) => setPwConfirm(e.target.value)}
+              className="mb-2 w-full rounded-xl border border-slate-700 bg-surface px-4 py-3 text-white outline-none focus:border-accent"
+            />
+            <button
+              type="button"
+              onClick={savePasswordChange}
+              disabled={pwBusy}
+              className="w-full rounded-xl bg-surface-elevated py-2.5 text-sm font-medium text-white ring-1 ring-slate-600/60 disabled:opacity-50 sm:w-auto sm:px-6"
+            >
+              {pwBusy ? 'Updating…' : 'Update password'}
+            </button>
+            {pwMsg ? (
+              <p
+                className={`mt-2 text-xs ${pwMsg.includes('updated') ? 'text-emerald-400' : 'text-red-400'}`}
+              >
+                {pwMsg}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      </section>
 
       <section className="rounded-2xl border border-slate-800 bg-surface-card p-4">
         <h2 className="mb-2 font-semibold text-white">Weight unit</h2>
@@ -151,7 +375,7 @@ export default function Settings() {
         <h2 className="mb-2 font-semibold text-white">Workout reminders</h2>
         <p className="mb-4 text-sm text-slate-400">
           Browser notifications when this app is open (or in background on supported devices). Add
-          IronLog to your Home Screen on iPhone for better background behavior. Apple does not
+          IronLogger to your Home Screen on iPhone for better background behavior. Apple does not
           expose HealthKit to Safari; see Activity for manual logging.
         </p>
 

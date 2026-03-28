@@ -24,7 +24,12 @@ router.post(
   '/register',
   body('email').isEmail().normalizeEmail(),
   body('password').isLength({ min: 8 }),
-  body('name').optional().trim(),
+  body('name')
+    .trim()
+    .notEmpty()
+    .withMessage('Username is required')
+    .isLength({ min: 1, max: 120 })
+    .withMessage('Username must be 1–120 characters'),
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -36,7 +41,7 @@ router.post(
       return res.status(409).json({ error: 'Email already registered' });
     }
     const passwordHash = await bcrypt.hash(password, 12);
-    const user = await User.create({ email, passwordHash, name: name || '' });
+    const user = await User.create({ email, passwordHash, name: name.trim() });
     const token = jwt.sign(
       { sub: user._id.toString(), email: user.email },
       process.env.JWT_SECRET,
@@ -86,7 +91,10 @@ router.get('/me', authRequired, async (req, res) => {
 router.patch(
   '/me',
   authRequired,
-  body('name').optional().trim(),
+  body('name').optional().trim().notEmpty().withMessage('Username cannot be empty').isLength({ max: 120 }),
+  body('email').optional().isEmail().normalizeEmail(),
+  body('currentPassword').optional().isString(),
+  body('newPassword').optional().isLength({ min: 8 }),
   body('reminderEnabled').optional().isBoolean(),
   body('reminderTime').optional().matches(/^\d{2}:\d{2}$/),
   body('reminderDays').optional().isArray(),
@@ -99,17 +107,72 @@ router.patch(
     }
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
-    const { name, reminderEnabled, reminderTime, reminderDays, timezone, weightUnit } = req.body;
-    if (name !== undefined) user.name = name;
+
+    const {
+      name,
+      email: emailRaw,
+      currentPassword,
+      newPassword,
+      reminderEnabled,
+      reminderTime,
+      reminderDays,
+      timezone,
+      weightUnit,
+    } = req.body;
+
+    let emailChanged = false;
+
+    if (emailRaw !== undefined) {
+      const normalized = String(emailRaw).toLowerCase().trim();
+      if (normalized !== user.email) {
+        if (!currentPassword) {
+          return res.status(400).json({ error: 'Current password is required to change email' });
+        }
+        if (!(await bcrypt.compare(currentPassword, user.passwordHash))) {
+          return res.status(401).json({ error: 'Current password is incorrect' });
+        }
+        const taken = await User.findOne({ email: normalized, _id: { $ne: user._id } });
+        if (taken) {
+          return res.status(409).json({ error: 'That email is already in use' });
+        }
+        user.email = normalized;
+        emailChanged = true;
+      }
+    }
+
+    const changingPassword = newPassword !== undefined && newPassword !== '';
+    if (changingPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({ error: 'Current password is required to set a new password' });
+      }
+      if (!(await bcrypt.compare(currentPassword, user.passwordHash))) {
+        return res.status(401).json({ error: 'Current password is incorrect' });
+      }
+      user.passwordHash = await bcrypt.hash(newPassword, 12);
+    }
+
+    if (name !== undefined) {
+      user.name = name.trim();
+    }
     if (reminderEnabled !== undefined) user.reminderEnabled = reminderEnabled;
     if (reminderTime !== undefined) user.reminderTime = reminderTime;
     if (reminderDays !== undefined) user.reminderDays = reminderDays;
     if (timezone !== undefined) user.timezone = timezone;
     if (weightUnit !== undefined) user.weightUnit = weightUnit;
+
     await user.save();
-    res.json({
-      user: userPayload(user),
-    });
+
+    const issueNewToken = emailChanged || changingPassword;
+    const payload = { user: userPayload(user) };
+    if (issueNewToken) {
+      payload.token = jwt.sign(
+        { sub: user._id.toString(), email: user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: '14d' }
+      );
+    }
+
+    res.json(payload);
   }
 );
 
