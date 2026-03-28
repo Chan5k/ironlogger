@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema(
     reminderDays: [{ type: Number, min: 0, max: 6 }],
     timezone: { type: String, default: 'UTC' },
     weightUnit: { type: String, enum: ['kg', 'lbs'], default: 'kg' },
+    isAdmin: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

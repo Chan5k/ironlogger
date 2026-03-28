@@ -7,6 +7,7 @@ import exerciseRoutes from './routes/exercises.js';
 import workoutRoutes from './routes/workouts.js';
 import templateRoutes from './routes/templates.js';
 import activityRoutes from './routes/activity.js';
+import adminRoutes from './routes/admin.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -46,6 +47,7 @@ app.use('/api/exercises', exerciseRoutes);
 app.use('/api/workouts', workoutRoutes);
 app.use('/api/templates', templateRoutes);
 app.use('/api/activity', activityRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

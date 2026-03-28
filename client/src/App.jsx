@@ -15,6 +15,9 @@ import Progress from './pages/Progress.jsx';
 import Statistics from './pages/Statistics.jsx';
 import Settings from './pages/Settings.jsx';
 import Activity from './pages/Activity.jsx';
+import AdminRoute from './components/AdminRoute.jsx';
+import AdminUsers from './pages/AdminUsers.jsx';
+import AdminUserDetail from './pages/AdminUserDetail.jsx';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -55,6 +58,10 @@ export default function App() {
         <Route path="statistics" element={<Statistics />} />
         <Route path="activity" element={<Activity />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="admin" element={<AdminRoute />}>
+          <Route index element={<AdminUsers />} />
+          <Route path="users/:userId" element={<AdminUserDetail />} />
+        </Route>
         <Route path="*" element={<Navigate to={APP_BASE} replace />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

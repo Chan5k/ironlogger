@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import { authRequired } from '../middleware/auth.js';
+import { userIsAdmin } from '../config/admin.js';
 
 const router = Router();
 
@@ -17,6 +18,7 @@ function userPayload(user) {
     reminderDays: user.reminderDays,
     timezone: user.timezone,
     weightUnit: user.weightUnit === 'lbs' ? 'lbs' : 'kg',
+    isAdmin: userIsAdmin(user),
   };
 }
 

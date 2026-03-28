@@ -1,8 +1,9 @@
+import { useMemo } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { appPath } from '../constants/routes.js';
 
-const nav = [
+const navBase = [
   { to: appPath(), label: 'Home', end: true },
   { to: appPath('workouts'), label: 'Workouts' },
   { to: appPath('library'), label: 'Library' },
@@ -24,6 +25,13 @@ function navClass({ isActive }) {
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  const nav = useMemo(() => {
+    if (user?.isAdmin) {
+      return [...navBase, { to: appPath('admin'), label: 'Admin' }];
+    }
+    return navBase;
+  }, [user?.isAdmin]);
 
   return (
     <div className="flex min-h-screen flex-col">
