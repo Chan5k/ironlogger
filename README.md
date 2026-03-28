@@ -1,4 +1,4 @@
-# IronLog — Gym workout tracker
+# IronLog — Gym workout tracker for mobile and desktop apps
 
 Full-stack app for logging exercises, sets, reps, and weight; viewing progress charts; managing custom workout plans; and optional daily reminders. Built for **mobile Safari** (responsive layout, safe areas, 16px inputs to avoid iOS zoom).
 
