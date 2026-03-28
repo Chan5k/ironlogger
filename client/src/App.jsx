@@ -18,6 +18,7 @@ import Activity from './pages/Activity.jsx';
 import AdminRoute from './components/AdminRoute.jsx';
 import AdminUsers from './pages/AdminUsers.jsx';
 import AdminUserDetail from './pages/AdminUserDetail.jsx';
+import PublicProfile from './pages/PublicProfile.jsx';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -38,6 +39,7 @@ export default function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/u/:slug" element={<PublicProfile />} />
       <Route
         path={`${APP_BASE}/*`}
         element={

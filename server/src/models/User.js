@@ -11,8 +11,12 @@ const userSchema = new mongoose.Schema(
     timezone: { type: String, default: 'UTC' },
     weightUnit: { type: String, enum: ['kg', 'lbs'], default: 'kg' },
     isAdmin: { type: Boolean, default: false },
+    publicProfileEnabled: { type: Boolean, default: false },
+    publicProfileSlug: { type: String, trim: true, lowercase: true },
   },
   { timestamps: true }
 );
+
+userSchema.index({ publicProfileSlug: 1 }, { unique: true, sparse: true });
 
 export default mongoose.model('User', userSchema);

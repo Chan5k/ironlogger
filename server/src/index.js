@@ -8,6 +8,7 @@ import workoutRoutes from './routes/workouts.js';
 import templateRoutes from './routes/templates.js';
 import activityRoutes from './routes/activity.js';
 import adminRoutes from './routes/admin.js';
+import publicRoutes from './routes/public.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -42,6 +43,7 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true });
 });
 
+app.use('/api/public', publicRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/exercises', exerciseRoutes);
 app.use('/api/workouts', workoutRoutes);

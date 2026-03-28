@@ -1,7 +1,14 @@
 import axios from 'axios';
 
-/** Production: set VITE_API_URL to API origin (e.g. https://xxx.onrender.com). Local dev uses Vite proxy → /api. */
+/**
+ * Production / preview: set VITE_API_URL to API origin (e.g. https://xxx.onrender.com).
+ * Vite dev (`npm run dev`): always `/api` → proxy to localhost:5000 so `.env.local` from Vercel
+ * (which often sets VITE_API_URL to production) does not break local registration/API calls.
+ */
 function apiBaseURL() {
+  if (import.meta.env.DEV) {
+    return '/api';
+  }
   const env = import.meta.env.VITE_API_URL;
   if (env && String(env).trim()) {
     const origin = String(env).replace(/\/$/, '');
@@ -24,3 +31,5 @@ export function setAuthToken(token) {
 }
 
 export default api;
+
+

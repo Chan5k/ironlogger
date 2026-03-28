@@ -200,6 +200,60 @@ router.get('/progress/:exerciseId', param('exerciseId').isMongoId(), async (req,
   res.json({ points });
 });
 
+/**
+ * Max completed weight per exercise (non-warmup sets only), from completed workouts.
+ * Targets: { exerciseId?: string, name?: string } — match by exerciseId when set, else by name for custom-only exercises.
+ */
+router.post(
+  '/pr-baselines',
+  body('targets').isArray({ min: 0, max: 200 }),
+  body('targets.*.exerciseId').optional().isMongoId(),
+  body('targets.*.name').optional().trim(),
+  body('excludeWorkoutId').optional().isMongoId(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const { targets, excludeWorkoutId } = req.body;
+
+    const match = {
+      userId: new mongoose.Types.ObjectId(req.user.id),
+      completedAt: { $ne: null },
+    };
+    if (excludeWorkoutId) {
+      match._id = { $ne: new mongoose.Types.ObjectId(excludeWorkoutId) };
+    }
+    const workouts = await Workout.find(match).select('exercises').lean();
+
+    const baselines = targets.map((t) => {
+      const eid =
+        t.exerciseId && mongoose.Types.ObjectId.isValid(t.exerciseId)
+          ? String(t.exerciseId)
+          : null;
+      const nameKey = (t.name || '').trim().toLowerCase();
+      let maxWeight = 0;
+      for (const w of workouts) {
+        for (const ex of w.exercises || []) {
+          const byId = eid && ex.exerciseId?.toString() === eid;
+          const byName =
+            !eid &&
+            nameKey &&
+            (ex.exerciseId == null || ex.exerciseId === undefined) &&
+            (ex.name || '').trim().toLowerCase() === nameKey;
+          if (!byId && !byName) continue;
+          for (const s of ex.sets || []) {
+            if (!isCountingSet(s) || !s.completed) continue;
+            const wv = Number(s.weight) || 0;
+            if (wv > maxWeight) maxWeight = wv;
+          }
+        }
+      }
+      return { maxWeight };
+    });
+
+    res.json({ baselines });
+  }
+);
+
 router.get('/:id', param('id').isMongoId(), async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });

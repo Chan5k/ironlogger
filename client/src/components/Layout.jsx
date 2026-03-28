@@ -1,7 +1,13 @@
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { appPath } from '../constants/routes.js';
+import api from '../api/client.js';
+import {
+  flushOfflineQueue,
+  getOfflineQueueLength,
+  OFFLINE_QUEUE_EVENT,
+} from '../utils/offlineQueue.js';
 
 const navBase = [
   { to: appPath(), label: 'Home', end: true },
@@ -25,6 +31,38 @@ function navClass({ isActive }) {
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [offlinePending, setOfflinePending] = useState(0);
+  const [offlineFlushing, setOfflineFlushing] = useState(false);
+
+  const refreshOfflinePending = useCallback(() => {
+    setOfflinePending(getOfflineQueueLength());
+  }, []);
+
+  useEffect(() => {
+    refreshOfflinePending();
+    window.addEventListener(OFFLINE_QUEUE_EVENT, refreshOfflinePending);
+    return () => window.removeEventListener(OFFLINE_QUEUE_EVENT, refreshOfflinePending);
+  }, [refreshOfflinePending]);
+
+  const runOfflineFlush = useCallback(async () => {
+    setOfflineFlushing(true);
+    try {
+      await flushOfflineQueue(api);
+    } finally {
+      setOfflineFlushing(false);
+      refreshOfflinePending();
+    }
+  }, [refreshOfflinePending]);
+
+  useEffect(() => {
+    const onOnline = () => {
+      if (typeof navigator !== 'undefined' && navigator.onLine && getOfflineQueueLength() > 0) {
+        runOfflineFlush();
+      }
+    };
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, [runOfflineFlush]);
 
   const nav = useMemo(() => {
     if (user?.isAdmin) {
@@ -72,6 +110,22 @@ export default function Layout() {
           </div>
         </nav>
       </header>
+
+      {offlinePending > 0 ? (
+        <div className="border-b border-amber-900/60 bg-amber-950/40 px-4 py-2 text-center text-sm text-amber-200">
+          <span className="mr-2">
+            {offlinePending} workout change{offlinePending !== 1 ? 's' : ''} waiting to sync.
+          </span>
+          <button
+            type="button"
+            disabled={offlineFlushing || (typeof navigator !== 'undefined' && !navigator.onLine)}
+            onClick={() => runOfflineFlush()}
+            className="font-medium text-amber-100 underline decoration-amber-500/60 underline-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {offlineFlushing ? 'Syncing…' : 'Sync now'}
+          </button>
+        </div>
+      ) : null}
 
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-4">
         <Outlet />

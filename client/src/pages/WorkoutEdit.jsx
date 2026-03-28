@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../api/client.js';
 import { appPath } from '../constants/routes.js';
@@ -17,8 +17,24 @@ import {
   addMinutesToLocalDatetime,
 } from '../utils/workoutDuration.js';
 import { useLiveClock } from '../hooks/useLiveClock.js';
+import RestTimerBar, {
+  readRestDurationSeconds,
+  writeRestDurationSeconds,
+} from '../components/RestTimerBar.jsx';
+import {
+  enqueueOfflineRequest,
+  isOfflineQueueableError,
+} from '../utils/offlineQueue.js';
+import PrCelebrationOverlay, { playPrFanfare } from '../components/PrCelebrationOverlay.jsx';
 
-const emptySet = () => ({ reps: 10, weight: 0, completed: false, setType: 'normal' });
+const emptySet = (type = 'normal') => ({
+  reps: 10,
+  weight: 0,
+  completed: false,
+  setType: type,
+});
+
+const REST_SOUND_KEY = 'ironlog_rest_sound';
 
 export default function WorkoutEdit() {
   const { id } = useParams();
@@ -39,6 +55,63 @@ export default function WorkoutEdit() {
   const [sessionEndedLocal, setSessionEndedLocal] = useState('');
   const [durHours, setDurHours] = useState(0);
   const [durMins, setDurMins] = useState(0);
+  const [prBaselines, setPrBaselines] = useState([]);
+  const [restSecondsLeft, setRestSecondsLeft] = useState(0);
+  const [restTotal, setRestTotal] = useState(0);
+  const [restDurationPick, setRestDurationPick] = useState(() => readRestDurationSeconds());
+  const [restSoundEnabled, setRestSoundEnabled] = useState(() => {
+    try {
+      return localStorage.getItem(REST_SOUND_KEY) !== '0';
+    } catch {
+      return true;
+    }
+  });
+  const [prCelebration, setPrCelebration] = useState(null);
+
+  const dismissPrCelebration = useCallback(() => setPrCelebration(null), []);
+
+  const restRunning = restSecondsLeft > 0;
+
+  useEffect(() => {
+    if (!restRunning) return undefined;
+    const t = setInterval(() => {
+      setRestSecondsLeft((n) => (n <= 1 ? 0 : n - 1));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [restRunning]);
+
+  useEffect(() => {
+    const targets = exercises.map((e) => ({
+      exerciseId: e.exerciseId ? String(e.exerciseId) : undefined,
+      name: e.name || '',
+    }));
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const { data } = await api.post('/workouts/pr-baselines', {
+          targets,
+          excludeWorkoutId: isNew ? undefined : id,
+        });
+        if (!cancelled && Array.isArray(data.baselines)) {
+          setPrBaselines(data.baselines);
+        }
+      } catch {
+        if (!cancelled) setPrBaselines([]);
+      }
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [exercises, id, isNew]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(REST_SOUND_KEY, restSoundEnabled ? '1' : '0');
+    } catch {
+      /* ignore */
+    }
+  }, [restSoundEnabled]);
 
   useEffect(() => {
     (async () => {
@@ -66,7 +139,7 @@ export default function WorkoutEdit() {
           exerciseId: null,
           name: 'Exercise',
           category: 'other',
-          sets: [emptySet(), emptySet(), emptySet()],
+          sets: [emptySet('normal'), emptySet('normal'), emptySet('normal')],
         },
       ]);
       return;
@@ -220,7 +293,7 @@ export default function WorkoutEdit() {
         exerciseId: null,
         name: 'Exercise',
         category: 'other',
-        sets: [emptySet(), emptySet()],
+        sets: [emptySet('normal'), emptySet('normal')],
       },
     ]);
   }
@@ -244,17 +317,40 @@ export default function WorkoutEdit() {
       const next = [...prev];
       next[exIdx] = {
         ...next[exIdx],
-        sets: [...next[exIdx].sets, emptySet()],
+        sets: [...next[exIdx].sets, emptySet('normal')],
       };
       return next;
     });
+  }
+
+  function addWarmupSet(exIdx) {
+    setExercises((prev) => {
+      const next = [...prev];
+      next[exIdx] = {
+        ...next[exIdx],
+        sets: [...next[exIdx].sets, emptySet('warmup')],
+      };
+      return next;
+    });
+  }
+
+  function beginRestAfterSet() {
+    if (!sessionInProgress) return;
+    const dur = readRestDurationSeconds();
+    setRestTotal(dur);
+    setRestSecondsLeft(dur);
+  }
+
+  function applyRestPreset(sec) {
+    const v = writeRestDurationSeconds(sec);
+    setRestDurationPick(v);
   }
 
   function removeSet(exIdx, setIdx) {
     setExercises((prev) => {
       const next = [...prev];
       const sets = next[exIdx].sets.filter((_, i) => i !== setIdx);
-      next[exIdx] = { ...next[exIdx], sets: sets.length ? sets : [emptySet()] };
+      next[exIdx] = { ...next[exIdx], sets: sets.length ? sets : [emptySet('normal')] };
       return next;
     });
   }
@@ -299,22 +395,42 @@ export default function WorkoutEdit() {
     setSaving(true);
     try {
       if (isNew) {
-        const { data } = await api.post('/workouts', {
+        const body = {
           title,
           notes,
           exercises: payloadExercises(),
           startedAt: times.startedAt,
           completedAt: times.completedAt,
-        });
-        navigate(appPath(`workouts/${data.workout._id}`), { replace: true });
+        };
+        try {
+          const { data } = await api.post('/workouts', body);
+          navigate(appPath(`workouts/${data.workout._id}`), { replace: true });
+        } catch (e) {
+          if (isOfflineQueueableError(e) && enqueueOfflineRequest({ method: 'POST', url: '/workouts', data: body })) {
+            alert(
+              'You appear offline. This workout is queued and will be created when you are back online. Keep this tab and use Sync from the app header when connected.'
+            );
+          } else {
+            throw e;
+          }
+        }
       } else {
-        await api.put(`/workouts/${id}`, {
+        const body = {
           title,
           notes,
           exercises: payloadExercises(),
           startedAt: times.startedAt,
           completedAt: times.completedAt,
-        });
+        };
+        try {
+          await api.put(`/workouts/${id}`, body);
+        } catch (e) {
+          if (isOfflineQueueableError(e) && enqueueOfflineRequest({ method: 'PUT', url: `/workouts/${id}`, data: body })) {
+            alert('Offline: changes queued. They will sync automatically when you are online, or tap Sync in the header.');
+          } else {
+            throw e;
+          }
+        }
       }
     } finally {
       setSaving(false);
@@ -324,24 +440,45 @@ export default function WorkoutEdit() {
   async function markComplete(done) {
     setSaving(true);
     try {
-      await api.put(`/workouts/${id}`, {
-        completedAt: done ? new Date().toISOString() : null,
-      });
-      const { data } = await api.get(`/workouts/${id}`);
-      const w = data.workout;
-      const startL = toDatetimeLocalValue(w.startedAt);
-      const endL = w.completedAt ? toDatetimeLocalValue(w.completedAt) : '';
-      setSessionStartedLocal(startL);
-      setSessionEndedLocal(endL);
-      if (endL) {
-        const total = diffMinutesFromLocal(startL, endL);
-        if (total != null) {
-          setDurHours(Math.floor(total / 60));
-          setDurMins(total % 60);
+      const payload = { completedAt: done ? new Date().toISOString() : null };
+      try {
+        await api.put(`/workouts/${id}`, payload);
+        const { data } = await api.get(`/workouts/${id}`);
+        const w = data.workout;
+        const startL = toDatetimeLocalValue(w.startedAt);
+        const endL = w.completedAt ? toDatetimeLocalValue(w.completedAt) : '';
+        setSessionStartedLocal(startL);
+        setSessionEndedLocal(endL);
+        if (endL) {
+          const total = diffMinutesFromLocal(startL, endL);
+          if (total != null) {
+            setDurHours(Math.floor(total / 60));
+            setDurMins(total % 60);
+          }
+        } else {
+          setDurHours(0);
+          setDurMins(0);
         }
-      } else {
-        setDurHours(0);
-        setDurMins(0);
+      } catch (e) {
+        if (isOfflineQueueableError(e) && enqueueOfflineRequest({ method: 'PUT', url: `/workouts/${id}`, data: payload })) {
+          if (done) {
+            const endL = toDatetimeLocalValue(new Date());
+            setSessionEndedLocal(endL);
+            const startL = sessionStartedLocal;
+            const total = diffMinutesFromLocal(startL, endL);
+            if (total != null) {
+              setDurHours(Math.floor(total / 60));
+              setDurMins(total % 60);
+            }
+          } else {
+            setSessionEndedLocal('');
+            setDurHours(0);
+            setDurMins(0);
+          }
+          alert('Offline: completion change queued. Sync when you are back online.');
+        } else {
+          throw e;
+        }
       }
     } finally {
       setSaving(false);
@@ -350,8 +487,17 @@ export default function WorkoutEdit() {
 
   async function deleteWorkout() {
     if (!confirm('Delete this workout permanently?')) return;
-    await api.delete(`/workouts/${id}`);
-    navigate(appPath('workouts'));
+    try {
+      await api.delete(`/workouts/${id}`);
+      navigate(appPath('workouts'));
+    } catch (e) {
+      if (isOfflineQueueableError(e) && enqueueOfflineRequest({ method: 'DELETE', url: `/workouts/${id}`, data: null })) {
+        alert('Offline: delete queued. It will run when you are online. This workout may still appear until sync.');
+        navigate(appPath('workouts'));
+      } else {
+        throw e;
+      }
+    }
   }
 
   const filteredPickerExercises = useMemo(
@@ -368,7 +514,7 @@ export default function WorkoutEdit() {
   }
 
   return (
-    <div className="space-y-6 pb-8">
+    <div className={`space-y-6 ${restRunning ? 'pb-32' : 'pb-8'}`}>
       <div className="flex flex-wrap items-center gap-2">
         <Link to={appPath('workouts')} className="text-sm text-slate-500 hover:text-white">
           ← Back
@@ -473,6 +619,41 @@ export default function WorkoutEdit() {
         </div>
       </div>
 
+      {sessionInProgress ? (
+        <div className="rounded-2xl border border-slate-800 bg-surface-card p-4">
+          <h2 className="mb-1 text-sm font-semibold text-white">Rest timer</h2>
+          <p className="mb-3 text-xs text-slate-500">
+            Starts when you tick <span className="text-slate-400">Done</span> on a set. Change the
+            default length below; use +30s on the bar if you need more time.
+          </p>
+          <div className="mb-3 flex flex-wrap gap-2">
+            {[60, 90, 120, 180].map((sec) => (
+              <button
+                key={sec}
+                type="button"
+                onClick={() => applyRestPreset(sec)}
+                className={`rounded-lg px-3 py-2 text-xs font-medium ${
+                  restDurationPick === sec
+                    ? 'bg-accent text-white'
+                    : 'border border-slate-600 text-slate-300'
+                }`}
+              >
+                {sec}s
+              </button>
+            ))}
+          </div>
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={restSoundEnabled}
+              onChange={(e) => setRestSoundEnabled(e.target.checked)}
+              className="h-5 w-5 accent-accent"
+            />
+            <span className="text-sm text-slate-300">Play a short tone when rest hits zero</span>
+          </label>
+        </div>
+      ) : null}
+
       <div>
         <label className="mb-1 block text-xs text-slate-500">Workout notes</label>
         <textarea
@@ -523,13 +704,14 @@ export default function WorkoutEdit() {
             </div>
             <p className="mb-2 text-xs text-slate-500">{ex.category}</p>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[380px] text-sm">
+              <table className="w-full min-w-[440px] text-sm">
                 <thead>
                   <tr className="text-left text-xs text-slate-500">
                     <th className="pb-2 pr-2">Set</th>
                     <th className="pb-2 pr-2">Type</th>
                     <th className="pb-2 pr-2">Wt ({weightUnit})</th>
                     <th className="pb-2 pr-2">Reps</th>
+                    <th className="pb-2 pr-2">PR</th>
                     <th className="pb-2">Done</th>
                     <th className="pb-2" />
                   </tr>
@@ -537,6 +719,13 @@ export default function WorkoutEdit() {
                 <tbody>
                   {ex.sets.map((s, si) => {
                     const st = normalizeSetType(s.setType);
+                    const base = prBaselines[exIdx];
+                    const prevMax = base?.maxWeight ?? 0;
+                    const wNum = Number(s.weight) || 0;
+                    const isWeightPr =
+                      st !== 'warmup' &&
+                      !!s.completed &&
+                      wNum > prevMax;
                     return (
                     <tr
                       key={si}
@@ -584,11 +773,41 @@ export default function WorkoutEdit() {
                           className="w-16 rounded border border-slate-700 bg-surface px-2 py-1 text-white"
                         />
                       </td>
+                      <td className="py-1 pr-2 align-middle">
+                        {isWeightPr ? (
+                          <span className="inline-flex items-center rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+                            PR
+                          </span>
+                        ) : st !== 'warmup' && s.completed && prevMax > 0 ? (
+                          <span className="text-[10px] text-slate-600" title="Prior best weight (completed, non-warmup)">
+                            max {prevMax}
+                          </span>
+                        ) : (
+                          <span className="text-slate-700">—</span>
+                        )}
+                      </td>
                       <td className="py-1">
                         <input
                           type="checkbox"
                           checked={!!s.completed}
-                          onChange={(e) => updateSet(exIdx, si, 'completed', e.target.checked)}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            if (checked) {
+                              const prevMax = prBaselines[exIdx]?.maxWeight ?? 0;
+                              const wNum = Number(s.weight) || 0;
+                              if (st !== 'warmup' && wNum > prevMax) {
+                                window.setTimeout(() => playPrFanfare(), 200);
+                                setPrCelebration({
+                                  ts: Date.now(),
+                                  exerciseName: ex.name?.trim() || 'Lift',
+                                  weight: wNum,
+                                  weightUnit,
+                                });
+                              }
+                              beginRestAfterSet();
+                            }
+                            updateSet(exIdx, si, 'completed', checked);
+                          }}
                           className="h-5 w-5 accent-accent"
                         />
                       </td>
@@ -607,13 +826,22 @@ export default function WorkoutEdit() {
                 </tbody>
               </table>
             </div>
-            <button
-              type="button"
-              onClick={() => addSet(exIdx)}
-              className="mt-2 text-xs text-accent-muted"
-            >
-              + Add set
-            </button>
+            <div className="mt-2 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => addSet(exIdx)}
+                className="text-xs text-accent-muted"
+              >
+                + Add set
+              </button>
+              <button
+                type="button"
+                onClick={() => addWarmupSet(exIdx)}
+                className="text-xs text-slate-500 hover:text-slate-300"
+              >
+                + Warm-up set
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -663,6 +891,23 @@ export default function WorkoutEdit() {
           </>
         ) : null}
       </div>
+
+      <PrCelebrationOverlay
+        key={prCelebration?.ts ?? 'closed'}
+        open={!!prCelebration}
+        exerciseName={prCelebration?.exerciseName}
+        weight={prCelebration?.weight}
+        weightUnit={prCelebration?.weightUnit}
+        onDismiss={dismissPrCelebration}
+      />
+
+      <RestTimerBar
+        secondsLeft={restSecondsLeft}
+        totalSeconds={restTotal}
+        onSkip={() => setRestSecondsLeft(0)}
+        onAddSeconds={(n) => setRestSecondsLeft((s) => s + n)}
+        soundEnabled={restSoundEnabled}
+      />
 
       {pickerFor !== null ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">

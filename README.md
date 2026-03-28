@@ -63,7 +63,9 @@ Full-stack app for logging exercises, sets, reps, and weight; viewing progress c
    npm run dev:client
    ```
 
-   Open `http://localhost:5173`. Vite proxies `/api` to the Express server.
+   Open `http://localhost:5173`. Vite proxies `/api` to the Express server. In dev mode the client
+   **always** uses that proxy (it ignores `VITE_API_URL`), so a `.env.local` aimed at production will
+   not break registration locally.
 
 ## Production build
 
@@ -86,6 +88,11 @@ Serve the `client/dist` static files with Express, nginx, or a CDN, and set `CLI
 | Progress | Line charts: max weight, total reps, volume per session |
 | Reminders | Saved on your profile; **browser notifications** when the tab/app is open (interval check). On iPhone, add to **Home Screen** for a better PWA-like experience; full background push needs extra setup |
 | Activity | Manual **steps**, **active calories**, **exercise minutes** per day + small chart |
+| Rest timer | While a session is **in progress**, ticking **Done** starts a countdown (60–180s presets, custom default in local storage); optional short tone at zero |
+| PR hints | **Weight PR** badge when a **completed** non–warm-up set beats your prior max on that exercise (completed history; current workout excluded from baseline) |
+| Warm-up sets | **Set type** warm-up (existing) plus **+ Warm-up set** shortcut; warm-ups excluded from volume/progress (unchanged) |
+| Offline queue | Failed **workout** saves (create/update/delete/complete) can be **queued** and replayed when online; header **Sync** banner inside the app |
+| Public profile | Optional `/u/:slug` page: **display name**, **weight unit**, aggregate stats only (no email or workout detail) — enable in **Settings** |
 
 ## HealthKit / Apple Health
 
@@ -128,7 +135,8 @@ webapp1/
 - `POST /api/auth/register`, `POST /api/auth/login`, `GET/PATCH /api/auth/me`  
 - `GET/POST/PATCH/DELETE /api/exercises`  
 - `GET/POST/PUT/DELETE /api/templates`, `POST /api/workouts/from-template/:templateId`  
-- `GET/POST/PUT/DELETE /api/workouts`, `GET /api/workouts/summary`, `GET /api/workouts/progress/:exerciseId`  
+- `GET/POST/PUT/DELETE /api/workouts`, `GET /api/workouts/summary`, `GET /api/workouts/progress/:exerciseId`, `POST /api/workouts/pr-baselines` (PR baselines for listed exercises)  
 - `GET /api/activity`, `PUT /api/activity/:dayKey` (`dayKey` = `YYYY-MM-DD`)  
+- `GET /api/public/profile/:slug` (no auth; only if user enabled public profile)  
 
 All authenticated routes expect: `Authorization: Bearer <token>`.

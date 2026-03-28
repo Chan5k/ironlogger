@@ -19,6 +19,8 @@ function userPayload(user) {
     timezone: user.timezone,
     weightUnit: user.weightUnit === 'lbs' ? 'lbs' : 'kg',
     isAdmin: userIsAdmin(user),
+    publicProfileEnabled: !!user.publicProfileEnabled,
+    publicProfileSlug: user.publicProfileSlug || '',
   };
 }
 
@@ -102,6 +104,15 @@ router.patch(
   body('reminderDays').optional().isArray(),
   body('timezone').optional().trim(),
   body('weightUnit').optional().isIn(['kg', 'lbs']),
+  body('publicProfileEnabled').optional().isBoolean(),
+  body('publicProfileSlug')
+    .optional()
+    .trim()
+    .notEmpty()
+    .matches(/^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$/)
+    .withMessage(
+      'Slug must be 3–32 characters: lowercase letters, numbers, hyphens; no leading/trailing hyphen'
+    ),
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -120,6 +131,8 @@ router.patch(
       reminderDays,
       timezone,
       weightUnit,
+      publicProfileEnabled,
+      publicProfileSlug,
     } = req.body;
 
     let emailChanged = false;
@@ -161,6 +174,32 @@ router.patch(
     if (reminderDays !== undefined) user.reminderDays = reminderDays;
     if (timezone !== undefined) user.timezone = timezone;
     if (weightUnit !== undefined) user.weightUnit = weightUnit;
+
+    if (publicProfileSlug !== undefined) {
+      const s = String(publicProfileSlug).toLowerCase().trim();
+      if (!s) {
+        return res.status(400).json({ error: 'Profile URL cannot be empty' });
+      }
+      const taken = await User.findOne({
+        publicProfileSlug: s,
+        _id: { $ne: user._id },
+      })
+        .select('_id')
+        .lean();
+      if (taken) {
+        return res.status(409).json({ error: 'That profile URL is already taken' });
+      }
+      user.publicProfileSlug = s;
+    }
+
+    if (publicProfileEnabled !== undefined) {
+      user.publicProfileEnabled = publicProfileEnabled;
+      if (publicProfileEnabled && !(user.publicProfileSlug || '').trim()) {
+        return res
+          .status(400)
+          .json({ error: 'Choose a profile URL (slug) before enabling a public profile' });
+      }
+    }
 
     await user.save();
 

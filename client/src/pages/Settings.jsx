@@ -78,6 +78,10 @@ export default function Settings() {
   const [notifStatus, setNotifStatus] = useState('');
   const [saving, setSaving] = useState(false);
   const [weightUnit, setWeightUnit] = useState('kg');
+  const [publicProfileEnabled, setPublicProfileEnabled] = useState(false);
+  const [publicProfileSlug, setPublicProfileSlug] = useState('');
+  const [publicProfileBusy, setPublicProfileBusy] = useState(false);
+  const [publicProfileMsg, setPublicProfileMsg] = useState('');
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -92,6 +96,8 @@ export default function Settings() {
         : [1, 3, 5]
     );
     setWeightUnit(user.weightUnit === 'lbs' ? 'lbs' : 'kg');
+    setPublicProfileEnabled(!!user.publicProfileEnabled);
+    setPublicProfileSlug(user.publicProfileSlug || '');
   }, [user]);
 
   useEffect(() => {
@@ -214,6 +220,47 @@ export default function Settings() {
     setReminderDays((prev) =>
       prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v].sort((a, b) => a - b)
     );
+  }
+
+  async function savePublicProfile() {
+    setPublicProfileMsg('');
+    const slug = publicProfileSlug.trim().toLowerCase();
+    if (publicProfileEnabled && !slug) {
+      setPublicProfileMsg('Choose a profile URL before enabling.');
+      return;
+    }
+    if (slug && !/^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$/.test(slug)) {
+      setPublicProfileMsg(
+        'URL must be 3–32 characters: lowercase letters, numbers, hyphens; no leading/trailing hyphen.'
+      );
+      return;
+    }
+    setPublicProfileBusy(true);
+    try {
+      const payload = { publicProfileEnabled };
+      if (slug) payload.publicProfileSlug = slug;
+      await api.patch('/auth/me', payload);
+      await refreshUser();
+      setPublicProfileMsg('Public profile saved.');
+    } catch (e) {
+      setPublicProfileMsg(apiErr(e));
+    } finally {
+      setPublicProfileBusy(false);
+    }
+  }
+
+  function copyPublicLink() {
+    const slug = publicProfileSlug.trim().toLowerCase();
+    if (!slug || !publicProfileEnabled) return;
+    const url = `${window.location.origin}/u/${encodeURIComponent(slug)}`;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(
+        () => setPublicProfileMsg('Link copied.'),
+        () => setPublicProfileMsg(url)
+      );
+    } else {
+      setPublicProfileMsg(url);
+    }
   }
 
   return (
@@ -369,6 +416,69 @@ export default function Settings() {
             Pounds (lbs)
           </button>
         </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-800 bg-surface-card p-4">
+        <h2 className="mb-2 font-semibold text-white">Public profile</h2>
+        <p className="mb-4 text-sm text-slate-400">
+          Share a read-only page with workout counts and estimated total volume. Your email and
+          workout details stay private.
+        </p>
+        <label className="mb-3 block text-xs text-slate-500" htmlFor="public-slug">
+          Profile URL
+        </label>
+        <div className="mb-2 flex flex-wrap items-center gap-2 text-sm text-slate-400">
+          <span className="font-mono text-slate-500">{window.location.origin}/u/</span>
+          <input
+            id="public-slug"
+            type="text"
+            autoComplete="off"
+            spellCheck={false}
+            value={publicProfileSlug}
+            onChange={(e) => setPublicProfileSlug(e.target.value.toLowerCase())}
+            placeholder="your-handle"
+            className="min-w-[8rem] flex-1 rounded-xl border border-slate-700 bg-surface px-3 py-2 font-mono text-white outline-none focus:border-accent"
+          />
+        </div>
+        <label className="mt-4 flex items-center gap-3 py-2">
+          <input
+            type="checkbox"
+            checked={publicProfileEnabled}
+            onChange={(e) => setPublicProfileEnabled(e.target.checked)}
+            className="h-5 w-5 accent-accent"
+          />
+          <span className="text-sm text-white">Make profile public</span>
+        </label>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={savePublicProfile}
+            disabled={publicProfileBusy}
+            className="rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {publicProfileBusy ? 'Saving…' : 'Save public profile'}
+          </button>
+          <button
+            type="button"
+            onClick={copyPublicLink}
+            disabled={!publicProfileEnabled || !publicProfileSlug.trim()}
+            className="rounded-xl border border-slate-600 px-4 py-2.5 text-sm text-slate-200 disabled:opacity-50"
+          >
+            Copy link
+          </button>
+        </div>
+        {publicProfileMsg ? (
+          <p
+            className={`mt-3 text-xs ${
+              /^Public profile saved\.|^Link copied\./i.test(publicProfileMsg) ||
+              publicProfileMsg.startsWith('http')
+                ? 'text-emerald-400'
+                : 'text-red-400'
+            }`}
+          >
+            {publicProfileMsg}
+          </p>
+        ) : null}
       </section>
 
       <section className="rounded-2xl border border-slate-800 bg-surface-card p-4">

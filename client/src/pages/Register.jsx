@@ -34,7 +34,11 @@ export default function Register() {
       const fromValidator = Array.isArray(d?.errors)
         ? d.errors.map((e) => e.msg || e.message).filter(Boolean).join(' ')
         : '';
-      setError(fromValidator || d?.error || 'Registration failed');
+      const network =
+        err.code === 'ERR_NETWORK' || err.message === 'Network Error'
+          ? 'Cannot reach the API. For local development, run the server on port 5000 and use the Vite app (e.g. http://localhost:5173).'
+          : '';
+      setError(fromValidator || d?.error || network || err.message || 'Registration failed');
     } finally {
       setBusy(false);
     }
