@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/client.js';
 import { appPath } from '../constants/routes.js';
+import { sharePageUrl } from '../utils/shareLink.js';
 import { formatWorkoutDuration } from '../utils/workoutDuration.js';
 import { useLiveClock } from '../hooks/useLiveClock.js';
 
@@ -36,6 +37,21 @@ export default function Workouts() {
     if (!confirm('Delete this workout?')) return;
     await api.delete(`/workouts/${id}`);
     load();
+  }
+
+  async function shareWorkout(id) {
+    try {
+      const { data } = await api.post(`/share/workouts/${id}`);
+      const url = sharePageUrl(data.token);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        alert('Share link copied to clipboard.');
+      } else {
+        window.prompt('Copy this link:', url);
+      }
+    } catch (e) {
+      alert(e.response?.data?.error || 'Could not create share link');
+    }
   }
 
   return (
@@ -77,13 +93,22 @@ export default function Workouts() {
                   <span className="mt-1 inline-block text-xs text-amber-500">Open</span>
                 )}
               </Link>
-              <button
-                type="button"
-                onClick={() => remove(w._id)}
-                className="rounded-lg px-2 py-1 text-xs text-red-400 hover:bg-red-950/40"
-              >
-                Delete
-              </button>
+              <div className="flex shrink-0 flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={() => shareWorkout(w._id)}
+                  className="rounded-lg px-2 py-1 text-xs text-slate-400 hover:bg-slate-800"
+                >
+                  Share
+                </button>
+                <button
+                  type="button"
+                  onClick={() => remove(w._id)}
+                  className="rounded-lg px-2 py-1 text-xs text-red-400 hover:bg-red-950/40"
+                >
+                  Delete
+                </button>
+              </div>
             </li>
           ))}
         </ul>

@@ -19,6 +19,7 @@ import AdminRoute from './components/AdminRoute.jsx';
 import AdminUsers from './pages/AdminUsers.jsx';
 import AdminUserDetail from './pages/AdminUserDetail.jsx';
 import PublicProfile from './pages/PublicProfile.jsx';
+import ShareView from './pages/ShareView.jsx';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -40,6 +41,7 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/u/:slug" element={<PublicProfile />} />
+      <Route path="/share/:token" element={<ShareView />} />
       <Route
         path={`${APP_BASE}/*`}
         element={

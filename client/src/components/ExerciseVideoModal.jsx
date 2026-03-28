@@ -1,0 +1,52 @@
+import { embedUrlFromVideoUrl } from '../utils/videoEmbed.js';
+
+export default function ExerciseVideoModal({ title, videoUrl, onClose }) {
+  const embed = embedUrlFromVideoUrl(videoUrl);
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/75 p-4 sm:items-center"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Exercise demonstration"
+      onClick={onClose}
+      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+    >
+      <div
+        className="w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-700 bg-surface-card shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+          <h2 className="truncate pr-2 text-sm font-semibold text-white">{title || 'Demo'}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg px-3 py-1.5 text-sm text-slate-400 hover:bg-slate-800 hover:text-white"
+          >
+            Close
+          </button>
+        </div>
+        <div className="aspect-video w-full bg-black">
+          {embed ? (
+            <iframe
+              title={title ? `${title} demonstration` : 'Exercise demonstration'}
+              src={embed}
+              className="h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center p-6 text-center text-sm text-slate-400">
+              <p>
+                This URL is not a supported embed. Use a YouTube or Vimeo link, or open the link
+                directly:{' '}
+                <a href={videoUrl} target="_blank" rel="noopener noreferrer" className="text-accent-muted underline">
+                  open video
+                </a>
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/client.js';
 import { appPath } from '../constants/routes.js';
+import { sharePageUrl } from '../utils/shareLink.js';
 
 export default function Templates() {
   const [templates, setTemplates] = useState([]);
@@ -31,6 +32,21 @@ export default function Templates() {
     if (!confirm('Delete this plan?')) return;
     await api.delete(`/templates/${id}`);
     load();
+  }
+
+  async function sharePlan(id) {
+    try {
+      const { data } = await api.post(`/share/templates/${id}`);
+      const url = sharePageUrl(data.token);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        alert('Share link copied to clipboard.');
+      } else {
+        window.prompt('Copy this link:', url);
+      }
+    } catch (e) {
+      alert(e.response?.data?.error || 'Could not create share link');
+    }
   }
 
   return (
@@ -78,6 +94,13 @@ export default function Templates() {
                 >
                   Edit
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => sharePlan(t._id)}
+                  className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-300"
+                >
+                  Share
+                </button>
                 <button
                   type="button"
                   onClick={() => remove(t._id)}

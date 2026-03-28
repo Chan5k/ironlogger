@@ -18,6 +18,8 @@ const exerciseSchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     isGlobal: { type: Boolean, default: false },
     notes: { type: String, default: '' },
+    /** HTTPS demo URL (e.g. YouTube watch or embed). Shown in library. */
+    videoUrl: { type: String, default: '', trim: true, maxlength: 500 },
   },
   { timestamps: true }
 );

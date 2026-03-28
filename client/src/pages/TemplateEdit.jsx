@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../api/client.js';
 import { appPath } from '../constants/routes.js';
+import { sharePageUrl } from '../utils/shareLink.js';
 import {
   filterExercisesByQuery,
   groupExercisesByCategory,
@@ -136,6 +137,24 @@ export default function TemplateEdit() {
     }
   }
 
+  async function sharePlanLink() {
+    if (isNew || !id) return;
+    try {
+      const { data } = await api.post(`/share/templates/${id}`);
+      const url = sharePageUrl(data.token);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        alert(
+          'Share link copied. Anyone with the link can preview; logging in lets them save a copy to their plans.'
+        );
+      } else {
+        window.prompt('Copy this link:', url);
+      }
+    } catch (e) {
+      alert(e.response?.data?.error || 'Could not create share link');
+    }
+  }
+
   const filteredTemplatePicker = useMemo(
     () => filterExercisesByQuery(library, templatePickerQuery),
     [library, templatePickerQuery]
@@ -236,14 +255,26 @@ export default function TemplateEdit() {
         ))}
       </ul>
 
-      <button
-        type="button"
-        onClick={save}
-        disabled={saving}
-        className="w-full rounded-xl bg-accent py-3 font-semibold text-white disabled:opacity-50"
-      >
-        {saving ? 'Saving…' : isNew ? 'Create plan' : 'Save plan'}
-      </button>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+        {!isNew ? (
+          <button
+            type="button"
+            onClick={sharePlanLink}
+            disabled={saving}
+            className="rounded-xl border border-slate-600 py-3 font-medium text-slate-200 disabled:opacity-50 sm:shrink-0 sm:px-6"
+          >
+            Share link
+          </button>
+        ) : null}
+        <button
+          type="button"
+          onClick={save}
+          disabled={saving}
+          className="w-full flex-1 rounded-xl bg-accent py-3 font-semibold text-white disabled:opacity-50"
+        >
+          {saving ? 'Saving…' : isNew ? 'Create plan' : 'Save plan'}
+        </button>
+      </div>
 
       {pickerOpen ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">

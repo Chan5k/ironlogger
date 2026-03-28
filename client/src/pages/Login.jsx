@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import api from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { appPath } from '../constants/routes.js';
@@ -7,6 +7,8 @@ import { appPath } from '../constants/routes.js';
 export default function Login() {
   const { setToken, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = typeof location.state?.from === 'string' ? location.state.from : null;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -19,7 +21,7 @@ export default function Login() {
     try {
       const { data } = await api.post('/auth/login', { email, password });
       setToken(data.token, data.user);
-      navigate(appPath(), { replace: true });
+      navigate(from && from.startsWith('/') ? from : appPath(), { replace: true });
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed');
     } finally {
@@ -28,7 +30,7 @@ export default function Login() {
   }
 
   if (!loading && isAuthenticated) {
-    return <Navigate to={appPath()} replace />;
+    return <Navigate to={from && from.startsWith('/') ? from : appPath()} replace />;
   }
 
   return (
@@ -83,7 +85,7 @@ export default function Login() {
       </form>
       <p className="mt-6 text-center text-sm text-slate-500">
         No account?{' '}
-        <Link to="/register" className="text-accent-muted hover:underline">
+        <Link to="/register" state={from ? { from } : undefined} className="text-accent-muted hover:underline">
           Create one
         </Link>
       </p>

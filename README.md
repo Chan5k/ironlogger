@@ -45,7 +45,9 @@ Full-stack app for logging exercises, sets, reps, and weight; viewing progress c
    npm run seed
    ```
 
-   Safe to run again; only **new** exercise names are inserted.
+   Safe to run again; only **new** exercise names are inserted. The same command also applies **demo video URLs** (HTTPS YouTube links) to a curated set of major lifts listed in `server/data/exercise-demo-videos.json`.
+
+   To refresh only those videos after editing the JSON: `npm run seed:demos`.
 
    **Data source:** names come from the public-domain [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (mapped into IronLog categories) plus extra Hevy-style titles. This is not an official Hevy export; their site does not publish a full static list.
 
@@ -105,7 +107,8 @@ Serve the `client/dist` static files with Express, nginx, or a CDN, and set `CLI
 | Sign up / login | JWT stored in `localStorage`; Bearer token on API calls |
 | Dashboard | Totals, weekly/monthly counts, estimated volume, recent workouts |
 | Workouts | Create, edit, delete; per-workout **notes**; sets (weight, reps, done); mark **complete** (progress charts use completed sessions) |
-| Exercise library | Categories; built-in seed list; **custom** exercises (edit/delete own) |
+| Exercise library | Categories; built-in seed list; **custom** exercises (edit/delete own); optional **demo video** (HTTPS YouTube/Vimeo embed). **Seed** attaches demos to ~27 staple lifts (bench, squat, deadlift, row, pulldown, hip thrust, etc.). Admins can still edit **built-in** demo URLs |
+| Share workouts & plans | **Share link** from a workout or plan (list or edit screen). Public preview at **`/share/:token`**; signed-in users can **save a copy** (import). API: `GET /api/public/share/:token` (no auth), `POST /api/share/...` (auth) |
 | Plans / templates | Build plans from the library; **Start workout** pre-fills sets |
 | Progress | Line charts: max weight, total reps, volume per session |
 | Reminders | Saved on your profile; **browser notifications** when the tab/app is open (interval check). On iPhone, add to **Home Screen** for a better PWA-like experience; full background push needs extra setup |
@@ -155,7 +158,9 @@ webapp1/
 ## API overview
 
 - `POST /api/auth/register`, `POST /api/auth/login`, `GET/PATCH /api/auth/me`  
-- `GET/POST/PATCH/DELETE /api/exercises`  
+- `GET/POST/PATCH/DELETE /api/exercises` (optional `videoUrl` on create; PATCH: owners edit custom exercises; **admins** may set `videoUrl` on built-in exercises only)  
+- `GET /api/public/share/:token` — public snapshot for shared workout or plan (no auth)  
+- `POST /api/share/workouts/:id`, `POST /api/share/templates/:id` — create share token; `POST /api/share/import-workout`, `POST /api/share/import-template` — save a copy; `DELETE /api/share/:token` — revoke (owner)  
 - `GET/POST/PUT/DELETE /api/templates`, `POST /api/workouts/from-template/:templateId`  
 - `GET/POST/PUT/DELETE /api/workouts`, `GET /api/workouts/summary`, `GET /api/workouts/progress/:exerciseId`, `POST /api/workouts/pr-baselines` (PR baselines for listed exercises)  
 - `GET /api/activity`, `PUT /api/activity/:dayKey` (`dayKey` = `YYYY-MM-DD`)  

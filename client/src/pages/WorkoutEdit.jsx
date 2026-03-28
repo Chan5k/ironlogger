@@ -26,6 +26,7 @@ import {
   isOfflineQueueableError,
 } from '../utils/offlineQueue.js';
 import PrCelebrationOverlay, { playPrFanfare } from '../components/PrCelebrationOverlay.jsx';
+import { sharePageUrl } from '../utils/shareLink.js';
 
 const emptySet = (type = 'normal') => ({
   reps: 10,
@@ -485,6 +486,24 @@ export default function WorkoutEdit() {
     }
   }
 
+  async function shareWorkoutLink() {
+    if (isNew || !id) return;
+    try {
+      const { data } = await api.post(`/share/workouts/${id}`);
+      const url = sharePageUrl(data.token);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        alert(
+          'Share link copied. Recipients can open it without an account; logging in lets them save a copy to their workouts.'
+        );
+      } else {
+        window.prompt('Copy this link:', url);
+      }
+    } catch (e) {
+      alert(e.response?.data?.error || 'Could not create share link');
+    }
+  }
+
   async function deleteWorkout() {
     if (!confirm('Delete this workout permanently?')) return;
     try {
@@ -880,6 +899,14 @@ export default function WorkoutEdit() {
               className="rounded-xl border border-slate-600 px-6 py-3 text-slate-300"
             >
               Reopen
+            </button>
+            <button
+              type="button"
+              onClick={() => shareWorkoutLink()}
+              disabled={saving}
+              className="rounded-xl border border-slate-600 px-6 py-3 text-slate-300"
+            >
+              Share link
             </button>
             <button
               type="button"

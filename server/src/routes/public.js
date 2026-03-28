@@ -3,8 +3,22 @@ import { param, validationResult } from 'express-validator';
 import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Workout from '../models/Workout.js';
+import ShareLink from '../models/ShareLink.js';
 
 const router = Router();
+
+/** Read-only preview of a shared workout or plan (no auth). */
+router.get('/share/:token', param('token').trim().isLength({ min: 10, max: 128 }), async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  const link = await ShareLink.findOne({ token: req.params.token }).lean();
+  if (!link) return res.status(404).json({ error: 'Share link not found or expired' });
+  res.json({
+    kind: link.kind,
+    snapshot: link.snapshot,
+    createdAt: link.createdAt,
+  });
+});
 
 router.get('/profile/:slug', param('slug').trim().notEmpty(), async (req, res) => {
   const errors = validationResult(req);

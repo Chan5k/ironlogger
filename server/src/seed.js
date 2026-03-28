@@ -4,6 +4,7 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 import Exercise, { EXERCISE_CATEGORIES } from './models/Exercise.js';
+import { applyExerciseDemos } from './lib/applyExerciseDemos.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = join(__dirname, '../data/seed-exercises.json');
@@ -51,12 +52,12 @@ async function seed() {
 
   if (toInsert.length === 0) {
     console.log('Library up to date:', seen.size, 'global exercises');
-    await mongoose.disconnect();
-    return;
+  } else {
+    await Exercise.insertMany(toInsert, { ordered: false });
+    console.log('Inserted', toInsert.length, 'new global exercises (' + seen.size + ' total)');
   }
 
-  await Exercise.insertMany(toInsert, { ordered: false });
-  console.log('Inserted', toInsert.length, 'new global exercises (' + seen.size + ' total)');
+  await applyExerciseDemos();
   await mongoose.disconnect();
 }
 

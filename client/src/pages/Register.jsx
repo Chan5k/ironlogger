@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import api from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { appPath } from '../constants/routes.js';
@@ -7,6 +7,8 @@ import { appPath } from '../constants/routes.js';
 export default function Register() {
   const { setToken, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = typeof location.state?.from === 'string' ? location.state.from : null;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -28,7 +30,7 @@ export default function Register() {
     try {
       const { data } = await api.post('/auth/register', { email, password, name: name.trim() });
       setToken(data.token, data.user);
-      navigate(appPath(), { replace: true });
+      navigate(from && from.startsWith('/') ? from : appPath(), { replace: true });
     } catch (err) {
       const d = err.response?.data;
       const fromValidator = Array.isArray(d?.errors)
@@ -45,7 +47,7 @@ export default function Register() {
   }
 
   if (!loading && isAuthenticated) {
-    return <Navigate to={appPath()} replace />;
+    return <Navigate to={from && from.startsWith('/') ? from : appPath()} replace />;
   }
 
   return (
@@ -117,7 +119,7 @@ export default function Register() {
       </form>
       <p className="mt-6 text-center text-sm text-slate-500">
         Already have an account?{' '}
-        <Link to="/login" className="text-accent-muted hover:underline">
+        <Link to="/login" state={from ? { from } : undefined} className="text-accent-muted hover:underline">
           Sign in
         </Link>
       </p>
