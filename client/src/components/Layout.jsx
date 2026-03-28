@@ -83,14 +83,6 @@ function IconAdmin({ className }) {
   );
 }
 
-function navClassDesktop({ isActive }) {
-  return `shrink-0 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition-colors duration-150 md:text-sm ${
-    isActive
-      ? 'bg-slate-800/55 text-white'
-      : 'text-slate-500 hover:bg-slate-800/40 hover:text-slate-200'
-  }`;
-}
-
 function mobileNavLinkClass(isActive) {
   return [
     'group relative flex w-full items-center gap-3 rounded-lg px-3 py-3 text-[15px] font-medium transition-[background-color,color] duration-150 ease-out',
@@ -99,6 +91,50 @@ function mobileNavLinkClass(isActive) {
       ? 'bg-slate-800/50 text-white'
       : 'text-slate-300 hover:bg-slate-800/35 hover:text-white',
   ].join(' ');
+}
+
+function NavSectionsList({ navSections, onNavClick }) {
+  return (
+    <div className="flex flex-col gap-6">
+      {navSections.map((section) => (
+        <div key={section.id}>
+          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-500/70">
+            {section.title}
+          </p>
+          <ul className="flex flex-col gap-2">
+            {section.items.map(({ to, label, end, Icon }) => (
+              <li key={to}>
+                <NavLink
+                  to={to}
+                  end={end}
+                  className={({ isActive }) => mobileNavLinkClass(isActive)}
+                  onClick={onNavClick}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <span
+                        className="pointer-events-none absolute left-0 top-2 bottom-2 w-[3px] rounded-r-sm bg-accent transition-opacity duration-150"
+                        style={{ opacity: isActive ? 1 : 0 }}
+                        aria-hidden
+                      />
+                      <Icon
+                        className={
+                          isActive
+                            ? 'text-accent-muted'
+                            : 'text-slate-500 transition-colors duration-150 group-hover:text-slate-300'
+                        }
+                      />
+                      <span className="relative min-w-0 flex-1">{label}</span>
+                    </>
+                  )}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function MenuIcon() {
@@ -157,11 +193,6 @@ function buildNavSections(isAdmin) {
   ];
 }
 
-/** Flat list for desktop horizontal nav (same order as sections). */
-function flattenNavSections(sections) {
-  return sections.flatMap((s) => s.items);
-}
-
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -171,7 +202,6 @@ export default function Layout() {
   const [offlineFlushing, setOfflineFlushing] = useState(false);
 
   const navSections = useMemo(() => buildNavSections(!!user?.isAdmin), [user?.isAdmin]);
-  const navFlat = useMemo(() => flattenNavSections(navSections), [navSections]);
 
   const refreshOfflinePending = useCallback(() => {
     setOfflinePending(getOfflineQueueLength());
@@ -231,8 +261,36 @@ export default function Layout() {
     navigate('/');
   }
 
+  const signOutBtnClass =
+    'w-full rounded-lg py-2 text-center text-sm font-medium text-rose-400/90 transition-colors hover:bg-slate-800/40 hover:text-rose-300 active:bg-slate-800/60';
+
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen">
+      {/* Desktop / tablet: persistent sidebar (same structure as mobile drawer) */}
+      <aside
+        className="sticky top-0 z-30 hidden h-svh min-h-0 w-56 shrink-0 flex-col border-r border-slate-800/90 bg-surface-card md:flex safe-pt safe-pb"
+        aria-label="Main navigation"
+      >
+        <div className="border-b border-slate-800/80 px-4 pb-4 pt-4">
+          <Link
+            to={appPath()}
+            className="block text-lg font-semibold tracking-tight text-white transition-colors hover:text-accent-muted focus:outline-none focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            IronLog
+          </Link>
+          {user?.name ? <p className="mt-2 text-xs font-normal text-slate-400/90">{user.name}</p> : null}
+        </div>
+        <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4" aria-label="App sections">
+          <NavSectionsList navSections={navSections} />
+        </nav>
+        <div className="mt-auto border-t border-slate-800/80 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-6">
+          <button type="button" onClick={handleSignOut} className={signOutBtnClass}>
+            Sign out
+          </button>
+        </div>
+      </aside>
+
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       {/* Mobile drawer + backdrop */}
       <div className="md:hidden" aria-hidden={!menuOpen}>
         <div
@@ -271,65 +329,23 @@ export default function Layout() {
           </div>
 
           <nav className="flex-1 overflow-y-auto px-4 py-4" aria-label="App sections">
-            <div className="flex flex-col gap-6">
-              {navSections.map((section) => (
-                <div key={section.id}>
-                  <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-500/70">
-                    {section.title}
-                  </p>
-                  <ul className="flex flex-col gap-2">
-                    {section.items.map(({ to, label, end, Icon }) => (
-                      <li key={to}>
-                        <NavLink
-                          to={to}
-                          end={end}
-                          className={({ isActive }) => mobileNavLinkClass(isActive)}
-                          onClick={() => setMenuOpen(false)}
-                        >
-                          {({ isActive }) => (
-                            <>
-                              <span
-                                className="pointer-events-none absolute left-0 top-2 bottom-2 w-[3px] rounded-r-sm bg-accent transition-opacity duration-150"
-                                style={{ opacity: isActive ? 1 : 0 }}
-                                aria-hidden
-                              />
-                              <Icon
-                                className={
-                                  isActive
-                                    ? 'text-accent-muted'
-                                    : 'text-slate-500 transition-colors duration-150 group-hover:text-slate-300'
-                                }
-                              />
-                              <span className="relative min-w-0 flex-1">{label}</span>
-                            </>
-                          )}
-                        </NavLink>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
+            <NavSectionsList navSections={navSections} onNavClick={() => setMenuOpen(false)} />
           </nav>
 
           <div className="mt-auto border-t border-slate-800/80 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-6">
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="w-full rounded-lg py-2 text-center text-sm font-medium text-rose-400/90 transition-colors hover:bg-slate-800/40 hover:text-rose-300 active:bg-slate-800/60"
-            >
+            <button type="button" onClick={handleSignOut} className={signOutBtnClass}>
               Sign out
             </button>
           </div>
         </aside>
       </div>
 
-      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-surface/95 backdrop-blur-md safe-pt">
+      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-surface/95 backdrop-blur-md safe-pt md:hidden">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <button
               type="button"
-              className="md:hidden -ml-1 rounded-lg p-2 text-slate-300 transition-colors hover:bg-slate-800/60 hover:text-white active:bg-slate-800"
+              className="-ml-1 rounded-lg p-2 text-slate-300 transition-colors hover:bg-slate-800/60 hover:text-white active:bg-slate-800"
               aria-expanded={menuOpen}
               aria-controls="mobile-navigation"
               aria-label="Open menu"
@@ -348,28 +364,11 @@ export default function Layout() {
           <button
             type="button"
             onClick={handleSignOut}
-            className="hidden shrink-0 rounded-lg px-2 py-1.5 text-sm text-slate-400 transition-colors hover:bg-slate-800/40 hover:text-white md:inline"
+            className="shrink-0 rounded-lg px-2 py-1.5 text-sm text-slate-400 transition-colors hover:bg-slate-800/40 hover:text-white"
           >
             Sign out
           </button>
         </div>
-
-        {user?.name ? (
-          <p className="mx-auto hidden max-w-4xl px-4 pb-1 text-xs text-slate-500 md:block">{user.name}</p>
-        ) : null}
-
-        <nav
-          className="mx-auto hidden max-w-4xl border-t border-slate-800/60 px-2 py-2 md:block md:px-4 md:py-2.5"
-          aria-label="Main"
-        >
-          <div className="-mx-1 flex flex-wrap gap-2 px-1 pb-0.5">
-            {navFlat.map(({ to, label, end }) => (
-              <NavLink key={to} to={to} end={end} className={navClassDesktop}>
-                {label}
-              </NavLink>
-            ))}
-          </div>
-        </nav>
       </header>
 
       {offlinePending > 0 ? (
@@ -391,6 +390,7 @@ export default function Layout() {
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-4">
         <Outlet />
       </main>
+      </div>
     </div>
   );
 }
