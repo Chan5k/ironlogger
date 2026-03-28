@@ -2,6 +2,25 @@ import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { appPath } from '../constants/routes.js';
 
+const reasons = [
+  {
+    title: 'Built for the gym floor',
+    body: 'Log sets quickly between reps—no spreadsheet tabs or notebook pages to juggle mid-session.',
+  },
+  {
+    title: 'See what actually worked',
+    body: 'Volume, frequency, and lift trends turn your history into decisions, not guesswork.',
+  },
+  {
+    title: 'Repeat good weeks',
+    body: 'Save templates and plans so strong routines are one tap away, not something you rebuild every Monday.',
+  },
+  {
+    title: 'Your log, your device',
+    body: 'Use it in the browser or install as an app; kg or lbs and optional reminders match how you train.',
+  },
+];
+
 const features = [
   {
     title: 'Live workout logging',
@@ -164,6 +183,36 @@ export default function Landing() {
               </div>
             </div>
             <AppPreview />
+          </div>
+        </section>
+
+        <section className="border-t border-slate-800/80 py-14 sm:py-16">
+          <div className="mx-auto max-w-5xl px-4">
+            <h2 className="text-center text-xl font-bold text-white sm:text-2xl">
+              Why use IronLog?
+            </h2>
+            <p className="mx-auto mt-2 max-w-2xl text-center text-sm text-slate-400 sm:text-base">
+              A training journal should make showing up easier—not add admin after every workout.
+            </p>
+            <ul className="mt-10 grid gap-4 sm:grid-cols-2">
+              {reasons.map(({ title, body }) => (
+                <li
+                  key={title}
+                  className="flex gap-4 rounded-2xl border border-slate-800/80 bg-surface-card/40 p-5 sm:p-6"
+                >
+                  <span
+                    className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/15 text-sm font-bold text-accent-muted"
+                    aria-hidden
+                  >
+                    ✓
+                  </span>
+                  <div>
+                    <h3 className="font-semibold text-white">{title}</h3>
+                    <p className="mt-1.5 text-sm leading-relaxed text-slate-400">{body}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { body, param, query, validationResult } from 'express-validator';
 import mongoose from 'mongoose';
 import Workout, { SET_TYPES } from '../models/Workout.js';
-import Exercise from '../models/Exercise.js';
+import Exercise, { EXERCISE_CATEGORIES } from '../models/Exercise.js';
 import WorkoutTemplate from '../models/WorkoutTemplate.js';
 import { authRequired } from '../middleware/auth.js';
 
@@ -84,6 +84,88 @@ router.get('/summary', async (req, res) => {
     estimatedTotalVolume: Math.round(totalVolume),
   });
 });
+
+/** Volume / sets / sessions per exercise category (non-warmup sets), completed workouts only. */
+router.get(
+  '/stats/muscles',
+  query('days').optional().isInt({ min: 1, max: 3650 }),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const daysRaw = req.query.days;
+    const now = new Date();
+    let from = null;
+    if (daysRaw !== undefined && daysRaw !== '') {
+      const d = new Date(now);
+      d.setDate(d.getDate() - Number(daysRaw));
+      from = d;
+    }
+
+    const match = {
+      userId: new mongoose.Types.ObjectId(req.user.id),
+      completedAt: { $ne: null },
+    };
+    if (from) match.startedAt = { $gte: from };
+
+    const rows = await Workout.aggregate([
+      { $match: match },
+      { $unwind: '$exercises' },
+      { $unwind: '$exercises.sets' },
+      {
+        $match: {
+          $expr: {
+            $ne: [{ $ifNull: ['$exercises.sets.setType', 'normal'] }, 'warmup'],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            workout: '$_id',
+            category: { $ifNull: ['$exercises.category', 'other'] },
+          },
+          volume: {
+            $sum: {
+              $multiply: [
+                { $ifNull: ['$exercises.sets.weight', 0] },
+                { $ifNull: ['$exercises.sets.reps', 0] },
+              ],
+            },
+          },
+          sets: { $sum: 1 },
+        },
+      },
+      {
+        $group: {
+          _id: '$_id.category',
+          volume: { $sum: '$volume' },
+          sets: { $sum: '$sets' },
+          sessions: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const categories = Object.fromEntries(
+      EXERCISE_CATEGORIES.map((c) => [c, { volume: 0, sets: 0, sessions: 0 }])
+    );
+    for (const row of rows) {
+      const key = EXERCISE_CATEGORIES.includes(row._id) ? row._id : 'other';
+      categories[key].volume += Math.round(row.volume || 0);
+      categories[key].sets += row.sets || 0;
+      categories[key].sessions += row.sessions || 0;
+    }
+
+    res.json({
+      window: {
+        days: from ? Number(daysRaw) : null,
+        from: from?.toISOString() ?? null,
+        to: now.toISOString(),
+      },
+      categories,
+    });
+  }
+);
 
 router.get('/progress/:exerciseId', param('exerciseId').isMongoId(), async (req, res) => {
   const errors = validationResult(req);

@@ -8,6 +8,7 @@ const nav = [
   { to: appPath('library'), label: 'Library' },
   { to: appPath('templates'), label: 'Plans' },
   { to: appPath('progress'), label: 'Progress' },
+  { to: appPath('statistics'), label: 'Statistics' },
   { to: appPath('activity'), label: 'Activity' },
   { to: appPath('settings'), label: 'Settings' },
 ];

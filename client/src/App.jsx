@@ -12,6 +12,7 @@ import Library from './pages/Library.jsx';
 import Templates from './pages/Templates.jsx';
 import TemplateEdit from './pages/TemplateEdit.jsx';
 import Progress from './pages/Progress.jsx';
+import Statistics from './pages/Statistics.jsx';
 import Settings from './pages/Settings.jsx';
 import Activity from './pages/Activity.jsx';
 
@@ -51,6 +52,7 @@ export default function App() {
         <Route path="templates/new" element={<TemplateEdit />} />
         <Route path="templates/:id" element={<TemplateEdit />} />
         <Route path="progress" element={<Progress />} />
+        <Route path="statistics" element={<Statistics />} />
         <Route path="activity" element={<Activity />} />
         <Route path="settings" element={<Settings />} />
         <Route path="*" element={<Navigate to={APP_BASE} replace />} />
