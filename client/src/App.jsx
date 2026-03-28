@@ -36,7 +36,7 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route
-        path={APP_BASE}
+        path={`${APP_BASE}/*`}
         element={
           <PrivateRoute>
             <Layout />

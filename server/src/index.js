@@ -35,24 +35,32 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: 'Server error' });
 });
 
-const uri = process.env.MONGODB_URI;
+const uri = process.env.MONGODB_URI?.trim();
 if (!uri) {
-  console.error('Missing MONGODB_URI');
+  console.error(
+    'Startup failed: MONGODB_URI is missing or empty. Set it in Render → Environment (or .env locally).'
+  );
   process.exit(1);
 }
-if (!process.env.JWT_SECRET) {
-  console.error('Missing JWT_SECRET');
+const jwt = process.env.JWT_SECRET?.trim();
+if (!jwt) {
+  console.error(
+    'Startup failed: JWT_SECRET is missing or empty. Set it in Render → Environment (or .env locally).'
+  );
   process.exit(1);
 }
 
 mongoose
   .connect(uri)
   .then(() => {
-    app.listen(PORT, () => {
-      console.log(`API http://localhost:${PORT}`);
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`API listening on port ${PORT}`);
     });
   })
   .catch((e) => {
-    console.error(e);
+    console.error('MongoDB connection failed:', e.message || e);
+    console.error(
+      'Check MONGODB_URI, Atlas Network Access (allow 0.0.0.0/0 or Render), and URL-encoded password if needed.'
+    );
     process.exit(1);
   });
