@@ -135,14 +135,14 @@ export default function Statistics() {
             <p className="text-xs text-slate-500">All logged history</p>
           )}
 
-          <div className="rounded-2xl border border-slate-800 bg-surface-card p-4 md:p-6">
+          <div className="rounded-[12px] border border-slate-800/80 bg-[#0e131c]/80 p-5 md:p-7">
             <BodyMuscleMap intensity={intensityByCategory} />
-            <div className="mx-auto mt-4 flex max-w-xs items-center justify-center gap-2 text-[10px] text-slate-500">
-              <span className="h-2 w-6 rounded bg-[#1e293b]" />
-              <span>Less</span>
-              <span className="h-2 flex-1 rounded bg-gradient-to-r from-[#1e293b] to-[#3b82f6]" />
-              <span>More</span>
-              <span className="h-2 w-6 rounded bg-[#3b82f6]" />
+            <div className="mx-auto mt-6 flex max-w-md items-center justify-center gap-3 rounded-lg bg-slate-900/40 px-4 py-3 text-[11px] text-slate-500 ring-1 ring-slate-800/60">
+              <span className="h-2 w-7 shrink-0 rounded-full bg-[hsl(222,16%,11%)] ring-1 ring-slate-700/50" />
+              <span className="shrink-0">Less load</span>
+              <span className="h-2 min-w-0 flex-1 rounded-full bg-gradient-to-r from-[hsl(222,16%,11%)] via-[hsl(200,28%,28%)] to-[hsl(168,52%,48%)] ring-1 ring-slate-700/40" />
+              <span className="shrink-0">More</span>
+              <span className="h-2 w-7 shrink-0 rounded-full bg-[hsl(168,52%,48%)] ring-1 ring-teal-800/40" />
             </div>
           </div>
 

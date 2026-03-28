@@ -26,6 +26,39 @@ function isCountingSet(s) {
   return normalizeSetType(s?.setType) !== 'warmup';
 }
 
+/** Non–warm-up volume (kg×reps) for completed workouts in [from, to]; if `exclusiveUpper`, use `to` as exclusive end. */
+async function volumeNonWarmupInRange(userId, from, to, exclusiveUpper = false) {
+  const range = exclusiveUpper
+    ? { $gte: from, $lt: to }
+    : { $gte: from, $lte: to };
+  const rows = await Workout.aggregate([
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(userId),
+        completedAt: { $ne: null, ...range },
+      },
+    },
+    { $unwind: '$exercises' },
+    { $unwind: '$exercises.sets' },
+    {
+      $match: {
+        $expr: {
+          $ne: [{ $ifNull: ['$exercises.sets.setType', 'normal'] }, 'warmup'],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalVolume: {
+          $sum: { $multiply: ['$exercises.sets.weight', '$exercises.sets.reps'] },
+        },
+      },
+    },
+  ]);
+  return Math.round(rows[0]?.totalVolume ?? 0);
+}
+
 router.get(
   '/',
   query('limit').optional().isInt({ min: 1, max: 100 }),
@@ -49,11 +82,26 @@ router.get('/summary', async (req, res) => {
   weekAgo.setDate(weekAgo.getDate() - 7);
   const monthAgo = new Date(now);
   monthAgo.setDate(monthAgo.getDate() - 30);
+  const twoWeeksAgo = new Date(now);
+  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+  const sixtyDaysAgo = new Date(now);
+  sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
   const me = await User.findById(req.user.id).select('timezone').lean();
   const tz = me?.timezone || 'UTC';
 
-  const [totalWorkouts, weekCount, monthCount, lastWorkout, volumeAgg, completedDates] = await Promise.all([
+  const [
+    totalWorkouts,
+    weekCount,
+    monthCount,
+    lastWorkout,
+    volumeAgg,
+    completedDates,
+    prevWeekWorkouts,
+    prevMonthWorkouts,
+    volumeThis7d,
+    volumePrev7d,
+  ] = await Promise.all([
     Workout.countDocuments({ userId: req.user.id, completedAt: { $ne: null } }),
     Workout.countDocuments({
       userId: req.user.id,
@@ -90,6 +138,16 @@ router.get('/summary', async (req, res) => {
     })
       .select('completedAt')
       .lean(),
+    Workout.countDocuments({
+      userId: req.user.id,
+      completedAt: { $ne: null, $gte: twoWeeksAgo, $lt: weekAgo },
+    }),
+    Workout.countDocuments({
+      userId: req.user.id,
+      completedAt: { $ne: null, $gte: sixtyDaysAgo, $lt: monthAgo },
+    }),
+    volumeNonWarmupInRange(req.user.id, weekAgo, now, false),
+    volumeNonWarmupInRange(req.user.id, twoWeeksAgo, weekAgo, true),
   ]);
 
   const totalVolume = volumeAgg[0]?.totalVolume ?? 0;
@@ -105,6 +163,10 @@ router.get('/summary', async (req, res) => {
     totalWorkouts,
     workoutsThisWeek: weekCount,
     workoutsThisMonth: monthCount,
+    prevWeekWorkouts,
+    prevMonthWorkouts,
+    volumeThis7d,
+    volumePrev7d,
     lastWorkout,
     estimatedTotalVolume: Math.round(totalVolume),
     streak: {

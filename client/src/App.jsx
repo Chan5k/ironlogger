@@ -21,6 +21,7 @@ import AdminUserDetail from './pages/AdminUserDetail.jsx';
 import PublicProfile from './pages/PublicProfile.jsx';
 import ShareView from './pages/ShareView.jsx';
 import FollowingFeed from './pages/FollowingFeed.jsx';
+import AddFriendInvite from './pages/AddFriendInvite.jsx';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -42,6 +43,7 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/u/:slug" element={<PublicProfile />} />
+      <Route path="/add/:slug" element={<AddFriendInvite />} />
       <Route path="/share/:token" element={<ShareView />} />
       <Route
         path={`${APP_BASE}/*`}

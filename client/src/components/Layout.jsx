@@ -7,7 +7,6 @@ import {
   Dumbbell,
   Home,
   Library,
-  LogOut,
   Menu,
   Settings,
   Shield,
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { appPath } from '../constants/routes.js';
+import UserMenu from './UserMenu.jsx';
 import api from '../api/client.js';
 import {
   flushOfflineQueue,
@@ -83,14 +83,14 @@ function NavSectionsList({ navSections, onNavClick }) {
                   {({ isActive }) => (
                     <>
                       <span
-                        className="pointer-events-none absolute left-0 top-2 bottom-2 w-[3px] rounded-r-sm bg-accent transition-opacity duration-150"
+                        className="pointer-events-none absolute left-0 top-2 bottom-2 w-[3px] rounded-r-sm bg-white/90 transition-opacity duration-150"
                         style={{ opacity: isActive ? 1 : 0 }}
                         aria-hidden
                       />
                       <Icon
                         className={
                           isActive
-                            ? 'text-accent-muted'
+                            ? 'text-slate-100'
                             : 'text-slate-500 transition-colors duration-150 group-hover:text-slate-300'
                         }
                       />
@@ -113,12 +113,6 @@ function MenuIcon() {
 
 function CloseIcon() {
   return <X className="h-6 w-6 shrink-0" strokeWidth={2} aria-hidden />;
-}
-
-function SignOutIcon() {
-  return (
-    <LogOut size={navIconSize} strokeWidth={NAV_ICON_STROKE} className="shrink-0" aria-hidden />
-  );
 }
 
 function buildNavSections(isAdmin) {
@@ -229,41 +223,47 @@ export default function Layout() {
     navigate('/');
   }
 
-  const signOutBtnClass =
-    'inline-flex w-full items-center justify-center gap-2 rounded-lg py-2 text-center text-sm font-medium text-rose-400/90 transition-colors hover:bg-slate-800/40 hover:text-rose-300 active:bg-slate-800/60';
-
   return (
-    <div className="flex min-h-screen">
-      {/* Desktop / tablet: persistent sidebar (same structure as mobile drawer) */}
-      <aside
-        className="sticky top-0 z-30 hidden h-svh min-h-0 w-56 shrink-0 flex-col border-r border-slate-800/90 bg-surface-card md:flex safe-pt safe-pb"
-        aria-label="Main navigation"
-      >
-        <div className="border-b border-slate-800/80 px-4 pb-4 pt-4">
+    <div className="flex min-h-svh flex-col bg-[#080b10]">
+      <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-slate-800/90 bg-[#0c1018]/95 px-4 backdrop-blur-md safe-pt">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <button
+            type="button"
+            className="-ml-1 rounded-lg p-2 text-slate-300 transition-colors hover:bg-slate-800/60 hover:text-white active:scale-[0.97] md:hidden"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-navigation"
+            aria-label="Open menu"
+            data-testid="mobile-menu-button"
+            onClick={() => setMenuOpen(true)}
+          >
+            <MenuIcon />
+          </button>
           <Link
             to={appPath()}
-            className="block text-lg font-semibold tracking-tight text-white transition-colors hover:text-accent-muted focus:outline-none focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-accent"
+            className="truncate text-lg font-semibold tracking-tight text-white transition-colors hover:text-slate-200 focus:outline-none focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-slate-500"
           >
             IronLog
           </Link>
-          {user?.name ? <p className="mt-2 text-xs font-normal text-slate-400/90">{user.name}</p> : null}
         </div>
-        <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4" aria-label="App sections">
+        <UserMenu onSignOut={handleSignOut} />
+      </header>
+
+      <div className="flex min-h-0 min-w-0 flex-1">
+      {/* Desktop / tablet: persistent sidebar */}
+      <aside
+        className="sticky top-0 z-30 hidden h-[calc(100svh-3.5rem)] min-h-0 w-56 shrink-0 flex-col border-r border-slate-800/90 bg-[#0e131c] md:flex"
+        aria-label="Main navigation"
+      >
+        <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-6 pt-5" aria-label="App sections">
           <NavSectionsList navSections={navSections} />
         </nav>
-        <div className="mt-auto border-t border-slate-800/80 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-6">
-          <button type="button" onClick={handleSignOut} className={signOutBtnClass}>
-            <SignOutIcon />
-            Sign out
-          </button>
-        </div>
       </aside>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-gradient-to-b from-[#0a0e14] to-[#080b10]">
       {/* Mobile drawer + backdrop */}
       <div className="md:hidden" aria-hidden={!menuOpen}>
         <div
-          className={`fixed inset-0 z-[48] bg-black/60 transition-opacity duration-200 ease-out ${
+          className={`fixed inset-0 z-[55] bg-black/60 transition-opacity duration-200 ease-out ${
             menuOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
           }`}
           onClick={() => setMenuOpen(false)}
@@ -271,7 +271,7 @@ export default function Layout() {
         />
         <aside
           id="mobile-navigation"
-          className={`fixed left-0 top-0 z-[50] flex h-full w-[min(19rem,88vw)] max-w-full flex-col border-r border-slate-800/90 bg-surface-card shadow-[4px_0_24px_rgba(0,0,0,0.35)] transition-transform duration-200 ease-out safe-pt safe-pb ${
+          className={`fixed left-0 top-0 z-[56] flex h-full w-[min(19rem,88vw)] max-w-full flex-col border-r border-slate-800/90 bg-surface-card shadow-[4px_0_24px_rgba(0,0,0,0.35)] transition-transform duration-200 ease-out safe-pt safe-pb ${
             menuOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'
           }`}
           aria-label="Main navigation"
@@ -301,46 +301,8 @@ export default function Layout() {
             <NavSectionsList navSections={navSections} onNavClick={() => setMenuOpen(false)} />
           </nav>
 
-          <div className="mt-auto border-t border-slate-800/80 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-6">
-            <button type="button" onClick={handleSignOut} className={signOutBtnClass}>
-              <SignOutIcon />
-              Sign out
-            </button>
-          </div>
         </aside>
       </div>
-
-      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-surface/95 backdrop-blur-md safe-pt md:hidden">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <button
-              type="button"
-              className="-ml-1 rounded-lg p-2 text-slate-300 transition-colors hover:bg-slate-800/60 hover:text-white active:bg-slate-800"
-              aria-expanded={menuOpen}
-              aria-controls="mobile-navigation"
-              aria-label="Open menu"
-              data-testid="mobile-menu-button"
-              onClick={() => setMenuOpen(true)}
-            >
-              <MenuIcon />
-            </button>
-            <Link
-              to={appPath()}
-              className="min-w-0 truncate text-lg font-semibold tracking-tight text-white transition-colors hover:text-accent-muted focus:outline-none focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              IronLog
-            </Link>
-          </div>
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className="inline-flex shrink-0 items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-slate-400 transition-colors hover:bg-slate-800/40 hover:text-white"
-          >
-            <LogOut size={navIconSize} strokeWidth={NAV_ICON_STROKE} className="shrink-0" aria-hidden />
-            Sign out
-          </button>
-        </div>
-      </header>
 
       {offlinePending > 0 ? (
         <div className="border-b border-amber-900/60 bg-amber-950/40 px-4 py-2 text-center text-sm text-amber-200">
@@ -358,9 +320,10 @@ export default function Layout() {
         </div>
       ) : null}
 
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-4">
+      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 md:px-6 md:py-8">
         <Outlet />
       </main>
+      </div>
       </div>
     </div>
   );

@@ -10,6 +10,12 @@ import { optionalAuth } from '../middleware/optionalAuth.js';
 
 const router = Router();
 
+function asObjectId(id) {
+  if (id == null) return id;
+  const s = String(id);
+  return mongoose.Types.ObjectId.isValid(s) ? new mongoose.Types.ObjectId(s) : id;
+}
+
 async function publicUserBySlug(slug) {
   const s = String(slug || '').toLowerCase().trim();
   if (!s) return null;
@@ -39,7 +45,7 @@ router.get(
       isOwnProfile = target._id.toString() === req.user.id;
       if (!isOwnProfile) {
         const f = await ProfileFollow.findOne({
-          followerId: req.user.id,
+          followerId: asObjectId(req.user.id),
           targetUserId: target._id,
         }).lean();
         isFollowing = !!f;
@@ -63,12 +69,28 @@ router.post('/follow/:slug', authRequired, param('slug').trim().notEmpty(), asyn
   if (target._id.toString() === req.user.id) {
     return res.status(400).json({ error: 'Cannot follow yourself' });
   }
+
+  const reciprocal = req.body?.reciprocal === true;
+
+  const me = asObjectId(req.user.id);
+  let alreadyFollowing = false;
   try {
-    await ProfileFollow.create({ followerId: req.user.id, targetUserId: target._id });
+    await ProfileFollow.create({ followerId: me, targetUserId: target._id });
   } catch (e) {
-    if (e.code === 11000) return res.status(200).json({ ok: true, already: true });
-    throw e;
+    if (e.code === 11000) alreadyFollowing = true;
+    else throw e;
   }
+
+  /** Friend-invite links: also follow back so both people appear in each other’s Following feed. */
+  if (reciprocal) {
+    try {
+      await ProfileFollow.create({ followerId: target._id, targetUserId: me });
+    } catch (e) {
+      if (e.code !== 11000) throw e;
+    }
+  }
+
+  if (alreadyFollowing) return res.status(200).json({ ok: true, already: true });
   res.status(201).json({ ok: true });
 });
 
@@ -77,15 +99,38 @@ router.delete('/follow/:slug', authRequired, param('slug').trim().notEmpty(), as
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
   const target = await publicUserBySlug(req.params.slug);
   if (!target) return res.status(404).json({ error: 'Profile not found' });
-  await ProfileFollow.deleteOne({ followerId: req.user.id, targetUserId: target._id });
+  await ProfileFollow.deleteOne({ followerId: asObjectId(req.user.id), targetUserId: target._id });
   res.status(204).send();
 });
+
+/** Unfollow by target user id (works when they have no public slug or profile is off). */
+router.delete(
+  '/following/:targetUserId',
+  authRequired,
+  param('targetUserId').isMongoId(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const tid = asObjectId(req.params.targetUserId);
+    if (tid.toString() === String(req.user.id)) {
+      return res.status(400).json({ error: 'Invalid target' });
+    }
+    const r = await ProfileFollow.deleteOne({
+      followerId: asObjectId(req.user.id),
+      targetUserId: tid,
+    });
+    if (r.deletedCount === 0) return res.status(404).json({ error: 'Not following this user' });
+    res.status(204).send();
+  }
+);
 
 const FEED_RECENT_WORKOUTS = 5;
 
 /** Activity for people you follow: session counts plus last completed workouts (title & timing only). */
 router.get('/feed', authRequired, async (req, res) => {
-  const follows = await ProfileFollow.find({ followerId: req.user.id }).select('targetUserId').lean();
+  const follows = await ProfileFollow.find({ followerId: asObjectId(req.user.id) })
+    .select('targetUserId')
+    .lean();
   const ids = follows.map((f) => f.targetUserId);
   if (!ids.length) {
     return res.json({ items: [] });
@@ -95,12 +140,10 @@ router.get('/feed', authRequired, async (req, res) => {
   since.setDate(since.getDate() - 14);
   const oidIds = ids.map((id) => new mongoose.Types.ObjectId(id));
 
-  const users = await User.find({
-    _id: { $in: ids },
-    publicProfileEnabled: true,
-  })
-    .select('name publicProfileSlug')
+  const users = await User.find({ _id: { $in: ids } })
+    .select('name publicProfileSlug publicProfileEnabled')
     .lean();
+  const userById = new Map(users.map((u) => [u._id.toString(), u]));
 
   const [agg, recentAgg] = await Promise.all([
     Workout.aggregate([
@@ -160,18 +203,24 @@ router.get('/feed', authRequired, async (req, res) => {
     ])
   );
 
-  const items = users
-    .filter((u) => u.publicProfileSlug)
-    .map((u) => {
-      const row = byUser.get(u._id.toString());
+  /** One row per follow edge, same order as ProfileFollow, so new friends always appear. */
+  const items = ids
+    .map((id) => {
+      const idStr = id.toString();
+      const u = userById.get(idStr);
+      if (!u) return null;
+      const row = byUser.get(idStr);
       return {
+        userId: idStr,
         name: u.name || 'Athlete',
-        slug: u.publicProfileSlug,
+        slug: u.publicProfileSlug || null,
+        profilePublic: !!u.publicProfileEnabled,
         completedSessionsLast14Days: row?.sessions ?? 0,
         lastCompletedAt: row?.lastCompletedAt ?? null,
-        recentWorkouts: recentByUser.get(u._id.toString()) ?? [],
+        recentWorkouts: recentByUser.get(idStr) ?? [],
       };
     })
+    .filter(Boolean)
     .sort((a, b) => {
       const ta = a.lastCompletedAt ? new Date(a.lastCompletedAt).getTime() : 0;
       const tb = b.lastCompletedAt ? new Date(b.lastCompletedAt).getTime() : 0;

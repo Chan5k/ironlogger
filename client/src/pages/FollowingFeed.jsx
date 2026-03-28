@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import api from '../api/client.js';
+import RemoveFriendDialog from '../components/RemoveFriendDialog.jsx';
 import { appPath } from '../constants/routes.js';
 import { formatWorkoutDuration } from '../utils/workoutDuration.js';
 
@@ -19,28 +20,48 @@ function fmtDay(d) {
 }
 
 export default function FollowingFeed() {
+  const location = useLocation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
+  const [removeFriend, setRemoveFriend] = useState(null);
+  const [removeBusy, setRemoveBusy] = useState(false);
+  const [removeErr, setRemoveErr] = useState('');
 
   useEffect(() => {
-    let alive = true;
+    let cancelled = false;
     (async () => {
       setLoading(true);
       setErr('');
       try {
         const { data } = await api.get('/social/feed');
-        if (alive) setItems(data.items || []);
+        if (!cancelled) setItems(data.items || []);
       } catch (e) {
-        if (alive) setErr(e.response?.data?.error || 'Could not load feed');
+        if (!cancelled) setErr(e.response?.data?.error || 'Could not load feed');
       } finally {
-        if (alive) setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
     return () => {
-      alive = false;
+      cancelled = true;
     };
-  }, []);
+  }, [location.pathname, location.key]);
+
+  async function executeRemove() {
+    const uid = removeFriend?.userId;
+    if (!uid) return;
+    setRemoveBusy(true);
+    setRemoveErr('');
+    try {
+      await api.delete(`/social/following/${encodeURIComponent(uid)}`);
+      setItems((prev) => prev.filter((i) => i.userId !== uid));
+    } catch (e) {
+      setRemoveErr(e.response?.data?.error || 'Could not remove');
+      throw e;
+    } finally {
+      setRemoveBusy(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -59,22 +80,49 @@ export default function FollowingFeed() {
         <div className="rounded-2xl border border-dashed border-slate-700 p-8 text-center text-slate-500">
           <p>You are not following anyone yet.</p>
           <p className="mt-2 text-sm">
-            Open a friend&apos;s public profile and tap <span className="text-slate-400">Follow</span>.
+            Ask them for their <span className="text-slate-400">friend invite</span> link, or open their public
+            profile and tap <span className="text-slate-400">Follow</span>.
           </p>
         </div>
       ) : null}
 
+      <RemoveFriendDialog
+        friend={removeFriend}
+        onClosed={() => {
+          setRemoveFriend(null);
+          setRemoveErr('');
+        }}
+        onRemove={executeRemove}
+        busy={removeBusy}
+        error={removeErr}
+      />
+
       <ul className="space-y-3">
         {items.map((row) => (
-          <li key={row.slug} className="rounded-xl border border-slate-800 bg-surface-card px-4 py-3">
+          <li
+            key={row.userId || row.slug || row.name}
+            className="rounded-xl border border-slate-800 bg-surface-card px-4 py-3"
+          >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <Link
-                  to={`/u/${encodeURIComponent(row.slug)}`}
-                  className="font-medium text-white hover:text-accent-muted"
-                >
-                  {row.name}
-                </Link>
+                {row.slug ? (
+                  <Link
+                    to={`/u/${encodeURIComponent(row.slug)}`}
+                    className="font-medium text-white hover:text-accent-muted"
+                  >
+                    {row.name}
+                  </Link>
+                ) : (
+                  <>
+                    <span className="font-medium text-white">{row.name}</span>
+                    <p className="mt-0.5 text-[11px] text-slate-500">
+                      No public profile URL yet — they won&apos;t appear on /u/… until they add one in Settings.
+                    </p>
+                  </>
+                )}
+                {row.slug && row.profilePublic === false ? (
+                  <p className="mt-0.5 text-[11px] text-amber-500/90">Public profile is off</p>
+                ) : null}
                 <p className="text-xs text-slate-500">
                   {row.completedSessionsLast14Days} completed session
                   {row.completedSessionsLast14Days !== 1 ? 's' : ''} (last 14 days)
@@ -83,12 +131,28 @@ export default function FollowingFeed() {
                   <p className="text-xs text-slate-600">Most recent: {fmt(row.lastCompletedAt)}</p>
                 ) : null}
               </div>
-              <Link
-                to={`/u/${encodeURIComponent(row.slug)}`}
-                className="shrink-0 rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-300"
-              >
-                Profile
-              </Link>
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                {row.slug ? (
+                  <Link
+                    to={`/u/${encodeURIComponent(row.slug)}`}
+                    className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-300"
+                  >
+                    Profile
+                  </Link>
+                ) : null}
+                {row.userId ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRemoveErr('');
+                      setRemoveFriend({ userId: row.userId, name: row.name || 'Athlete' });
+                    }}
+                    className="rounded-lg border border-rose-900/60 bg-rose-950/25 px-3 py-1.5 text-xs font-medium text-rose-300/95 transition-colors hover:bg-rose-950/45"
+                  >
+                    Remove
+                  </button>
+                ) : null}
+              </div>
             </div>
 
             {row.recentWorkouts?.length ? (

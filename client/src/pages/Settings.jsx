@@ -320,6 +320,20 @@ export default function Settings() {
     }
   }
 
+  function copyFriendInviteLink() {
+    const slug = publicProfileSlug.trim().toLowerCase();
+    if (!slug || !publicProfileEnabled) return;
+    const url = `${siteOriginPrefix()}/add/${encodeURIComponent(slug)}`;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(
+        () => setPublicProfileMsg('Friend invite link copied.'),
+        () => setPublicProfileMsg(url)
+      );
+    } else {
+      setPublicProfileMsg(url);
+    }
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -479,7 +493,8 @@ export default function Settings() {
         <h2 className="mb-2 font-semibold text-white">Public profile</h2>
         <p className="mb-4 text-sm text-slate-400">
           Share a read-only page with workout counts and estimated total volume. Your email and
-          workout details stay private.
+          workout details stay private. Use the friend invite link so people can sign in and follow
+          you in one step.
         </p>
         <label className="mb-3 block text-xs text-slate-500" htmlFor="public-slug">
           Profile URL
@@ -523,11 +538,21 @@ export default function Settings() {
           >
             Copy link
           </button>
+          <button
+            type="button"
+            onClick={copyFriendInviteLink}
+            disabled={!publicProfileEnabled || !publicProfileSlug.trim()}
+            className="rounded-xl border border-slate-600 px-4 py-2.5 text-sm text-slate-200 disabled:opacity-50"
+          >
+            Copy friend invite
+          </button>
         </div>
         {publicProfileMsg ? (
           <p
             className={`mt-3 text-xs ${
-              /^Public profile saved\.|^Link copied\./i.test(publicProfileMsg) ||
+              /^Public profile saved\.|^Link copied\.|^Friend invite link copied\./i.test(
+                publicProfileMsg
+              ) ||
               publicProfileMsg.startsWith('http')
                 ? 'text-emerald-400'
                 : 'text-red-400'

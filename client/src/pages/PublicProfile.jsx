@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import api from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { appPath } from '../constants/routes.js';
 
 export default function PublicProfile() {
   const { slug } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
@@ -15,6 +17,18 @@ export default function PublicProfile() {
   const [comment, setComment] = useState('');
   const [wallBusy, setWallBusy] = useState(false);
   const [followBusy, setFollowBusy] = useState(false);
+  const [inviteNote, setInviteNote] = useState(null); // 'done' | 'already' | null
+
+  useEffect(() => {
+    setInviteNote(null);
+  }, [slug]);
+
+  useEffect(() => {
+    const s = location.state;
+    if (!s?.addFriendDone && !s?.addFriendAlready) return;
+    setInviteNote(s.addFriendDone ? 'done' : 'already');
+    navigate(location.pathname + location.search, { replace: true, state: {} });
+  }, [location.pathname, location.search, location.state, navigate]);
 
   const loadAll = useCallback(async () => {
     const s = encodeURIComponent(slug || '');
@@ -144,6 +158,20 @@ export default function PublicProfile() {
 
         {!loading && data ? (
           <>
+            {inviteNote ? (
+              <div
+                className={`rounded-2xl border px-4 py-3 text-sm ${
+                  inviteNote === 'done'
+                    ? 'border-emerald-800/80 bg-emerald-950/35 text-emerald-100'
+                    : 'border-slate-600/80 bg-slate-800/50 text-slate-200'
+                }`}
+                role="status"
+              >
+                {inviteNote === 'done'
+                  ? "You're now following this athlete. They'll show up in your Following feed."
+                  : "You're already following this athlete."}
+              </div>
+            ) : null}
             <div className="rounded-2xl border border-slate-800 bg-surface-card p-6">
               <h1 className="text-2xl font-bold text-white">{data.profile?.name || 'Athlete'}</h1>
               <p className="mt-1 text-sm text-slate-500">Public IronLog profile</p>

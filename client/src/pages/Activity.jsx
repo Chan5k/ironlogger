@@ -95,12 +95,6 @@ export default function Activity() {
         </p>
       </div>
 
-      <div className="rounded-2xl border border-amber-900/50 bg-amber-950/20 p-4 text-sm text-amber-200/90">
-        <strong className="text-amber-100">Optional native integration:</strong> To sync HealthKit
-        automatically you would wrap this site in a small Swift/React Native shell that uses
-        HealthKit APIs and posts to the same backend—out of scope for pure Safari.
-      </div>
-
       <div className="rounded-2xl border border-slate-800 bg-surface-card p-4">
         <label className="mb-1 block text-xs text-slate-500">Date</label>
         <input

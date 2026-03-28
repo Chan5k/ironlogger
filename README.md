@@ -130,15 +130,12 @@ The SPA is built with Vite `base` and React Router `basename` set from **`VITE_B
 | PR hints | **Weight PR** badge when a **completed** non–warm-up set beats your prior max on that exercise (completed history; current workout excluded from baseline) |
 | Warm-up sets | **Set type** warm-up (existing) plus **+ Warm-up set** shortcut; warm-ups excluded from volume/progress (unchanged) |
 | Offline queue | Failed **workout** saves (create/update/delete/complete) can be **queued** and replayed when online; header **Sync** banner inside the app |
-| Public profile | Optional `/u/:slug`: stats + **follower count**; **wall** (kudos once per visitor, comments with daily limit); **follow** / **Following** feed shows **high-level** activity only (session counts, no workout titles). Enable in **Settings** |
+| Public profile | Optional `/u/:slug`: stats + **follower count**; **wall** (kudos once per visitor, comments with daily limit); **follow** / **Following** feed shows **high-level** activity only (session counts, no workout titles). **Friend invite** link `/add/:slug` (copy in **Settings**) sends visitors through login/register, **follows** that profile, and **follows back** so both people show in each other’s Following feed. Re-open the link once if you paired before this behavior existed. **Following** includes **Remove** (unfollow) with confirmation. Enable in **Settings** |
 | Statistics | **Volume by category** (same muscle buckets as dashboard week view); longer windows than dashboard |
 
 ## HealthKit / Apple Health
 
-Safari and other browsers **cannot** access HealthKit. This project includes:
-
-- An **Activity** screen for manual entry (you can copy values from the Health app).  
-- A short note on wrapping the app in a **native iOS shell** if you later want real HealthKit sync.
+Safari and other browsers **cannot** access HealthKit. This project includes an **Activity** screen for manual entry (you can copy values from the Health app).
 
 ## Project layout
 

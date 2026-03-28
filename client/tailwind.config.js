@@ -44,12 +44,18 @@ export default {
           '35%': { opacity: '1', transform: 'scale(1) rotate(140deg)' },
           '100%': { opacity: '0', transform: 'scale(0.35) rotate(320deg)' },
         },
+        signOutIcon: {
+          '0%': { opacity: '0', transform: 'scale(0.5) rotate(-12deg)' },
+          '60%': { opacity: '1', transform: 'scale(1.08) rotate(3deg)' },
+          '100%': { opacity: '1', transform: 'scale(1) rotate(0deg)' },
+        },
       },
       animation: {
         'pr-backdrop': 'prBackdrop 0.55s ease-out both',
         'pr-card-in': 'prCardIn 0.95s cubic-bezier(0.22, 1, 0.32, 1.2) both',
         'pr-reveal-line': 'prRevealLine 0.55s ease-out both',
         'pr-spark': 'prSpark 1s ease-out forwards',
+        'sign-out-icon': 'signOutIcon 0.45s cubic-bezier(0.34, 1.3, 0.64, 1) both',
       },
     },
   },
