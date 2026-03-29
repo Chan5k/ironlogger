@@ -14,6 +14,21 @@ function isCountingSet(s) {
   return t !== 'warmup';
 }
 
+function exerciseSessionMaxWeight(ex) {
+  let m = 0;
+  for (const s of ex.sets || []) {
+    if (!isCountingSet(s) || !s.completed) continue;
+    m = Math.max(m, Number(s.weight) || 0);
+  }
+  return m;
+}
+
+function calendarDayGap(fromKey, toKey) {
+  const a = new Date(`${fromKey}T12:00:00.000Z`).getTime();
+  const b = new Date(`${toKey}T12:00:00.000Z`).getTime();
+  return Math.floor((b - a) / 86400000);
+}
+
 async function volumeNonWarmupInRange(userId, from, to, exclusiveUpper) {
   const range = exclusiveUpper ? { $gte: from, $lt: to } : { $gte: from, $lte: to };
   const rows = await Workout.aggregate([
@@ -86,13 +101,15 @@ export async function buildDashboardIntelligence(userId) {
   const me = await User.findById(userId).select('timezone').lean();
   const tz = me?.timezone || 'UTC';
 
+  const fiftySixDaysAgo = new Date(now.getTime() - 56 * 86400000);
+
   const [
     volThis7,
     volPrev7,
     completedDates,
     lastWorkouts,
     muscleAgg,
-    trainingPrev7,
+    plateauWorkouts,
   ] = await Promise.all([
     volumeNonWarmupInRange(userId, weekAgo, now, false),
     volumeNonWarmupInRange(userId, twoWeeksAgo, weekAgo, true),
@@ -143,6 +160,12 @@ export async function buildDashboardIntelligence(userId) {
         },
       },
     ]),
+    Workout.find({
+      userId,
+      completedAt: { $ne: null, $gte: fiftySixDaysAgo },
+    })
+      .select('completedAt exercises')
+      .lean(),
   ]);
 
   const trainingDays = new Set(
@@ -288,6 +311,90 @@ export async function buildDashboardIntelligence(userId) {
     };
   }
 
+  const dayMs = 86400000;
+  const t21 = now.getTime() - 21 * dayMs;
+  const t42 = now.getTime() - 42 * dayMs;
+  const byExPlateau = new Map();
+  for (const w of plateauWorkouts || []) {
+    const cw = new Date(w.completedAt).getTime();
+    const dk = dateKeyInTimeZone(new Date(w.completedAt), tz);
+    for (const ex of w.exercises || []) {
+      const mw = exerciseSessionMaxWeight(ex);
+      if (mw <= 0) continue;
+      const label = (ex.name || '').trim() || 'Exercise';
+      const key = ex.exerciseId ? String(ex.exerciseId) : label.toLowerCase();
+      if (!byExPlateau.has(key)) {
+        byExPlateau.set(key, { label, recentMax: 0, priorMax: 0, recentDays: new Set() });
+      }
+      const prow = byExPlateau.get(key);
+      if (label.length > prow.label.length) prow.label = label;
+      if (cw >= t21) {
+        prow.recentMax = Math.max(prow.recentMax, mw);
+        prow.recentDays.add(dk);
+      } else if (cw >= t42 && cw < t21) {
+        prow.priorMax = Math.max(prow.priorMax, mw);
+      }
+    }
+  }
+
+  let plateauTip = null;
+  for (const [, row] of byExPlateau) {
+    if (row.priorMax <= 0 || row.recentMax <= 0) continue;
+    if (row.recentDays.size < 2) continue;
+    if (row.recentMax <= row.priorMax * 1.02) {
+      plateauTip = `Your ${row.label} hasn't moved much in ~3 weeks — try one harder set or an extra rep.`;
+      break;
+    }
+  }
+
+  let lastCompletedKey = null;
+  let lastCompletedMs = 0;
+  for (const w of completedDates || []) {
+    const t = new Date(w.completedAt).getTime();
+    if (t > lastCompletedMs) {
+      lastCompletedMs = t;
+      lastCompletedKey = dateKeyInTimeZone(new Date(w.completedAt), tz);
+    }
+  }
+  const daysSinceLast =
+    lastCompletedKey != null ? calendarDayGap(lastCompletedKey, todayKey) : null;
+
+  const coachingItems = [];
+  if (currentStreak >= 5) {
+    coachingItems.push({
+      priority: 1,
+      text: `You trained ${currentStreak} days straight — consider a rest day.`,
+    });
+  }
+  if (daysSinceLast != null && daysSinceLast >= 6 && currentStreak < 5) {
+    coachingItems.push({
+      priority: 2,
+      text: `It's been ${daysSinceLast} days since your last workout — ease back in with something short.`,
+    });
+  }
+  if (plateauTip && coachingItems.length < 3) {
+    coachingItems.push({ priority: 3, text: plateauTip });
+  }
+  if (under && coachingItems.length < 3) {
+    coachingItems.push({
+      priority: 4,
+      text: `${under.label} is lighter than your other areas lately — bias one session that way.`,
+    });
+  }
+  if (suggestion && (suggestion.daysSince ?? 0) >= 5 && coachingItems.length < 3) {
+    const lab = suggestion.label;
+    coachingItems.push({
+      priority: 5,
+      text:
+        suggestion.daysSince == null
+          ? `${lab} hasn't shown up recently — slot a session with ${lab.toLowerCase()} focus.`
+          : `You haven't trained ${lab.toLowerCase()} in ${suggestion.daysSince} days — worth prioritizing soon.`,
+    });
+  }
+
+  coachingItems.sort((a, b) => a.priority - b.priority);
+  const coachingTips = coachingItems.slice(0, 3).map((c) => c.text);
+
   return {
     insights: trimmedInsights,
     muscleBalance: {
@@ -297,6 +404,7 @@ export async function buildDashboardIntelligence(userId) {
       hints: imbalanceHints.slice(0, 3),
     },
     suggestion,
+    coachingTips,
     meta: {
       volumeThis7d: volThis7,
       volumePrev7d: volPrev7,

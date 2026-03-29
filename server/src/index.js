@@ -14,6 +14,7 @@ import shareRoutes from './routes/share.js';
 import socialRoutes from './routes/social.js';
 import notificationsRoutes from './routes/notifications.js';
 import cronRoutes from './routes/cron.js';
+import goalRoutes from './routes/goals.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -68,6 +69,7 @@ app.use('/api/cron', cronRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/exercises', exerciseRoutes);
 app.use('/api/workouts', workoutRoutes);
+app.use('/api/goals', goalRoutes);
 app.use('/api/templates', templateRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/admin', adminRoutes);

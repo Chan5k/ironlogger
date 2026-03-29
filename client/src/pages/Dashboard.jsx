@@ -17,6 +17,8 @@ import {
   Flame,
   LayoutDashboard,
   Lightbulb,
+  Sparkles,
+  Target,
   TrendingDown,
   TrendingUp,
   Weight,
@@ -113,6 +115,7 @@ export default function Dashboard() {
   const [volumeByDay, setVolumeByDay] = useState(null);
   const [recent, setRecent] = useState([]);
   const [intel, setIntel] = useState(null);
+  const [goalsPreview, setGoalsPreview] = useState([]);
   const [err, setErr] = useState('');
 
   useEffect(() => {
@@ -121,6 +124,21 @@ export default function Dashboard() {
       .get('/workouts/intelligence')
       .then(({ data }) => {
         if (alive) setIntel(data);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    api
+      .get('/goals')
+      .then(({ data }) => {
+        if (!alive) return;
+        const g = data.goals || [];
+        setGoalsPreview(g.filter((x) => !x.completedAt).slice(0, 4));
       })
       .catch(() => {});
     return () => {
@@ -311,6 +329,76 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+      </section>
+
+      {intel?.coachingTips?.length > 0 ? (
+        <section className={CARD_MUTED} aria-label="Coaching">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 ring-1 ring-sky-500/25">
+              <Sparkles className="h-5 w-5 text-sky-400" strokeWidth={1.75} aria-hidden />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Coaching</p>
+              <ul className="mt-3 space-y-2.5">
+                {intel.coachingTips.map((text, i) => (
+                  <li key={i} className="flex gap-2.5 text-sm leading-snug text-slate-200">
+                    <span className="mt-0.5 shrink-0 text-sky-400" aria-hidden>
+                      →
+                    </span>
+                    <span>{text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <section className={CARD_MUTED} aria-label="Goals">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 ring-1 ring-blue-500/20">
+              <Target className="h-5 w-5 text-blue-400" strokeWidth={1.75} aria-hidden />
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Goals</p>
+              <p className="mt-1 text-sm text-slate-500">Track strength, weekly frequency, or volume.</p>
+            </div>
+          </div>
+          <Link
+            to={appPath('goals')}
+            className="shrink-0 text-xs font-semibold text-blue-400 hover:text-blue-300"
+          >
+            Manage
+          </Link>
+        </div>
+        {goalsPreview.length === 0 ? (
+          <Link
+            to={appPath('goals')}
+            className="mt-4 inline-flex h-10 items-center justify-center rounded-lg border border-slate-700 px-4 text-sm font-medium text-slate-200 hover:bg-slate-800/60"
+          >
+            Add a goal
+          </Link>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {goalsPreview.map((g) => (
+              <li key={g._id}>
+                <div className="flex items-center justify-between gap-2 text-sm">
+                  <span className="min-w-0 truncate font-medium text-white">{g.title}</span>
+                  <span className="shrink-0 tabular-nums text-slate-500">
+                    {Math.min(100, Math.round(g.progressPct ?? 0))}%
+                  </span>
+                </div>
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-800/90">
+                  <div
+                    className="h-full rounded-full bg-blue-500 transition-all duration-500"
+                    style={{ width: `${Math.min(100, g.progressPct ?? 0)}%` }}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       {intel &&

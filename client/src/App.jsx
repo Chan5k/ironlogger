@@ -24,6 +24,7 @@ import FollowingFeed from './pages/FollowingFeed.jsx';
 import Leaderboards from './pages/Leaderboards.jsx';
 import ActivityFeedPage from './pages/ActivityFeed.jsx';
 import AddFriendInvite from './pages/AddFriendInvite.jsx';
+import Goals from './pages/Goals.jsx';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -65,6 +66,7 @@ export default function App() {
         <Route path="templates/:id" element={<TemplateEdit />} />
         <Route path="progress" element={<Progress />} />
         <Route path="statistics" element={<Statistics />} />
+        <Route path="goals" element={<Goals />} />
         <Route path="activity" element={<Activity />} />
         <Route path="following" element={<FollowingFeed />} />
         <Route path="feed" element={<ActivityFeedPage />} />

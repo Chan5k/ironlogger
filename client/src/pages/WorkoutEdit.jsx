@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Check } from 'lucide-react';
 import api from '../api/client.js';
+import { useAuth } from '../context/AuthContext.jsx';
 import { appPath } from '../constants/routes.js';
 import {
   filterExercisesByQuery,
@@ -29,6 +31,11 @@ import { appAlert, appConfirm } from '../lib/appDialogApi.js';
 import PrCelebrationOverlay, { playPrFanfare } from '../components/PrCelebrationOverlay.jsx';
 import { sharePageUrl } from '../utils/shareLink.js';
 import { offerShareLink } from '../utils/offerShareLink.js';
+import {
+  computeWorkoutShareStats,
+  inferWorkoutKind,
+} from '../utils/workoutShareStats.js';
+import WorkoutShareModal from '../components/WorkoutShareModal.jsx';
 
 const emptySet = (type = 'normal') => ({
   reps: 10,
@@ -40,10 +47,19 @@ const emptySet = (type = 'normal') => ({
 const REST_SOUND_KEY = 'ironlog_rest_sound';
 const REST_HAPTIC_KEY = 'ironlog_rest_haptic';
 
+function userInitials(name) {
+  const s = (name || '').trim();
+  if (!s) return '?';
+  const parts = s.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return s.slice(0, 2).toUpperCase();
+}
+
 export default function WorkoutEdit() {
   const { id } = useParams();
   const isNew = !id || id === 'new';
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [title, setTitle] = useState('Workout');
   const [notes, setNotes] = useState('');
   const [exercises, setExercises] = useState([]);
@@ -78,6 +94,8 @@ export default function WorkoutEdit() {
     }
   });
   const [prCelebration, setPrCelebration] = useState(null);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [setPulse, setSetPulse] = useState(null);
 
   const dismissPrCelebration = useCallback(() => setPrCelebration(null), []);
 
@@ -234,6 +252,27 @@ export default function WorkoutEdit() {
     });
   }, [startedISO, endedISO, sessionInProgress, liveNow]);
 
+  const shareStats = useMemo(
+    () => computeWorkoutShareStats(exercises, prBaselines, weightUnit),
+    [exercises, prBaselines, weightUnit]
+  );
+  const shareKind = useMemo(() => inferWorkoutKind(title, exercises), [title, exercises]);
+  const shareCardOptions = useMemo(
+    () => ({
+      displayName: (user?.name || user?.email || 'Athlete').trim() || 'Athlete',
+      initials: userInitials(user?.name || user?.email || ''),
+      workoutTitle: title,
+      workoutKind: shareKind,
+      durationLabel,
+      displayVolume: shareStats.displayVolume,
+      volumeUnitLabel: `${weightUnit}×reps`,
+      setCount: shareStats.setCount,
+      prLines: shareStats.prLines,
+      topExercises: shareStats.topExercises,
+    }),
+    [user, title, shareKind, durationLabel, shareStats, weightUnit]
+  );
+
   const startedAtDisplay = useMemo(() => {
     if (!startedISO) return '';
     return new Date(startedISO).toLocaleString(undefined, {
@@ -359,6 +398,33 @@ export default function WorkoutEdit() {
     setRestTotal(dur);
     setRestSecondsLeft(dur);
   }
+
+  const toggleSetComplete = useCallback(
+    (exIdx, setIdx, checked) => {
+      const ex = exercises[exIdx];
+      const s = ex?.sets?.[setIdx];
+      if (!ex || !s) return;
+      const st = normalizeSetType(s.setType);
+      if (checked) {
+        const prevMax = prBaselines[exIdx]?.maxWeight ?? 0;
+        const wNum = Number(s.weight) || 0;
+        if (st !== 'warmup' && wNum > prevMax) {
+          window.setTimeout(() => playPrFanfare(), 200);
+          setPrCelebration({
+            ts: Date.now(),
+            exerciseName: ex.name?.trim() || 'Lift',
+            weight: wNum,
+            weightUnit,
+          });
+        }
+        beginRestAfterSet();
+      }
+      updateSet(exIdx, setIdx, 'completed', checked);
+      setSetPulse({ exIdx, si: setIdx });
+      window.setTimeout(() => setSetPulse(null), 450);
+    },
+    [exercises, prBaselines, weightUnit, sessionInProgress]
+  );
 
   function applyRestPreset(sec) {
     const v = writeRestDurationSeconds(sec);
@@ -728,6 +794,48 @@ export default function WorkoutEdit() {
         </p>
       </div>
 
+      {!isNew && endedISO ? (
+        <section className="rounded-2xl border border-slate-800 bg-surface-card p-4 ring-1 ring-emerald-500/15">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+            Session summary
+          </p>
+          <p className="mt-2 text-lg font-semibold text-white">{title}</p>
+          <p className="mt-1 text-sm text-slate-500">{shareKind}</p>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-xl border border-slate-800 bg-surface/80 px-3 py-3">
+              <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500">Duration</p>
+              <p className="mt-1 font-mono text-sm text-white">{durationLabel}</p>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-surface/80 px-3 py-3">
+              <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500">Volume</p>
+              <p className="mt-1 font-mono text-sm text-white">
+                {shareStats.displayVolume.toLocaleString()} {weightUnit}×reps
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-surface/80 px-3 py-3">
+              <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500">Sets</p>
+              <p className="mt-1 font-mono text-sm text-white">{shareStats.setCount}</p>
+            </div>
+            <div className="flex items-end sm:col-span-1">
+              <button
+                type="button"
+                onClick={() => setShareModalOpen(true)}
+                className="h-11 w-full rounded-xl border border-blue-500/40 bg-blue-600/15 px-4 text-sm font-semibold text-blue-200 transition-colors hover:bg-blue-600/25"
+              >
+                Share image
+              </button>
+            </div>
+          </div>
+          {shareStats.prLines.length ? (
+            <ul className="mt-3 space-y-1 text-sm text-amber-200/95">
+              {shareStats.prLines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+      ) : null}
+
       <div className="space-y-4">
         {exercises.map((ex, exIdx) => (
           <div
@@ -762,128 +870,148 @@ export default function WorkoutEdit() {
               </button>
             </div>
             <p className="mb-2 text-xs text-slate-500">{ex.category}</p>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[440px] text-sm">
-                <thead>
-                  <tr className="text-left text-xs text-slate-500">
-                    <th className="pb-2 pr-2">Set</th>
-                    <th className="pb-2 pr-2">Type</th>
-                    <th className="pb-2 pr-2">Wt ({weightUnit})</th>
-                    <th className="pb-2 pr-2">Reps</th>
-                    <th className="pb-2 pr-2">PR</th>
-                    <th className="pb-2">Done</th>
-                    <th className="pb-2" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {ex.sets.map((s, si) => {
-                    const st = normalizeSetType(s.setType);
-                    const base = prBaselines[exIdx];
-                    const prevMax = base?.maxWeight ?? 0;
-                    const wNum = Number(s.weight) || 0;
-                    const isWeightPr =
-                      st !== 'warmup' &&
-                      !!s.completed &&
-                      wNum > prevMax;
-                    return (
-                    <tr
-                      key={si}
-                      className={
-                        st === 'warmup'
-                          ? 'bg-slate-800/25'
-                          : st === 'failure'
-                            ? 'bg-amber-950/20'
-                            : ''
+            <div className="space-y-2" role="table" aria-label={`Sets for ${ex.name || 'exercise'}`}>
+              <div className="hidden text-xs text-slate-500 sm:flex sm:items-center sm:gap-2 sm:px-1 sm:pb-1">
+                <span className="w-8 shrink-0">Set</span>
+                <span className="w-[7.5rem] shrink-0">Type</span>
+                <span className="min-w-0 flex-1">Wt ({weightUnit})</span>
+                <span className="w-16 shrink-0">Reps</span>
+                <span className="w-14 shrink-0 text-center">PR</span>
+                <span className="h-11 w-11 shrink-0" aria-hidden />
+                <span className="w-8 shrink-0" aria-hidden />
+              </div>
+              {ex.sets.map((s, si) => {
+                const st = normalizeSetType(s.setType);
+                const base = prBaselines[exIdx];
+                const prevMax = base?.maxWeight ?? 0;
+                const wNum = Number(s.weight) || 0;
+                const isWeightPr =
+                  st !== 'warmup' && !!s.completed && wNum > prevMax;
+                const pulsing =
+                  setPulse && setPulse.exIdx === exIdx && setPulse.si === si;
+                const rowBg =
+                  st === 'warmup'
+                    ? 'bg-slate-800/25'
+                    : st === 'failure'
+                      ? 'bg-amber-950/20'
+                      : s.completed
+                        ? 'bg-emerald-950/20'
+                        : 'bg-transparent';
+                return (
+                  <div
+                    key={si}
+                    role="row"
+                    className={`flex flex-wrap items-center gap-2 rounded-xl border px-2 py-2 transition-[background-color,box-shadow,border-color] duration-200 sm:flex-nowrap sm:gap-2 sm:px-1 ${rowBg} ${
+                      s.completed
+                        ? 'border-emerald-500/25'
+                        : 'border-slate-800/80 hover:border-slate-700'
+                    } ${pulsing ? 'ring-2 ring-blue-500/45' : ''}`}
+                    onClick={(e) => {
+                      if (e.target.closest('input, select, button, textarea, [data-no-row-toggle]')) return;
+                      toggleSetComplete(exIdx, si, !s.completed);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.target !== e.currentTarget) return;
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleSetComplete(exIdx, si, !s.completed);
                       }
+                    }}
+                    tabIndex={0}
+                  >
+                    <span
+                      className="flex h-11 w-8 shrink-0 items-center text-sm text-slate-400"
+                      role="cell"
                     >
-                      <td className="py-1 pr-2 text-slate-400">{si + 1}</td>
-                      <td className="py-1 pr-2">
-                        <select
-                          value={st}
-                          onChange={(e) => updateSet(exIdx, si, 'setType', e.target.value)}
-                          className="max-w-[7.5rem] rounded border border-slate-700 bg-surface py-1.5 pl-2 pr-1 text-xs text-white"
-                          aria-label={`Set ${si + 1} type`}
+                      {si + 1}
+                    </span>
+                    <select
+                      value={st}
+                      onChange={(e) => updateSet(exIdx, si, 'setType', e.target.value)}
+                      className="h-11 max-w-[9rem] shrink-0 rounded-lg border border-slate-700 bg-surface py-0 pl-2 pr-8 text-xs text-white sm:max-w-[7.5rem]"
+                      aria-label={`Set ${si + 1} type`}
+                      data-no-row-toggle
+                    >
+                      {SET_TYPE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      step="any"
+                      value={formatWeightInputValue(s.weight, weightUnit)}
+                      onChange={(e) =>
+                        updateSet(exIdx, si, 'weight', parseWeightInput(e.target.value, weightUnit))
+                      }
+                      className="h-11 min-w-0 flex-1 rounded-lg border border-slate-700 bg-surface px-3 text-white sm:max-w-[6.5rem] sm:flex-none sm:basis-24"
+                      aria-label={`Set ${si + 1} weight`}
+                      data-no-row-toggle
+                    />
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      value={s.reps}
+                      onChange={(e) => updateSet(exIdx, si, 'reps', e.target.value)}
+                      className="h-11 w-[4.5rem] shrink-0 rounded-lg border border-slate-700 bg-surface px-2 text-white sm:w-16"
+                      aria-label={`Set ${si + 1} reps`}
+                      data-no-row-toggle
+                    />
+                    <div
+                      className="flex h-11 min-w-[2.5rem] flex-1 items-center justify-center sm:w-14 sm:flex-none"
+                      role="cell"
+                    >
+                      {isWeightPr ? (
+                        <span className="inline-flex items-center rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+                          PR
+                        </span>
+                      ) : st !== 'warmup' && s.completed && prevMax > 0 ? (
+                        <span
+                          className="text-[10px] text-slate-600"
+                          title="Prior best weight (completed, non-warmup)"
                         >
-                          {SET_TYPE_OPTIONS.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="py-1 pr-2">
-                        <input
-                          type="number"
-                          inputMode="decimal"
-                          step="any"
-                          value={formatWeightInputValue(s.weight, weightUnit)}
-                          onChange={(e) =>
-                            updateSet(exIdx, si, 'weight', parseWeightInput(e.target.value, weightUnit))
-                          }
-                          className="w-24 rounded border border-slate-700 bg-surface px-2 py-1 text-white"
-                        />
-                      </td>
-                      <td className="py-1 pr-2">
-                        <input
-                          type="number"
-                          inputMode="numeric"
-                          value={s.reps}
-                          onChange={(e) => updateSet(exIdx, si, 'reps', e.target.value)}
-                          className="w-16 rounded border border-slate-700 bg-surface px-2 py-1 text-white"
-                        />
-                      </td>
-                      <td className="py-1 pr-2 align-middle">
-                        {isWeightPr ? (
-                          <span className="inline-flex items-center rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
-                            PR
-                          </span>
-                        ) : st !== 'warmup' && s.completed && prevMax > 0 ? (
-                          <span className="text-[10px] text-slate-600" title="Prior best weight (completed, non-warmup)">
-                            max {prevMax}
-                          </span>
-                        ) : (
-                          <span className="text-slate-700">—</span>
-                        )}
-                      </td>
-                      <td className="py-1">
-                        <input
-                          type="checkbox"
-                          checked={!!s.completed}
-                          onChange={(e) => {
-                            const checked = e.target.checked;
-                            if (checked) {
-                              const prevMax = prBaselines[exIdx]?.maxWeight ?? 0;
-                              const wNum = Number(s.weight) || 0;
-                              if (st !== 'warmup' && wNum > prevMax) {
-                                window.setTimeout(() => playPrFanfare(), 200);
-                                setPrCelebration({
-                                  ts: Date.now(),
-                                  exerciseName: ex.name?.trim() || 'Lift',
-                                  weight: wNum,
-                                  weightUnit,
-                                });
-                              }
-                              beginRestAfterSet();
-                            }
-                            updateSet(exIdx, si, 'completed', checked);
-                          }}
-                          className="h-5 w-5 accent-accent"
-                        />
-                      </td>
-                      <td className="py-1">
-                        <button
-                          type="button"
-                          onClick={() => removeSet(exIdx, si)}
-                          className="text-xs text-slate-500"
-                        >
-                          ×
-                        </button>
-                      </td>
-                    </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          max {prevMax}
+                        </span>
+                      ) : (
+                        <span className="text-slate-700">—</span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      data-no-row-toggle
+                      aria-pressed={!!s.completed}
+                      aria-label={
+                        s.completed ? `Unmark set ${si + 1} as done` : `Mark set ${si + 1} done`
+                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSetComplete(exIdx, si, !s.completed);
+                      }}
+                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 transition-colors sm:h-11 sm:w-11 ${
+                        s.completed
+                          ? 'border-emerald-500/60 bg-emerald-500/20 text-emerald-300'
+                          : 'border-slate-600 bg-slate-800/60 text-slate-500 hover:border-slate-500 hover:text-slate-300'
+                      }`}
+                    >
+                      <Check className="h-6 w-6" strokeWidth={2.5} aria-hidden />
+                    </button>
+                    <button
+                      type="button"
+                      data-no-row-toggle
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeSet(exIdx, si);
+                      }}
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-lg text-slate-500 hover:bg-slate-800 hover:text-slate-300"
+                      aria-label={`Remove set ${si + 1}`}
+                    >
+                      ×
+                    </button>
+                  </div>
+                );
+              })}
             </div>
             <div className="mt-2 flex flex-wrap gap-3">
               <button
@@ -975,6 +1103,12 @@ export default function WorkoutEdit() {
         onAddSeconds={(n) => setRestSecondsLeft((s) => s + n)}
         soundEnabled={restSoundEnabled}
         hapticEnabled={restHapticEnabled}
+      />
+
+      <WorkoutShareModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        cardOptions={shareCardOptions}
       />
 
       {pickerFor !== null ? (

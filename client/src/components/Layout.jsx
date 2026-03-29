@@ -13,6 +13,7 @@ import {
   TrendingUp,
   Trophy,
   Rss,
+  Target,
   Users,
   X,
 } from 'lucide-react';
@@ -55,6 +56,7 @@ const IconActivity = makeNavIcon(Activity);
 const IconFollowing = makeNavIcon(Users);
 const IconLeaderboards = makeNavIcon(Trophy);
 const IconFeed = makeNavIcon(Rss);
+const IconGoals = makeNavIcon(Target);
 const IconSettings = makeNavIcon(Settings);
 const IconAdmin = makeNavIcon(Shield);
 
@@ -154,6 +156,7 @@ function buildNavSections(isAdmin) {
         { to: appPath('templates'), label: 'Plans', Icon: IconPlans },
         { to: appPath('progress'), label: 'Progress', Icon: IconProgress },
         { to: appPath('statistics'), label: 'Statistics', Icon: IconStatistics },
+        { to: appPath('goals'), label: 'Goals', Icon: IconGoals },
       ],
     },
     {
