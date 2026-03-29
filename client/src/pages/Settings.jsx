@@ -654,31 +654,6 @@ export default function Settings() {
           {saving ? 'Saving…' : 'Save settings'}
         </button>
       </section>
-
-      <section className="rounded-2xl border border-slate-800 bg-surface-card p-4">
-        <h2 className="mb-2 font-semibold text-white">Credits</h2>
-        <p className="text-xs leading-relaxed text-slate-500">
-          Exercise category icons are from the Flaticon lineal-color fitness style (self-hosted PNGs).{' '}
-          <a
-            href="https://www.flaticon.com/"
-            target="_blank"
-            rel="noreferrer"
-            className="text-slate-400 underline decoration-slate-600 underline-offset-2 hover:text-slate-300"
-          >
-            Flaticon.com
-          </a>
-          — use complies with their{' '}
-          <a
-            href="https://www.freepikcompany.com/legal#nav-flaticon"
-            target="_blank"
-            rel="noreferrer"
-            className="text-slate-400 underline decoration-slate-600 underline-offset-2 hover:text-slate-300"
-          >
-            license terms
-          </a>
-          .
-        </p>
-      </section>
     </div>
   );
 }
