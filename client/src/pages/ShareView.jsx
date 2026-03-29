@@ -4,6 +4,7 @@ import api from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { appPath } from '../constants/routes.js';
 import { appAlert } from '../lib/appDialogApi.js';
+import ExerciseIcon from '../components/ExerciseIcon.jsx';
 
 export default function ShareView() {
   const { token } = useParams();
@@ -85,9 +86,12 @@ export default function ShareView() {
             </p>
             <ul className="mt-3 max-h-48 space-y-1 overflow-y-auto text-sm text-slate-300">
               {(snap.exercises || []).map((ex, i) => (
-                <li key={i}>
-                  {ex.name}{' '}
-                  <span className="text-slate-600">({ex.category})</span>
+                <li key={i} className="flex items-center gap-2">
+                  <ExerciseIcon name={ex.name} category={ex.category} className="h-4 w-4 shrink-0 text-slate-500" />
+                  <span>
+                    {ex.name}{' '}
+                    <span className="text-slate-600">({ex.category})</span>
+                  </span>
                 </li>
               ))}
             </ul>

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import ExerciseIcon from '../ExerciseIcon.jsx';
 import WorkoutLikeButton from '../WorkoutLikeButton.jsx';
 import VolumeMiniChart from './VolumeMiniChart.jsx';
 import CommentSection from './CommentSection.jsx';
@@ -55,7 +56,12 @@ export default function WorkoutPostCard({ post, style }) {
       <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-stretch lg:justify-between">
         <ul className="min-w-0 flex-1 space-y-2">
           {workout.exercises.map((ex) => (
-            <li key={`${post.id}-${ex.name}`} className="text-sm">
+            <li key={`${post.id}-${ex.name}`} className="flex items-center gap-2 text-sm">
+              <ExerciseIcon
+                name={ex.name}
+                category={ex.category}
+                className="h-4 w-4 shrink-0 text-slate-500"
+              />
               <span className="font-medium text-slate-200">{ex.name}</span>
               <span className="text-slate-600"> · </span>
               <span className="font-mono text-xs text-slate-400">{ex.setsLine}</span>

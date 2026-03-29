@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import api from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import ExerciseVideoModal from '../components/ExerciseVideoModal.jsx';
+import ExerciseIcon from '../components/ExerciseIcon.jsx';
 import { appAlert, appConfirm } from '../lib/appDialogApi.js';
 
 const CATEGORIES = [
@@ -257,13 +258,16 @@ export default function Library() {
                     key={ex._id}
                     className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800 bg-surface-elevated px-3 py-2"
                   >
-                    <div className="min-w-0 flex-1">
+                    <div className="flex min-w-0 flex-1 items-start gap-2">
+                      <ExerciseIcon name={ex.name} category={ex.category} boxed className="h-4 w-4 text-slate-300" />
+                      <div className="min-w-0 flex-1">
                       <p className="font-medium text-white">{ex.name}</p>
                       {!ex.userId ? (
                         <span className="text-xs text-slate-500">Built-in</span>
                       ) : (
                         <span className="text-xs text-accent-muted">Yours</span>
                       )}
+                      </div>
                     </div>
                     <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
                       {ex.videoUrl ? (
@@ -326,7 +330,10 @@ export default function Library() {
       {editing ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">
           <div className="w-full max-w-md rounded-2xl border border-slate-700 bg-surface-card p-4 shadow-xl">
-            <h3 className="mb-3 font-semibold text-white">Edit exercise</h3>
+            <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
+              <ExerciseIcon name={editing.name} category={editing.category} boxed className="h-5 w-5 text-slate-300" />
+              Edit exercise
+            </h3>
             <label className="mb-1 block text-xs text-slate-500">Name</label>
             <input
               value={editing.name}

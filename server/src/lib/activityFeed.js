@@ -76,6 +76,7 @@ function exerciseSummaries(workout, maxEx = 5) {
     }
     out.push({
       name: ex.name || 'Exercise',
+      category: ex.category || 'other',
       setsLine,
       volume: Math.round(vol),
     });
@@ -98,7 +99,11 @@ function workoutTotals(workout) {
     if (n > 0) {
       totalVol += v;
       totalSets += n;
-      byEx.push({ name: ex.name || 'Exercise', volume: Math.round(v) });
+      byEx.push({
+        name: ex.name || 'Exercise',
+        category: ex.category || 'other',
+        volume: Math.round(v),
+      });
     }
   }
   return { totalVol: Math.round(totalVol), totalSets, byEx };

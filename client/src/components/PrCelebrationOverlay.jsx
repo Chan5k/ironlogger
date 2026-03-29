@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import ExerciseIcon from './ExerciseIcon.jsx';
 
 /** Short ascending fanfare (Web Audio). */
 export function playPrFanfare() {
@@ -43,7 +44,14 @@ const DISMISS_MS = 5200;
  * Full-screen celebration when user hits a weight PR.
  * Backdrop fades in first; card springs in after a short beat; copy staggers in.
  */
-export default function PrCelebrationOverlay({ open, exerciseName, weight, weightUnit, onDismiss }) {
+export default function PrCelebrationOverlay({
+  open,
+  exerciseName,
+  exerciseCategory = 'other',
+  weight,
+  weightUnit,
+  onDismiss,
+}) {
   useEffect(() => {
     if (!open) return undefined;
     const id = window.setTimeout(() => {
@@ -93,9 +101,17 @@ export default function PrCelebrationOverlay({ open, exerciseName, weight, weigh
           >
             New PR!
           </h2>
-          <p className="animate-pr-reveal-line mb-1 text-lg font-semibold text-white [animation-delay:700ms]">
-            {exerciseName || 'Lift'}
-          </p>
+          <div className="animate-pr-reveal-line mb-1 flex flex-col items-center gap-3 [animation-delay:700ms]">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/15 ring-1 ring-amber-400/35">
+              <ExerciseIcon
+                name={exerciseName || 'Lift'}
+                category={exerciseCategory}
+                className="h-9 w-9 text-amber-200/95"
+                strokeWidth={1.65}
+              />
+            </div>
+            <p className="text-lg font-semibold text-white">{exerciseName || 'Lift'}</p>
+          </div>
           <p className="animate-pr-reveal-line font-mono text-2xl font-bold text-amber-200 tabular-nums [animation-delay:820ms]">
             {weight} {weightUnit}
           </p>

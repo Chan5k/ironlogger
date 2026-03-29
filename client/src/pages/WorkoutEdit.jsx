@@ -36,6 +36,7 @@ import {
   inferWorkoutKind,
 } from '../utils/workoutShareStats.js';
 import WorkoutShareModal from '../components/WorkoutShareModal.jsx';
+import ExerciseIcon from '../components/ExerciseIcon.jsx';
 
 const emptySet = (type = 'normal') => ({
   reps: 10,
@@ -413,6 +414,7 @@ export default function WorkoutEdit() {
           setPrCelebration({
             ts: Date.now(),
             exerciseName: ex.name?.trim() || 'Lift',
+            exerciseCategory: ex.category || 'other',
             weight: wNum,
             weightUnit,
           });
@@ -843,6 +845,7 @@ export default function WorkoutEdit() {
             className="rounded-2xl border border-slate-800 bg-surface-card p-4"
           >
             <div className="mb-3 flex flex-wrap items-center gap-2">
+              <ExerciseIcon name={ex.name} category={ex.category} boxed className="h-5 w-5 text-slate-300" />
               <input
                 value={ex.name}
                 onChange={(e) =>
@@ -1091,6 +1094,7 @@ export default function WorkoutEdit() {
         key={prCelebration?.ts ?? 'closed'}
         open={!!prCelebration}
         exerciseName={prCelebration?.exerciseName}
+        exerciseCategory={prCelebration?.exerciseCategory}
         weight={prCelebration?.weight}
         weightUnit={prCelebration?.weightUnit}
         onDismiss={dismissPrCelebration}
@@ -1168,9 +1172,10 @@ export default function WorkoutEdit() {
                             <button
                               type="button"
                               onClick={() => pickExercise(pickerFor, e)}
-                              className="w-full rounded-lg px-3 py-2 text-left text-sm text-white hover:bg-surface-elevated"
+                              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-white hover:bg-surface-elevated"
                             >
-                              {e.name}
+                              <ExerciseIcon name={e.name} category={e.category} className="h-4 w-4 text-slate-500" />
+                              <span>{e.name}</span>
                             </button>
                           </li>
                         ))}

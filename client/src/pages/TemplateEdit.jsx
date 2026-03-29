@@ -9,6 +9,7 @@ import {
   filterExercisesByQuery,
   groupExercisesByCategory,
 } from '../utils/exercisePickerFilter.js';
+import ExerciseIcon from '../components/ExerciseIcon.jsx';
 import { useWeightUnit } from '../hooks/useWeightUnit.js';
 import { formatWeightInputValue, parseWeightInput } from '../utils/weightUnits.js';
 
@@ -41,6 +42,14 @@ export default function TemplateEdit() {
   }, [pickerOpen]);
 
   const weightUnit = useWeightUnit();
+
+  const categoryByExerciseId = useMemo(() => {
+    const m = new Map();
+    for (const ex of library) {
+      if (ex._id) m.set(String(ex._id), ex.category || 'other');
+    }
+    return m;
+  }, [library]);
 
   useEffect(() => {
     if (isNew) {
@@ -206,7 +215,15 @@ export default function TemplateEdit() {
             className="rounded-xl border border-slate-800 bg-surface-card p-3"
           >
             <div className="mb-2 flex justify-between gap-2">
-              <span className="font-medium text-white">{item.exerciseName}</span>
+              <span className="flex min-w-0 items-center gap-2 font-medium text-white">
+                <ExerciseIcon
+                  name={item.exerciseName}
+                  category={categoryByExerciseId.get(String(item.exerciseId)) || 'other'}
+                  boxed
+                  className="h-4 w-4 text-slate-300"
+                />
+                <span className="truncate">{item.exerciseName}</span>
+              </span>
               <button
                 type="button"
                 onClick={() => removeItem(idx)}
@@ -325,9 +342,10 @@ export default function TemplateEdit() {
                           key={ex._id}
                           type="button"
                           onClick={() => addFromLibrary(ex)}
-                          className="w-full rounded-lg px-3 py-2 text-left text-sm text-white hover:bg-surface-elevated"
+                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-white hover:bg-surface-elevated"
                         >
-                          {ex.name}
+                          <ExerciseIcon name={ex.name} category={ex.category} className="h-4 w-4 text-slate-500" />
+                          <span>{ex.name}</span>
                         </button>
                       ))}
                     </div>

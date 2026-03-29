@@ -16,6 +16,7 @@ import {
   filterExercisesByQuery,
   groupExercisesByCategory,
 } from '../utils/exercisePickerFilter.js';
+import ExerciseIcon from '../components/ExerciseIcon.jsx';
 
 const LISTBOX_ID = 'progress-exercise-suggestions';
 
@@ -175,12 +176,15 @@ export default function Progress() {
 
         {selected ? (
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-700 bg-surface-card px-4 py-3">
-            <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <ExerciseIcon name={selected.name} category={selected.category} boxed className="h-5 w-5 text-slate-300" />
+              <div className="min-w-0 flex-1">
               <p className="text-xs text-slate-500">Selected</p>
               <p className="truncate font-medium text-white">
                 {selected.name}{' '}
                 <span className="font-normal text-slate-500">({selected.category})</span>
               </p>
+              </div>
             </div>
             <button
               type="button"
@@ -260,12 +264,13 @@ export default function Progress() {
                               role="option"
                               id={`progress-ex-opt-${e._id}`}
                               aria-selected={isActive}
-                              className={`w-full rounded-lg px-3 py-3 text-left text-sm text-white sm:py-2.5 ${
+                              className={`flex w-full items-center rounded-lg px-3 py-3 text-left text-sm text-white sm:py-2.5 ${
                                 isActive ? 'bg-surface-elevated ring-1 ring-slate-600/60' : 'hover:bg-surface-elevated/80'
                               }`}
                               onMouseEnter={() => setActiveIndex(idx)}
                               onClick={() => pickExercise(e)}
                             >
+                              <ExerciseIcon name={e.name} category={e.category} className="mr-2 h-4 w-4 shrink-0 text-slate-500" />
                               <span className="font-medium">{e.name}</span>
                               <span className="ml-2 text-xs text-slate-500">{e.category}</span>
                             </button>
