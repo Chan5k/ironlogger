@@ -547,7 +547,7 @@ export default function WorkoutEdit() {
   }
 
   return (
-    <div className={`space-y-6 ${restRunning ? 'pb-32' : 'pb-8'}`}>
+    <div className={`min-w-0 space-y-6 ${restRunning ? 'pb-32' : 'pb-8'}`}>
       <div className="flex flex-wrap items-center gap-2">
         <Link to={appPath('workouts')} className="text-sm text-slate-500 hover:text-white">
           ← Back
@@ -570,7 +570,7 @@ export default function WorkoutEdit() {
         />
       </div>
 
-      <div className="rounded-2xl border border-slate-800 bg-surface-card p-4">
+      <div className="min-w-0 overflow-x-clip rounded-2xl border border-slate-800 bg-surface-card p-4">
         <h2 className="mb-1 text-sm font-semibold text-white">Session time</h2>
         <p className="mb-3 text-xs text-slate-500">
           Use <span className="font-medium text-slate-400">hours and minutes</span> to set how long
@@ -622,32 +622,44 @@ export default function WorkoutEdit() {
             0h 0m clears the end (session in progress). Use Mark complete to stamp &quot;now&quot;.
           </p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
+        {/*
+          iOS WebKit: datetime-local + horizontal padding + w-full overflows the card (same as type="date").
+          Shell carries border/bg/padding; input is flex-sized with zero padding.
+        */}
+        <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+          <div className="min-w-0">
             <label className="mb-1 block text-xs text-slate-500" htmlFor="session-start">
               Start
             </label>
-            <input
-              id="session-start"
-              type="datetime-local"
-              step="1"
-              value={sessionStartedLocal}
-              onChange={handleSessionStartChange}
-              className="w-full rounded-xl border border-slate-700 bg-surface px-3 py-2 font-mono text-white"
-            />
+            <div className="group w-full min-w-0 max-w-full">
+              <div className="flex min-h-[44px] w-full min-w-0 max-w-full items-center rounded-xl border border-slate-700 bg-surface px-3 py-2 transition-[border-color,box-shadow] group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
+                <input
+                  id="session-start"
+                  type="datetime-local"
+                  step="1"
+                  value={sessionStartedLocal}
+                  onChange={handleSessionStartChange}
+                  className="min-w-0 flex-1 basis-0 border-0 bg-transparent p-0 font-mono text-base text-white outline-none focus:ring-0 focus-visible:ring-0"
+                />
+              </div>
+            </div>
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="mb-1 block text-xs text-slate-500" htmlFor="session-end">
               End (optional)
             </label>
-            <input
-              id="session-end"
-              type="datetime-local"
-              step="1"
-              value={sessionEndedLocal}
-              onChange={handleSessionEndChange}
-              className="w-full rounded-xl border border-slate-700 bg-surface px-3 py-2 font-mono text-white"
-            />
+            <div className="group w-full min-w-0 max-w-full">
+              <div className="flex min-h-[44px] w-full min-w-0 max-w-full items-center rounded-xl border border-slate-700 bg-surface px-3 py-2 transition-[border-color,box-shadow] group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
+                <input
+                  id="session-end"
+                  type="datetime-local"
+                  step="1"
+                  value={sessionEndedLocal}
+                  onChange={handleSessionEndChange}
+                  className="min-w-0 flex-1 basis-0 border-0 bg-transparent p-0 font-mono text-base text-white outline-none focus:ring-0 focus-visible:ring-0"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -111,25 +111,25 @@ export default function NotificationBell() {
 
       {panelMounted ? (
         <div
-          className={`absolute right-0 z-[60] mt-2 w-[min(100vw-2rem,22rem)] origin-top-right rounded-xl border border-slate-800/90 bg-[#121826] py-2 shadow-xl ring-1 ring-black/30 transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[opacity,transform] ${
+          className={`z-[60] rounded-xl border border-slate-800/90 bg-[#121826] py-2 shadow-xl ring-1 ring-black/30 transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[opacity,transform] max-md:fixed max-md:left-3 max-md:right-3 max-md:top-[calc(env(safe-area-inset-top,0px)+4rem)] max-md:mt-0 max-md:max-h-[min(70vh,24rem)] max-md:w-auto max-md:origin-top md:absolute md:right-0 md:top-full md:mt-2 md:max-h-none md:w-[min(100vw-2rem,22rem)] md:origin-top-right ${
             panelVisible
               ? 'pointer-events-auto translate-y-0 scale-100 opacity-100'
               : 'pointer-events-none -translate-y-1 scale-[0.98] opacity-0'
           }`}
         >
-          <div className="flex items-center justify-between border-b border-slate-800/80 px-3 pb-2">
-            <span className="text-sm font-semibold text-white">Notifications</span>
+          <div className="flex min-w-0 items-center justify-between gap-2 border-b border-slate-800/80 px-3 pb-2">
+            <span className="min-w-0 shrink text-sm font-semibold text-white">Notifications</span>
             {unread > 0 ? (
               <button
                 type="button"
                 onClick={() => markAllRead()}
-                className="text-xs font-medium text-blue-400 hover:text-blue-300"
+                className="shrink-0 text-xs font-medium text-blue-400 hover:text-blue-300"
               >
                 Mark all read
               </button>
             ) : null}
           </div>
-          <ul className="max-h-72 overflow-y-auto px-1 py-1">
+          <ul className="max-h-72 overflow-y-auto overflow-x-hidden px-1 py-1 max-md:max-h-[min(55vh,18rem)]">
             {loading && !items.length ? (
               <li className="px-3 py-4 text-center text-sm text-slate-500">Loading…</li>
             ) : null}
@@ -148,12 +148,14 @@ export default function NotificationBell() {
                     if (!n.readAt) markOneRead(n.id);
                     setOpen(false);
                   }}
-                  className={`block rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-slate-800/50 ${
+                  className={`block min-w-0 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-slate-800/50 ${
                     n.readAt ? 'opacity-70' : ''
                   }`}
                 >
-                  <p className="text-sm font-medium text-slate-100">{n.title}</p>
-                  {n.body ? <p className="mt-0.5 text-xs text-slate-500">{n.body}</p> : null}
+                  <p className="break-words text-sm font-medium text-slate-100">{n.title}</p>
+                  {n.body ? (
+                    <p className="mt-0.5 break-words text-xs text-slate-500">{n.body}</p>
+                  ) : null}
                   <p className="mt-1 text-[10px] text-slate-600">
                     {new Date(n.createdAt).toLocaleString(undefined, {
                       month: 'short',
