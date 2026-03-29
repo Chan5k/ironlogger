@@ -224,8 +224,8 @@ export default function Layout() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col bg-[#080b10]">
-      <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-slate-800/90 bg-[#0c1018]/95 px-4 backdrop-blur-md safe-pt">
+    <div className="flex min-h-svh flex-col overflow-x-hidden bg-[#080b10]">
+      <header className="sticky top-0 z-50 flex shrink-0 items-center justify-between gap-3 border-b border-slate-800/90 bg-[#0c1018]/95 px-4 pb-3 pt-3 backdrop-blur-md safe-pt">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <button
             type="button"
@@ -251,7 +251,7 @@ export default function Layout() {
       <div className="flex min-h-0 min-w-0 flex-1">
       {/* Desktop / tablet: persistent sidebar */}
       <aside
-        className="sticky top-0 z-30 hidden h-[calc(100svh-3.5rem)] min-h-0 w-56 shrink-0 flex-col border-r border-slate-800/90 bg-[#0e131c] md:flex"
+        className="sticky top-0 z-30 hidden h-svh min-h-0 w-56 shrink-0 flex-col border-r border-slate-800/90 bg-[#0e131c] md:flex"
         aria-label="Main navigation"
       >
         <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-6 pt-5" aria-label="App sections">
