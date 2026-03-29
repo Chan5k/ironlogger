@@ -5,11 +5,19 @@
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
+    color-scheme: dark;
   }
   input,
   textarea,
   select {
     font-size: 16px;
+  }
+  /* WebKit date/time inputs ignore w-full unless min-width is overridden (mobile overflow). */
+  input[type='date'],
+  input[type='datetime-local'],
+  input[type='time'] {
+    min-width: 0;
+    max-width: 100%;
   }
 }
 

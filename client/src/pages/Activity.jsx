@@ -82,11 +82,14 @@ export default function Activity() {
       kcal: Math.round(l.activeCalories),
     }));
 
+  const fieldClass =
+    'w-full min-w-0 max-w-full rounded-lg border border-slate-700 bg-surface px-3 py-2.5 text-white';
+
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <div>
         <h1 className="text-xl font-bold text-white">Activity</h1>
-        <p className="text-sm text-slate-400">
+        <p className="text-[15px] leading-relaxed text-slate-400 sm:text-sm sm:leading-normal">
           Manual steps, calories, and exercise minutes.{' '}
           <span className="text-slate-500">
             HealthKit is not available to websites—only native iOS apps can read Apple Health. Use
@@ -95,44 +98,46 @@ export default function Activity() {
         </p>
       </div>
 
-      <div className="rounded-2xl border border-slate-800 bg-surface-card p-4">
+      <div className="min-w-0 overflow-x-clip rounded-2xl border border-slate-800 bg-surface-card p-4">
         <label className="mb-1 block text-xs text-slate-500">Date</label>
-        <input
-          type="date"
-          value={dayKey}
-          onChange={(e) => setDayKey(e.target.value)}
-          className="mb-4 w-full rounded-xl border border-slate-700 bg-surface px-3 py-2 text-white"
-        />
+        <div className="mb-4 min-w-0 w-full">
+          <input
+            type="date"
+            value={dayKey}
+            onChange={(e) => setDayKey(e.target.value)}
+            className={fieldClass}
+          />
+        </div>
 
-        <div className="grid gap-3 sm:grid-cols-3">
-          <div>
+        <div className="grid min-w-0 gap-3 sm:grid-cols-3">
+          <div className="min-w-0">
             <label className="text-xs text-slate-500">Steps</label>
             <input
               type="number"
               inputMode="numeric"
               value={steps}
               onChange={(e) => setSteps(e.target.value)}
-              className="w-full rounded-lg border border-slate-700 bg-surface px-2 py-2 text-white"
+              className={fieldClass}
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="text-xs text-slate-500">Active kcal</label>
             <input
               type="number"
               inputMode="decimal"
               value={activeCalories}
               onChange={(e) => setActiveCalories(e.target.value)}
-              className="w-full rounded-lg border border-slate-700 bg-surface px-2 py-2 text-white"
+              className={fieldClass}
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="text-xs text-slate-500">Exercise min</label>
             <input
               type="number"
               inputMode="decimal"
               value={exerciseMinutes}
               onChange={(e) => setExerciseMinutes(e.target.value)}
-              className="w-full rounded-lg border border-slate-700 bg-surface px-2 py-2 text-white"
+              className={fieldClass}
             />
           </div>
         </div>
@@ -142,7 +147,7 @@ export default function Activity() {
           value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={2}
-          className="w-full rounded-xl border border-slate-700 bg-surface px-3 py-2 text-white"
+          className={fieldClass}
         />
 
         <button
