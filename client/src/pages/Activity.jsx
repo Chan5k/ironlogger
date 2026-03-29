@@ -99,14 +99,23 @@ export default function Activity() {
       </div>
 
       <div className="min-w-0 overflow-x-clip rounded-2xl border border-slate-800 bg-surface-card p-4">
-        <label className="mb-1 block text-xs text-slate-500">Date</label>
-        <div className="mb-4 min-w-0 w-full">
-          <input
-            type="date"
-            value={dayKey}
-            onChange={(e) => setDayKey(e.target.value)}
-            className={fieldClass}
-          />
+        <label className="mb-1 block text-xs text-slate-500" htmlFor="activity-day-key">
+          Date
+        </label>
+        {/*
+          iOS WebKit: padding on type="date" + w-full overflows (WebKit #301648). Chrome is fine.
+          Shell carries border/bg/padding; the input is flex-sized with zero padding.
+        */}
+        <div className="group mb-4 w-full min-w-0 max-w-full">
+          <div className="flex min-h-[44px] w-full min-w-0 max-w-full items-center rounded-lg border border-slate-700 bg-surface px-3 py-2 transition-[border-color,box-shadow] group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
+            <input
+              id="activity-day-key"
+              type="date"
+              value={dayKey}
+              onChange={(e) => setDayKey(e.target.value)}
+              className="min-w-0 flex-1 basis-0 border-0 bg-transparent p-0 text-base text-white outline-none focus:ring-0 focus-visible:ring-0"
+            />
+          </div>
         </div>
 
         <div className="grid min-w-0 gap-3 sm:grid-cols-3">

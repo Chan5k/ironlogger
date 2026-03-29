@@ -12,7 +12,12 @@
   select {
     font-size: 16px;
   }
-  /* WebKit date/time inputs ignore w-full unless min-width is overridden (mobile overflow). */
+  /*
+   * WebKit (iOS Safari / home-screen web app): date/time inputs use a bogus min-width and
+   * bug 301648 — horizontal padding + width:100% makes the control wider than its container.
+   * Use a padded wrapper (.date-field-shell) and keep padding on the input at 0, or rely on
+   * flex-1 min-w-0 basis-0 on the input inside a flex shell.
+   */
   input[type='date'],
   input[type='datetime-local'],
   input[type='time'] {
