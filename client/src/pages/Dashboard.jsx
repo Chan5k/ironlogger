@@ -606,22 +606,22 @@ export default function Dashboard() {
               No workouts yet — start with a quick session below.
             </p>
           )}
-          <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-2">
             <Link
               to={appPath('workouts/new')}
-              className="inline-flex h-11 flex-1 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white shadow-lg shadow-blue-950/30 transition-colors hover:bg-blue-500 sm:flex-none sm:min-w-[9rem]"
+              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-950/30 transition-colors hover:bg-blue-500 sm:min-h-11 sm:w-auto sm:min-w-[9rem] sm:py-0"
             >
               New workout
             </Link>
             <Link
               to={appPath('templates')}
-              className="inline-flex h-11 items-center justify-center rounded-lg border border-slate-600/70 bg-transparent px-4 text-sm font-medium text-slate-300 transition-colors hover:border-slate-500 hover:bg-slate-800/40"
+              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-lg border border-slate-600/70 bg-transparent px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:border-slate-500 hover:bg-slate-800/40 sm:min-h-11 sm:w-auto sm:py-0"
             >
               From plan
             </Link>
             <Link
               to={appPath('progress')}
-              className="inline-flex h-11 items-center justify-center rounded-lg border border-slate-600/70 bg-transparent px-4 text-sm font-medium text-slate-300 transition-colors hover:border-slate-500 hover:bg-slate-800/40"
+              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-lg border border-slate-600/70 bg-transparent px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:border-slate-500 hover:bg-slate-800/40 sm:min-h-11 sm:w-auto sm:py-0"
             >
               View progress
             </Link>
