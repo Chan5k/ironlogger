@@ -86,10 +86,10 @@ export default function WorkoutShareModal({ open, onClose, cardOptions }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl p-2 text-slate-400 touch-manipulation transition-colors duration-motion ease-motion-standard hover:bg-slate-800 hover:text-white sm:min-h-0 sm:min-w-0 sm:rounded-lg"
             aria-label="Close"
           >
-            <X className="h-5 w-5" strokeWidth={2} />
+            <X className="h-6 w-6 sm:h-5 sm:w-5" strokeWidth={2} />
           </button>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
@@ -101,11 +101,11 @@ export default function WorkoutShareModal({ open, onClose, cardOptions }) {
             <canvas ref={canvasRef} className="max-h-[55vh] w-auto max-w-full object-contain" />
           </div>
         </div>
-        <div className="flex flex-col gap-2 border-t border-slate-800 p-4 sm:flex-row">
+        <div className="flex flex-col gap-3 border-t border-slate-800 p-4 max-sm:pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:flex-row sm:gap-2">
           <button
             type="button"
             onClick={() => downloadPng()}
-            className="h-11 flex-1 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-500"
+            className="flex min-h-[52px] w-full flex-1 items-center justify-center rounded-xl bg-blue-600 px-5 py-4 text-base font-semibold text-white touch-manipulation transition-colors duration-motion ease-motion-standard hover:bg-blue-500 active:bg-blue-700 sm:min-h-11 sm:py-3 sm:text-sm"
           >
             Download PNG
           </button>
@@ -113,7 +113,7 @@ export default function WorkoutShareModal({ open, onClose, cardOptions }) {
             <button
               type="button"
               onClick={() => nativeShare().catch(() => {})}
-              className="h-11 flex-1 rounded-xl border border-slate-600 px-4 text-sm font-medium text-slate-200 hover:bg-slate-800"
+              className="flex min-h-[52px] w-full flex-1 items-center justify-center rounded-xl border border-slate-600 px-5 py-4 text-base font-semibold text-slate-200 touch-manipulation transition-colors duration-motion ease-motion-standard hover:bg-slate-800 active:bg-slate-800/80 sm:min-h-11 sm:py-3 sm:text-sm"
             >
               Share…
             </button>
