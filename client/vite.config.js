@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 
 /**
  * GitHub Pages project site: VITE_BASE_PATH=/your-repo-name/
@@ -16,9 +17,57 @@ function normalizeBase() {
   return s;
 }
 
-export default defineConfig({
-  base: normalizeBase(),
-  plugins: [react()],
+function scopeForManifest(viteBase) {
+  if (viteBase === '/') return '/';
+  return viteBase.endsWith('/') ? viteBase : `${viteBase}/`;
+}
+
+function startUrlForManifest(viteBase) {
+  if (viteBase === '/') return '/app';
+  return `${String(viteBase).replace(/\/$/, '')}/app`;
+}
+
+export default defineConfig(({ mode }) => {
+  const base = normalizeBase();
+  return {
+  base,
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      injectRegister: null,
+      manifest: {
+        name: 'IronLog',
+        short_name: 'IronLog',
+        description:
+          'Log workouts, plans, and training progress. Works offline for logging; workouts sync when you reconnect.',
+        theme_color: '#0b0e14',
+        background_color: '#0b0e14',
+        display: 'standalone',
+        orientation: 'portrait-primary',
+        scope: scopeForManifest(base),
+        start_url: startUrlForManifest(base),
+        icons: [
+          {
+            src: 'iron-logger-logo.jpg',
+            sizes: '512x512',
+            type: 'image/jpeg',
+            purpose: 'any',
+          },
+        ],
+      },
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp,woff2}'],
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+      },
+      devOptions: {
+        enabled: mode === 'development' && process.env.VITE_PWA_DEV === '1',
+      },
+    }),
+  ],
   server: {
     port: 5173,
     proxy: {
@@ -28,4 +77,5 @@ export default defineConfig({
       },
     },
   },
+};
 });

@@ -11,12 +11,15 @@ import {
   Settings,
   Shield,
   TrendingUp,
+  Trophy,
+  Rss,
   Users,
   X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { appPath } from '../constants/routes.js';
+import { APP_BASE, appPath } from '../constants/routes.js';
 import UserMenu from './UserMenu.jsx';
+import NotificationBell from './NotificationBell.jsx';
 import api from '../api/client.js';
 import {
   flushOfflineQueue,
@@ -50,6 +53,8 @@ const IconProgress = makeNavIcon(TrendingUp);
 const IconStatistics = makeNavIcon(BarChart3);
 const IconActivity = makeNavIcon(Activity);
 const IconFollowing = makeNavIcon(Users);
+const IconLeaderboards = makeNavIcon(Trophy);
+const IconFeed = makeNavIcon(Rss);
 const IconSettings = makeNavIcon(Settings);
 const IconAdmin = makeNavIcon(Shield);
 
@@ -63,34 +68,46 @@ function mobileNavLinkClass(isActive) {
   ].join(' ');
 }
 
-function NavSectionsList({ navSections, onNavClick }) {
+function railNavLinkClass(isActive) {
+  return [
+    'group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium transition-colors duration-150',
+    isActive
+      ? 'bg-blue-600/15 text-white ring-1 ring-blue-500/25'
+      : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-100',
+  ].join(' ');
+}
+
+function NavSectionsList({ navSections, onNavClick, variant = 'drawer' }) {
+  const linkClass = variant === 'rail' ? railNavLinkClass : mobileNavLinkClass;
   return (
     <div className="flex flex-col gap-6">
       {navSections.map((section) => (
         <div key={section.id}>
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-500/70">
+          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-500/80">
             {section.title}
           </p>
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-1">
             {section.items.map(({ to, label, end, Icon }) => (
               <li key={to}>
                 <NavLink
                   to={to}
                   end={end}
-                  className={({ isActive }) => mobileNavLinkClass(isActive)}
+                  className={({ isActive }) => linkClass(isActive)}
                   onClick={onNavClick}
                 >
                   {({ isActive }) => (
                     <>
-                      <span
-                        className="pointer-events-none absolute left-0 top-2 bottom-2 w-[3px] rounded-r-sm bg-white/90 transition-opacity duration-150"
-                        style={{ opacity: isActive ? 1 : 0 }}
-                        aria-hidden
-                      />
+                      {variant === 'drawer' ? (
+                        <span
+                          className="pointer-events-none absolute left-0 top-2 bottom-2 w-[3px] rounded-r-sm bg-white/90 transition-opacity duration-150"
+                          style={{ opacity: isActive ? 1 : 0 }}
+                          aria-hidden
+                        />
+                      ) : null}
                       <Icon
                         className={
                           isActive
-                            ? 'text-slate-100'
+                            ? 'text-blue-400/95'
                             : 'text-slate-500 transition-colors duration-150 group-hover:text-slate-300'
                         }
                       />
@@ -143,8 +160,10 @@ function buildNavSections(isAdmin) {
       id: 'social',
       title: 'Social',
       items: [
+        { to: appPath('feed'), label: 'Activity Feed', Icon: IconFeed },
         { to: appPath('activity'), label: 'Activity', Icon: IconActivity },
         { to: appPath('following'), label: 'Following', Icon: IconFollowing },
+        { to: appPath('leaderboards'), label: 'Leaderboards', Icon: IconLeaderboards },
       ],
     },
     {
@@ -162,6 +181,9 @@ export default function Layout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [offlinePending, setOfflinePending] = useState(0);
   const [offlineFlushing, setOfflineFlushing] = useState(false);
+  const [networkOnline, setNetworkOnline] = useState(
+    () => typeof navigator === 'undefined' || navigator.onLine
+  );
 
   const navSections = useMemo(() => buildNavSections(!!user?.isAdmin), [user?.isAdmin]);
 
@@ -187,12 +209,33 @@ export default function Layout() {
 
   useEffect(() => {
     const onOnline = () => {
+      setNetworkOnline(true);
       if (typeof navigator !== 'undefined' && navigator.onLine && getOfflineQueueLength() > 0) {
         runOfflineFlush();
       }
     };
+    const onOffline = () => setNetworkOnline(false);
     window.addEventListener('online', onOnline);
-    return () => window.removeEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+    };
+  }, [runOfflineFlush]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (
+        document.visibilityState === 'visible' &&
+        typeof navigator !== 'undefined' &&
+        navigator.onLine &&
+        getOfflineQueueLength() > 0
+      ) {
+        runOfflineFlush();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, [runOfflineFlush]);
 
   useEffect(() => {
@@ -223,9 +266,14 @@ export default function Layout() {
     navigate('/');
   }
 
+  const showHubTabs =
+    location.pathname === APP_BASE ||
+    location.pathname === `${APP_BASE}/` ||
+    location.pathname === appPath('statistics');
+
   return (
-    <div className="flex min-h-svh flex-col overflow-x-hidden bg-[#080b10]">
-      <header className="sticky top-0 z-50 flex shrink-0 items-center justify-between gap-3 border-b border-slate-800/90 bg-[#0c1018]/95 px-4 pb-3 pt-3 backdrop-blur-md safe-pt">
+    <div className="flex min-h-svh flex-col overflow-x-hidden bg-[#0b0e14]">
+      <header className="sticky top-0 z-50 flex shrink-0 items-center justify-between gap-3 border-b border-slate-800/60 bg-[#0b0e14]/95 px-4 pb-3 pt-3 backdrop-blur-md safe-pt">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <button
             type="button"
@@ -240,26 +288,29 @@ export default function Layout() {
           </button>
           <Link
             to={appPath()}
-            className="truncate text-lg font-semibold tracking-tight text-white transition-colors hover:text-slate-200 focus:outline-none focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-slate-500"
+            className="truncate text-lg font-semibold tracking-tight text-white transition-colors hover:text-blue-100 focus:outline-none focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-blue-500/40"
           >
             IronLog
           </Link>
         </div>
-        <UserMenu onSignOut={handleSignOut} />
+        <div className="flex shrink-0 items-center gap-0.5">
+          <NotificationBell />
+          <UserMenu onSignOut={handleSignOut} />
+        </div>
       </header>
 
       <div className="flex min-h-0 min-w-0 flex-1">
       {/* Desktop / tablet: persistent sidebar */}
       <aside
-        className="sticky top-0 z-30 hidden h-svh min-h-0 w-56 shrink-0 flex-col border-r border-slate-800/90 bg-[#0e131c] md:flex"
+        className="sticky top-0 z-30 hidden h-svh min-h-0 w-[15rem] shrink-0 flex-col border-r border-slate-800/70 bg-[#0b0e14] md:flex"
         aria-label="Main navigation"
       >
-        <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-6 pt-5" aria-label="App sections">
-          <NavSectionsList navSections={navSections} />
+        <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 pb-6 pt-5" aria-label="App sections">
+          <NavSectionsList navSections={navSections} variant="rail" />
         </nav>
       </aside>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-gradient-to-b from-[#0a0e14] to-[#080b10]">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#0b0e14]">
       {/* Mobile drawer + backdrop */}
       <div className="md:hidden" aria-hidden={!menuOpen}>
         <div
@@ -304,6 +355,13 @@ export default function Layout() {
         </aside>
       </div>
 
+      {!networkOnline ? (
+        <div className="border-b border-slate-700/80 bg-slate-900/85 px-4 py-2 text-center text-sm text-slate-300">
+          You&apos;re offline. You can still log workouts; saves queue and sync automatically when you reconnect (or tap
+          Sync below if you have pending changes).
+        </div>
+      ) : null}
+
       {offlinePending > 0 ? (
         <div className="border-b border-amber-900/60 bg-amber-950/40 px-4 py-2 text-center text-sm text-amber-200">
           <span className="mr-2">
@@ -320,7 +378,41 @@ export default function Layout() {
         </div>
       ) : null}
 
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 md:px-6 md:py-8">
+      {showHubTabs ? (
+        <div className="border-b border-slate-800/70 bg-[#0b0e14]/90 px-4 backdrop-blur-sm md:px-6">
+          <nav className="-mb-px flex gap-8" aria-label="Dashboard views">
+            <NavLink
+              end
+              to={appPath()}
+              className={({ isActive }) =>
+                [
+                  'border-b-2 py-3 text-sm font-semibold transition-colors',
+                  isActive
+                    ? 'border-blue-600 text-white'
+                    : 'border-transparent text-slate-500 hover:text-slate-300',
+                ].join(' ')
+              }
+            >
+              Dashboard
+            </NavLink>
+            <NavLink
+              to={appPath('statistics')}
+              className={({ isActive }) =>
+                [
+                  'border-b-2 py-3 text-sm font-semibold transition-colors',
+                  isActive
+                    ? 'border-blue-600 text-white'
+                    : 'border-transparent text-slate-500 hover:text-slate-300',
+                ].join(' ')
+              }
+            >
+              Analytics
+            </NavLink>
+          </nav>
+        </div>
+      ) : null}
+
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-8 md:py-8">
         <Outlet />
       </main>
       </div>

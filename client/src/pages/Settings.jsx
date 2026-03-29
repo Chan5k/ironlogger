@@ -133,8 +133,7 @@ export default function Settings() {
       return;
     }
     try {
-      const swUrl = `${import.meta.env.BASE_URL}sw.js`.replace(/\/+/g, '/');
-      const reg = await navigator.serviceWorker.register(swUrl);
+      const reg = await navigator.serviceWorker.ready;
       const perm = await Notification.requestPermission();
       if (perm !== 'granted') {
         setPushMsg(`Notifications: ${perm}`);

@@ -20,8 +20,8 @@ export default {
           elevated: '#243044',
         },
         accent: {
-          DEFAULT: '#3b82f6',
-          muted: '#60a5fa',
+          DEFAULT: '#2563eb',
+          muted: '#3b82f6',
         },
       },
       keyframes: {

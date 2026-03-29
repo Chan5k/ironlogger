@@ -5,8 +5,16 @@ import User from '../models/User.js';
 import Workout from '../models/Workout.js';
 import ProfileFollow from '../models/ProfileFollow.js';
 import ProfileWallEntry from '../models/ProfileWallEntry.js';
+import WorkoutLike from '../models/WorkoutLike.js';
+import Notification from '../models/Notification.js';
 import { authRequired } from '../middleware/auth.js';
 import { optionalAuth } from '../middleware/optionalAuth.js';
+import { buildLeaderboard } from '../lib/leaderboards.js';
+import {
+  addWorkoutComment,
+  fetchActivityFeed,
+  listWorkoutComments,
+} from '../lib/activityFeed.js';
 
 const router = Router();
 
@@ -14,6 +22,81 @@ function asObjectId(id) {
   if (id == null) return id;
   const s = String(id);
   return mongoose.Types.ObjectId.isValid(s) ? new mongoose.Types.ObjectId(s) : id;
+}
+
+function weekKeyUTC() {
+  const d = new Date();
+  const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const dayNum = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil(((t - yearStart) / 86400000 + 1) / 7);
+  return `${t.getUTCFullYear()}-W${weekNo}`;
+}
+
+async function maybeNotifyLeaderboardSpot(viewerId, rank, metric, scope) {
+  if (scope !== 'global' || rank > 10 || rank < 1) return;
+  const wk = weekKeyUTC();
+  const existing = await Notification.findOne({
+    userId: asObjectId(viewerId),
+    type: 'leaderboard_top',
+    'payload.weekKey': wk,
+    'payload.metric': metric,
+  }).lean();
+  if (existing) return;
+  await Notification.create({
+    userId: asObjectId(viewerId),
+    type: 'leaderboard_top',
+    title: 'Leaderboard spotlight',
+    body: `You're #${rank} on the ${metric} leaderboard this week.`,
+    payload: { weekKey: wk, metric, rank, scope },
+  });
+}
+
+async function attachLikeInfoToFeedItems(items, viewerId) {
+  const workoutIds = [];
+  for (const row of items) {
+    for (const w of row.recentWorkouts || []) {
+      if (w.id) workoutIds.push(w.id);
+    }
+  }
+  if (!workoutIds.length) return items;
+  const oids = workoutIds.map((id) => new mongoose.Types.ObjectId(id));
+  const [counts, liked] = await Promise.all([
+    WorkoutLike.aggregate([
+      { $match: { workoutId: { $in: oids } } },
+      { $group: { _id: '$workoutId', n: { $sum: 1 } } },
+    ]),
+    WorkoutLike.find({ userId: asObjectId(viewerId), workoutId: { $in: oids } })
+      .select('workoutId')
+      .lean(),
+  ]);
+  const countMap = new Map(counts.map((c) => [c._id.toString(), c.n]));
+  const likedSet = new Set(liked.map((l) => l.workoutId.toString()));
+  return items.map((row) => ({
+    ...row,
+    recentWorkouts: (row.recentWorkouts || []).map((w) => ({
+      ...w,
+      likeCount: countMap.get(w.id) ?? 0,
+      likedByMe: likedSet.has(w.id),
+    })),
+  }));
+}
+
+async function canLikeWorkout(viewerId, workout) {
+  if (!workout?.completedAt) return false;
+  if (workout.userId.toString() === String(viewerId)) return false;
+  const ownerId = workout.userId;
+  const [owner, follows] = await Promise.all([
+    User.findById(ownerId).select('publicProfileEnabled').lean(),
+    ProfileFollow.findOne({
+      followerId: asObjectId(viewerId),
+      targetUserId: ownerId,
+    }).lean(),
+  ]);
+  if (follows) return true;
+  if (owner?.publicProfileEnabled) return true;
+  return false;
 }
 
 async function publicUserBySlug(slug) {
@@ -227,8 +310,199 @@ router.get('/feed', authRequired, async (req, res) => {
       return tb - ta;
     });
 
-  res.json({ items });
+  const withLikes = await attachLikeInfoToFeedItems(items, req.user.id);
+  res.json({ items: withLikes });
 });
+
+router.get(
+  '/activity-feed',
+  authRequired,
+  query('scope').isIn(['following', 'global']),
+  query('sort').optional().isIn(['latest', 'top']),
+  query('page').optional().isInt({ min: 1, max: 500 }),
+  query('limit').optional().isInt({ min: 1, max: 30 }),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    try {
+      const data = await fetchActivityFeed({
+        viewerId: req.user.id,
+        scope: req.query.scope,
+        sort: req.query.sort || 'latest',
+        page: Number(req.query.page) || 1,
+        limit: Math.min(Number(req.query.limit) || 12, 30),
+      });
+      res.json(data);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: 'Feed failed' });
+    }
+  }
+);
+
+router.get(
+  '/workouts/:workoutId/comments',
+  authRequired,
+  param('workoutId').isMongoId(),
+  query('limit').optional().isInt({ min: 1, max: 50 }),
+  query('before').optional({ values: 'falsy' }).isISO8601(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const limit = Number(req.query.limit) || 25;
+    const result = await listWorkoutComments(req.params.workoutId, req.user.id, {
+      limit,
+      before: req.query.before,
+    });
+    if (!result) return res.status(404).json({ error: 'Not found' });
+    res.json(result);
+  }
+);
+
+router.post(
+  '/workouts/:workoutId/comments',
+  authRequired,
+  param('workoutId').isMongoId(),
+  body('body').trim().notEmpty().isLength({ min: 1, max: 800 }),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const out = await addWorkoutComment(req.params.workoutId, req.user.id, req.body.body);
+    if (out.error) {
+      const code = out.error === 'Workout not found' ? 404 : 403;
+      return res.status(code).json({ error: out.error });
+    }
+    res.status(201).json(out);
+  }
+);
+
+router.get(
+  '/leaderboards',
+  authRequired,
+  query('metric').isIn(['volume', 'workouts', 'streak']),
+  query('scope').isIn(['following', 'global']),
+  query('page').optional().isInt({ min: 1, max: 500 }),
+  query('limit').optional().isInt({ min: 1, max: 50 }),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
+    try {
+      const data = await buildLeaderboard({
+        scope: req.query.scope,
+        metric: req.query.metric,
+        page,
+        limit,
+        viewerId: req.user.id,
+      });
+      if (page === 1 && req.query.scope === 'global') {
+        const selfRow = data.entries.find((e) => e.isViewer);
+        if (selfRow && selfRow.rank <= 10) {
+          await maybeNotifyLeaderboardSpot(req.user.id, selfRow.rank, req.query.metric, 'global');
+        }
+      }
+      res.json(data);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: 'Leaderboard failed' });
+    }
+  }
+);
+
+router.get(
+  '/workouts/:workoutId/likes',
+  authRequired,
+  param('workoutId').isMongoId(),
+  query('preview').optional().isInt({ min: 1, max: 20 }),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const wid = req.params.workoutId;
+    const w = await Workout.findById(wid).select('userId completedAt title').lean();
+    if (!w || !w.completedAt) return res.status(404).json({ error: 'Workout not found' });
+    const own = w.userId.toString() === req.user.id;
+    if (!own && !(await canLikeWorkout(req.user.id, w))) {
+      return res.status(403).json({ error: 'Not allowed to view likes' });
+    }
+    const previewLimit = Number(req.query.preview) || 8;
+    const [likeCount, likedByMe, preview] = await Promise.all([
+      WorkoutLike.countDocuments({ workoutId: w._id }),
+      WorkoutLike.findOne({ workoutId: w._id, userId: asObjectId(req.user.id) }).lean(),
+      WorkoutLike.find({ workoutId: w._id })
+        .sort({ createdAt: -1 })
+        .limit(previewLimit)
+        .populate('userId', 'name email')
+        .lean(),
+    ]);
+    res.json({
+      likeCount,
+      likedByMe: !!likedByMe,
+      likers: preview.map((row) => {
+        const u = row.userId;
+        const name = (u?.name || '').trim() || (u?.email || '').split('@')[0] || 'Athlete';
+        const initials = name
+          .split(/\s+/)
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((p) => p[0]?.toUpperCase())
+          .join('')
+          .slice(0, 2) || '?';
+        return { userId: u?._id?.toString(), name, initials };
+      }),
+    });
+  }
+);
+
+router.post(
+  '/workouts/:workoutId/like',
+  authRequired,
+  param('workoutId').isMongoId(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const wid = asObjectId(req.params.workoutId);
+    const w = await Workout.findById(wid).select('userId title completedAt').lean();
+    if (!w || !w.completedAt) return res.status(404).json({ error: 'Workout not found' });
+    if (!(await canLikeWorkout(req.user.id, w))) {
+      return res.status(403).json({ error: 'You cannot like this workout' });
+    }
+    let created = false;
+    try {
+      await WorkoutLike.create({ userId: asObjectId(req.user.id), workoutId: wid });
+      created = true;
+    } catch (e) {
+      if (e.code !== 11000) throw e;
+    }
+    const likeCount = await WorkoutLike.countDocuments({ workoutId: wid });
+    if (created && w.userId.toString() !== req.user.id) {
+      const liker = await User.findById(req.user.id).select('name email').lean();
+      const likerName = (liker?.name || '').trim() || (liker?.email || '').split('@')[0] || 'Someone';
+      await Notification.create({
+        userId: w.userId,
+        type: 'workout_like',
+        title: 'Workout liked',
+        body: `${likerName} liked “${w.title}”.`,
+        payload: { workoutId: String(wid), actorId: String(req.user.id) },
+      });
+    }
+    res.status(created ? 201 : 200).json({ ok: true, likeCount, likedByMe: true });
+  }
+);
+
+router.delete(
+  '/workouts/:workoutId/like',
+  authRequired,
+  param('workoutId').isMongoId(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const wid = asObjectId(req.params.workoutId);
+    await WorkoutLike.deleteOne({ userId: asObjectId(req.user.id), workoutId: wid });
+    const likeCount = await WorkoutLike.countDocuments({ workoutId: wid });
+    res.json({ ok: true, likeCount, likedByMe: false });
+  }
+);
 
 router.post(
   '/wall/:slug',

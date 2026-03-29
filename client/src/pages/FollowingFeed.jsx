@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import api from '../api/client.js';
 import RemoveFriendDialog from '../components/RemoveFriendDialog.jsx';
+import WorkoutLikeButton from '../components/WorkoutLikeButton.jsx';
 import { appPath } from '../constants/routes.js';
 import { formatWorkoutDuration } from '../utils/workoutDuration.js';
 
@@ -164,16 +165,23 @@ export default function FollowingFeed() {
                   {row.recentWorkouts.map((w) => (
                     <li
                       key={w.id}
-                      className="rounded-lg bg-surface-elevated/80 px-3 py-2 text-sm text-slate-300"
+                      className="flex flex-wrap items-start justify-between gap-2 rounded-lg bg-surface-elevated/80 px-3 py-2 text-sm text-slate-300"
                     >
-                      <p className="font-medium text-white">{w.title}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">
-                        {fmtDay(w.completedAt || w.startedAt)}
-                        <span className="text-slate-600"> · </span>
-                        <span className="font-mono text-slate-400">
-                          {formatWorkoutDuration(w.startedAt, w.completedAt)}
-                        </span>
-                      </p>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-white">{w.title}</p>
+                        <p className="mt-0.5 text-xs text-slate-500">
+                          {fmtDay(w.completedAt || w.startedAt)}
+                          <span className="text-slate-600"> · </span>
+                          <span className="font-mono text-slate-400">
+                            {formatWorkoutDuration(w.startedAt, w.completedAt)}
+                          </span>
+                        </p>
+                      </div>
+                      <WorkoutLikeButton
+                        workoutId={w.id}
+                        initialCount={w.likeCount ?? 0}
+                        initialLiked={!!w.likedByMe}
+                      />
                     </li>
                   ))}
                 </ul>

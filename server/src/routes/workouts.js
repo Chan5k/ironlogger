@@ -4,15 +4,39 @@ import mongoose from 'mongoose';
 import Workout, { SET_TYPES } from '../models/Workout.js';
 import Exercise, { EXERCISE_CATEGORIES } from '../models/Exercise.js';
 import User from '../models/User.js';
+import WorkoutTemplate from '../models/WorkoutTemplate.js';
+import { authRequired } from '../middleware/auth.js';
 import { bestEstimated1RMFromSets } from '../lib/estimated1RM.js';
+import { buildDashboardIntelligence } from '../lib/dashboardIntelligence.js';
 import {
   addCalendarDays,
   computeCurrentStreak,
   countTrainingDaysInRollingWindow,
   dateKeyInTimeZone,
 } from '../lib/trainingStreak.js';
-import WorkoutTemplate from '../models/WorkoutTemplate.js';
-import { authRequired } from '../middleware/auth.js';
+
+/** Longest run of consecutive calendar days present in `set` (YYYY-MM-DD keys). */
+function bestStreakFromDaySet(trainingDays) {
+  let best = 0;
+  for (const day of trainingDays) {
+    const prev = addCalendarDays(day, -1);
+    if (trainingDays.has(prev)) continue;
+    let len = 0;
+    let k = day;
+    while (trainingDays.has(k)) {
+      len += 1;
+      k = addCalendarDays(k, 1);
+    }
+    if (len > best) best = len;
+  }
+  return best;
+}
+
+function weekdayShortForDayKey(dayKey, timeZone) {
+  const [y, m, d] = dayKey.split('-').map(Number);
+  const inst = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  return new Intl.DateTimeFormat(undefined, { weekday: 'short', timeZone }).format(inst);
+}
 
 const router = Router();
 router.use(authRequired);
@@ -172,6 +196,7 @@ router.get('/summary', async (req, res) => {
     streak: {
       currentDays: currentStreak,
       trainingDaysLast7,
+      bestEver: bestStreakFromDaySet(trainingDays),
     },
   });
 });
@@ -257,6 +282,78 @@ router.get(
     });
   }
 );
+
+/** Per-calendar-day volume by exercise category (user TZ), non-warmup sets, completed workouts only. */
+router.get(
+  '/stats/volume-by-day',
+  query('days').optional().isInt({ min: 1, max: 90 }),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const span = Number(req.query.days) || 7;
+
+    const me = await User.findById(req.user.id).select('timezone').lean();
+    const tz = me?.timezone || 'UTC';
+    const now = new Date();
+    const todayKey = dateKeyInTimeZone(now, tz);
+    const startKey = addCalendarDays(todayKey, -(span - 1));
+
+    const roughFrom = new Date(now);
+    roughFrom.setUTCDate(roughFrom.getUTCDate() - span - 2);
+
+    const workouts = await Workout.find({
+      userId: req.user.id,
+      completedAt: { $ne: null, $gte: roughFrom },
+    })
+      .select('completedAt exercises')
+      .lean();
+
+    const emptyCats = () =>
+      Object.fromEntries(EXERCISE_CATEGORIES.map((c) => [c, 0]));
+    const byDay = {};
+    for (let i = 0; i < span; i += 1) {
+      const k = addCalendarDays(startKey, i);
+      byDay[k] = emptyCats();
+    }
+
+    for (const w of workouts) {
+      const dk = dateKeyInTimeZone(new Date(w.completedAt), tz);
+      if (!byDay[dk]) continue;
+      for (const ex of w.exercises || []) {
+        const cat = EXERCISE_CATEGORIES.includes(ex.category) ? ex.category : 'other';
+        for (const s of ex.sets || []) {
+          if (!isCountingSet(s)) continue;
+          byDay[dk][cat] += Math.round((Number(s.weight) || 0) * (Number(s.reps) || 0));
+        }
+      }
+    }
+
+    const days = [];
+    for (let i = 0; i < span; i += 1) {
+      const k = addCalendarDays(startKey, i);
+      const cats = byDay[k];
+      const totalVolume = EXERCISE_CATEGORIES.reduce((s, c) => s + cats[c], 0);
+      days.push({
+        dayKey: k,
+        label: weekdayShortForDayKey(k, tz),
+        categories: cats,
+        totalVolume,
+      });
+    }
+
+    res.json({ timezone: tz, days });
+  }
+);
+
+router.get('/intelligence', async (req, res) => {
+  try {
+    const data = await buildDashboardIntelligence(req.user.id);
+    res.json(data);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Could not load intelligence' });
+  }
+});
 
 router.get('/progress/:exerciseId', param('exerciseId').isMongoId(), async (req, res) => {
   const errors = validationResult(req);

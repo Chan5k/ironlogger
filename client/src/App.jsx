@@ -21,6 +21,8 @@ import AdminUserDetail from './pages/AdminUserDetail.jsx';
 import PublicProfile from './pages/PublicProfile.jsx';
 import ShareView from './pages/ShareView.jsx';
 import FollowingFeed from './pages/FollowingFeed.jsx';
+import Leaderboards from './pages/Leaderboards.jsx';
+import ActivityFeedPage from './pages/ActivityFeed.jsx';
 import AddFriendInvite from './pages/AddFriendInvite.jsx';
 
 function PrivateRoute({ children }) {
@@ -65,6 +67,8 @@ export default function App() {
         <Route path="statistics" element={<Statistics />} />
         <Route path="activity" element={<Activity />} />
         <Route path="following" element={<FollowingFeed />} />
+        <Route path="feed" element={<ActivityFeedPage />} />
+        <Route path="leaderboards" element={<Leaderboards />} />
         <Route path="settings" element={<Settings />} />
         <Route path="admin" element={<AdminRoute />}>
           <Route index element={<AdminUsers />} />

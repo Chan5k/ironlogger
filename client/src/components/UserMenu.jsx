@@ -140,7 +140,7 @@ export default function UserMenu({ onSignOut }) {
           {initials}
         </span>
         <ChevronDown
-          className={`hidden h-4 w-4 shrink-0 text-slate-500 transition-transform duration-[200ms] ease-out motion-reduce:duration-0 sm:block ${open ? 'rotate-180' : ''}`}
+          className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-[200ms] ease-out motion-reduce:duration-0 ${open ? 'rotate-180' : ''}`}
           strokeWidth={2}
           aria-hidden
         />

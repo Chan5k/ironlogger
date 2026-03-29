@@ -96,8 +96,8 @@ export default function Statistics() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-white">Statistics</h1>
-        <p className="text-sm text-slate-400">
+        <h1 className="text-2xl font-semibold tracking-tight text-white md:text-[1.65rem]">Analytics</h1>
+        <p className="mt-1 text-sm text-slate-500">
           Muscle-group load from completed workouts. Warm-up sets are excluded; coloring is relative
           to your strongest mapped group in the selected period.
         </p>
@@ -111,7 +111,7 @@ export default function Statistics() {
             onClick={() => setRangeDays(days)}
             className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
               rangeDays === days
-                ? 'bg-surface-elevated text-white ring-1 ring-slate-600/60'
+                ? 'bg-blue-600/15 text-white ring-1 ring-blue-500/30'
                 : 'text-slate-500 hover:bg-slate-800/50 hover:text-slate-200'
             }`}
           >
@@ -135,7 +135,7 @@ export default function Statistics() {
             <p className="text-xs text-slate-500">All logged history</p>
           )}
 
-          <div className="rounded-[12px] border border-slate-800/80 bg-[#0e131c]/80 p-5 md:p-7">
+          <div className="rounded-xl border border-slate-800/80 bg-[#0f141d]/90 p-5 md:p-7">
             <BodyMuscleMap intensity={intensityByCategory} />
             <div className="mx-auto mt-6 flex max-w-md items-center justify-center gap-3 rounded-lg bg-slate-900/40 px-4 py-3 text-[11px] text-slate-500 ring-1 ring-slate-800/60">
               <span className="h-2 w-7 shrink-0 rounded-full bg-[hsl(222,16%,11%)] ring-1 ring-slate-700/50" />
