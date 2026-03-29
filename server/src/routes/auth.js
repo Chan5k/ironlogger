@@ -5,6 +5,7 @@ import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import { authRequired } from '../middleware/auth.js';
 import { userIsAdmin } from '../config/admin.js';
+import { loginRateLimiter, registerRateLimiter } from '../middleware/authRateLimit.js';
 
 const router = Router();
 
@@ -26,6 +27,7 @@ function userPayload(user) {
 
 router.post(
   '/register',
+  registerRateLimiter,
   body('email').isEmail().normalizeEmail(),
   body('password').isLength({ min: 8 }),
   body('name')
@@ -60,6 +62,7 @@ router.post(
 
 router.post(
   '/login',
+  loginRateLimiter,
   body('email').isEmail().normalizeEmail(),
   body('password').notEmpty(),
   async (req, res) => {

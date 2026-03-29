@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import mongoose from 'mongoose';
 import authRoutes from './routes/auth.js';
 import exerciseRoutes from './routes/exercises.js';
@@ -16,6 +17,18 @@ import cronRoutes from './routes/cron.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+/** One hop (e.g. Render, Fly) so express-rate-limit sees the real client IP. */
+if (process.env.NODE_ENV === 'production' || process.env.TRUST_PROXY === '1') {
+  app.set('trust proxy', 1);
+}
+
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 /** Comma-separated list, e.g. https://app.vercel.app,http://localhost:5173 */
 function corsOrigins() {
