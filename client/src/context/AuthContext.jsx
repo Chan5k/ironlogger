@@ -16,11 +16,13 @@ export function AuthProvider({ children }) {
     }
   });
   const [loading, setLoading] = useState(!!localStorage.getItem(STORAGE_KEY));
+  const [impersonating, setImpersonating] = useState(false);
 
   useEffect(() => {
     setAuthToken(token || null);
     if (!token) {
       setLoading(false);
+      setImpersonating(false);
       return;
     }
     let cancelled = false;
@@ -29,12 +31,14 @@ export function AuthProvider({ children }) {
         const { data } = await api.get('/auth/me');
         if (!cancelled) {
           setUser(data.user);
+          setImpersonating(!!data.impersonating);
           localStorage.setItem(USER_KEY, JSON.stringify(data.user));
         }
       } catch {
         if (!cancelled) {
           setTokenState(null);
           setUser(null);
+          setImpersonating(false);
           localStorage.removeItem(STORAGE_KEY);
           localStorage.removeItem(USER_KEY);
           setAuthToken(null);
@@ -61,6 +65,7 @@ export function AuthProvider({ children }) {
       localStorage.removeItem(USER_KEY);
       setTokenState(null);
       setUser(null);
+      setImpersonating(false);
     }
     setAuthToken(t || null);
   };
@@ -68,7 +73,15 @@ export function AuthProvider({ children }) {
   const refreshUser = async () => {
     const { data } = await api.get('/auth/me');
     setUser(data.user);
+    setImpersonating(!!data.impersonating);
     localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+    return data.user;
+  };
+
+  const endImpersonation = async () => {
+    const { data } = await api.post('/auth/end-impersonate');
+    setToken(data.token, data.user);
+    setImpersonating(false);
     return data.user;
   };
 
@@ -77,12 +90,14 @@ export function AuthProvider({ children }) {
       token,
       user,
       loading,
+      impersonating,
       isAuthenticated: !!token && !!user,
       setToken,
       refreshUser,
+      endImpersonation,
       logout: () => setToken(null),
     }),
-    [token, user, loading]
+    [token, user, loading, impersonating]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

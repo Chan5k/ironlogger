@@ -52,6 +52,7 @@ export default function AppDialogProvider({ children }) {
     const onKey = (e) => {
       if (e.key === 'Escape') {
         if (active.kind === 'confirm') finishAndAdvance(false);
+        else if (active.kind === 'prompt') finishAndAdvance(null);
         else if (active.kind === 'alert') finishAndAdvance(undefined);
         else if (active.kind === 'copy') finishAndAdvance(undefined);
       }
@@ -76,15 +77,27 @@ export default function AppDialogProvider({ children }) {
 
   const alertFn = useCallback((message) => enqueue({ kind: 'alert', message }), [enqueue]);
   const confirmFn = useCallback((message) => enqueue({ kind: 'confirm', message }), [enqueue]);
+  const promptFn = useCallback(
+    (opts) =>
+      enqueue({
+        kind: 'prompt',
+        title: opts?.title || 'Input',
+        message: String(opts?.message ?? ''),
+        placeholder: opts?.placeholder || '',
+        defaultValue: opts?.defaultValue ?? '',
+        confirmLabel: opts?.confirmLabel || 'OK',
+      }),
+    [enqueue]
+  );
   const copySheetFn = useCallback(
     ({ url, title }) => enqueue({ kind: 'copy', url, title: title || 'Copy link' }),
     [enqueue]
   );
 
   useEffect(() => {
-    setAppDialogImpl({ alert: alertFn, confirm: confirmFn, copySheet: copySheetFn });
+    setAppDialogImpl({ alert: alertFn, confirm: confirmFn, prompt: promptFn, copySheet: copySheetFn });
     return () => setAppDialogImpl(null);
-  }, [alertFn, confirmFn, copySheetFn]);
+  }, [alertFn, confirmFn, promptFn, copySheetFn]);
 
   const portal =
     active &&
@@ -102,12 +115,13 @@ export default function AppDialogProvider({ children }) {
           }`}
           onClick={() => {
             if (active.kind === 'confirm') finishAndAdvance(false);
+            else if (active.kind === 'prompt') finishAndAdvance(null);
             else if (active.kind === 'alert') finishAndAdvance(undefined);
             else if (active.kind === 'copy') finishAndAdvance(undefined);
           }}
         />
         <div
-          role={active.kind === 'confirm' ? 'alertdialog' : 'dialog'}
+          role={active.kind === 'confirm' || active.kind === 'prompt' ? 'alertdialog' : 'dialog'}
           aria-modal="true"
           aria-labelledby="app-dialog-title"
           className={`relative z-10 flex max-h-[min(90dvh,32rem)] w-full max-w-lg flex-col border border-slate-600/80 bg-[#121826] shadow-2xl shadow-black/50 ring-1 ring-white/5 transition-[transform,opacity] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none max-sm:max-h-[min(85dvh,28rem)] max-sm:rounded-t-2xl max-sm:border-b-0 sm:rounded-2xl ${
@@ -123,6 +137,16 @@ export default function AppDialogProvider({ children }) {
               title={active.title}
               url={active.url}
               onDone={() => finishAndAdvance(undefined)}
+            />
+          ) : active.kind === 'prompt' ? (
+            <PromptBody
+              title={active.title}
+              message={active.message}
+              placeholder={active.placeholder}
+              defaultValue={active.defaultValue}
+              confirmLabel={active.confirmLabel}
+              onCancel={() => finishAndAdvance(null)}
+              onConfirm={(value) => finishAndAdvance(value)}
             />
           ) : (
             <>
@@ -173,6 +197,68 @@ export default function AppDialogProvider({ children }) {
     <>
       {children}
       {portal}
+    </>
+  );
+}
+
+function PromptBody({ title, message, placeholder, defaultValue, confirmLabel, onCancel, onConfirm }) {
+  const [value, setValue] = useState(defaultValue || '');
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    setValue(defaultValue || '');
+  }, [defaultValue]);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => inputRef.current?.focus(), 100);
+    return () => window.clearTimeout(t);
+  }, []);
+
+  function submit() {
+    const t = String(value).trim();
+    onConfirm(t.length ? t : null);
+  }
+
+  return (
+    <>
+      <div className="min-w-0 px-5 pb-2 pt-4 sm:pt-5">
+        <h2 id="app-dialog-title" className="text-lg font-semibold tracking-tight text-white">
+          {title}
+        </h2>
+        <p className="mt-3 whitespace-pre-wrap break-words text-[15px] leading-relaxed text-slate-300">
+          {message}
+        </p>
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              submit();
+            }
+          }}
+          className="mt-4 w-full rounded-xl border border-slate-700 bg-[#0b0e14] px-3 py-3 text-[15px] text-white outline-none focus:border-slate-500"
+        />
+      </div>
+      <div className="mt-4 flex flex-col-reverse gap-2 border-t border-slate-800/90 px-4 py-4 safe-pb sm:flex-row sm:justify-end sm:gap-3">
+        <button
+          type="button"
+          className="rounded-xl border border-slate-600/80 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors hover:bg-slate-800/50 sm:py-2.5"
+          onClick={onCancel}
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500 sm:py-2.5"
+          onClick={submit}
+        >
+          {confirmLabel}
+        </button>
+      </div>
     </>
   );
 }

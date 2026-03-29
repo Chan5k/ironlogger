@@ -9,7 +9,7 @@ export default function AdminRoute() {
       <div className="flex min-h-[40vh] items-center justify-center text-slate-400">Loading…</div>
     );
   }
-  if (!user?.isAdmin) {
+  if (!user?.isStaff) {
     return <Navigate to={appPath()} replace />;
   }
   return <Outlet />;

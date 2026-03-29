@@ -11,6 +11,11 @@ const userSchema = new mongoose.Schema(
     timezone: { type: String, default: 'UTC' },
     weightUnit: { type: String, enum: ['kg', 'lbs'], default: 'kg' },
     isAdmin: { type: Boolean, default: false },
+    /** Read-only admin UI: user list & detail, no destructive or privilege changes. */
+    isSupport: { type: Boolean, default: false },
+    /** Internal notes visible only via admin API (full admins may edit). */
+    adminNotes: { type: String, default: '', trim: true, maxlength: 8000 },
+    lastLoginAt: { type: Date, default: null },
     publicProfileEnabled: { type: Boolean, default: false },
     publicProfileSlug: { type: String, trim: true, lowercase: true },
     /** Web Push subscriptions for reminder notifications when the app is closed */

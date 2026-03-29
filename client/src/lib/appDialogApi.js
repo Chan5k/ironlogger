@@ -22,6 +22,19 @@ export function appConfirm(message) {
   return Promise.resolve(window.confirm(message));
 }
 
+/**
+ * @param {{ title?: string, message: string, placeholder?: string, defaultValue?: string, confirmLabel?: string }} opts
+ * @returns {Promise<string | null>} trimmed value, or null if cancelled
+ */
+export function appPrompt(opts) {
+  if (impl.prompt) return impl.prompt(opts && typeof opts === 'object' ? opts : { message: String(opts) });
+  const o = opts && typeof opts === 'object' ? opts : { message: String(opts) };
+  const r = window.prompt(o.message, o.defaultValue ?? '');
+  if (r == null) return Promise.resolve(null);
+  const t = String(r).trim();
+  return Promise.resolve(t || null);
+}
+
 /** @param {{ url: string, title?: string }} opts */
 export function appCopySheet(opts) {
   if (impl.copySheet) return impl.copySheet(opts);

@@ -27,6 +27,7 @@ import {
   getOfflineQueueLength,
   OFFLINE_QUEUE_EVENT,
 } from '../utils/offlineQueue.js';
+import { appAlert } from '../lib/appDialogApi.js';
 
 /** Lucide defaults to outline strokes; keep nav glyphs uniform at 20px. */
 const NAV_ICON_STROKE = 1.75;
@@ -134,10 +135,10 @@ function CloseIcon() {
   return <X className="h-6 w-6 shrink-0" strokeWidth={2} aria-hidden />;
 }
 
-function buildNavSections(isAdmin) {
+function buildNavSections(isStaff) {
   const other = [
     { to: appPath('settings'), label: 'Settings', Icon: IconSettings },
-    ...(isAdmin ? [{ to: appPath('admin'), label: 'Admin', Icon: IconAdmin }] : []),
+    ...(isStaff ? [{ to: appPath('admin'), label: 'Admin', Icon: IconAdmin }] : []),
   ];
   return [
     {
@@ -178,7 +179,7 @@ function buildNavSections(isAdmin) {
 }
 
 export default function Layout() {
-  const { user, logout } = useAuth();
+  const { user, logout, impersonating, endImpersonation } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -188,7 +189,7 @@ export default function Layout() {
     () => typeof navigator === 'undefined' || navigator.onLine
   );
 
-  const navSections = useMemo(() => buildNavSections(!!user?.isAdmin), [user?.isAdmin]);
+  const navSections = useMemo(() => buildNavSections(!!user?.isStaff), [user?.isStaff]);
 
   const refreshOfflinePending = useCallback(() => {
     setOfflinePending(getOfflineQueueLength());
@@ -357,6 +358,27 @@ export default function Layout() {
 
         </aside>
       </div>
+
+      {impersonating ? (
+        <div className="flex flex-col gap-2 border-b border-amber-800/70 bg-amber-950/45 px-4 py-2.5 text-center text-sm text-amber-100 sm:flex-row sm:items-center sm:justify-center sm:gap-4">
+          <span>
+            Viewing as <span className="font-medium text-white">{user?.email}</span> — leave support mode when finished.
+          </span>
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                await endImpersonation();
+              } catch (e) {
+                await appAlert(e.response?.data?.error || 'Could not end impersonation');
+              }
+            }}
+            className="rounded-lg bg-amber-200/15 px-3 py-1.5 text-sm font-semibold text-amber-50 ring-1 ring-amber-500/40 hover:bg-amber-200/25"
+          >
+            Exit impersonation
+          </button>
+        </div>
+      ) : null}
 
       {!networkOnline ? (
         <div className="border-b border-slate-700/80 bg-slate-900/85 px-4 py-2 text-center text-sm text-slate-300">

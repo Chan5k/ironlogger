@@ -16,8 +16,12 @@ import Statistics from './pages/Statistics.jsx';
 import Settings from './pages/Settings.jsx';
 import Activity from './pages/Activity.jsx';
 import AdminRoute from './components/AdminRoute.jsx';
+import AdminLayout from './components/AdminLayout.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
 import AdminUsers from './pages/AdminUsers.jsx';
 import AdminUserDetail from './pages/AdminUserDetail.jsx';
+import AdminExercises from './pages/AdminExercises.jsx';
+import AdminAuditLog from './pages/AdminAuditLog.jsx';
 import PublicProfile from './pages/PublicProfile.jsx';
 import ShareView from './pages/ShareView.jsx';
 import FollowingFeed from './pages/FollowingFeed.jsx';
@@ -73,8 +77,13 @@ export default function App() {
         <Route path="leaderboards" element={<Leaderboards />} />
         <Route path="settings" element={<Settings />} />
         <Route path="admin" element={<AdminRoute />}>
-          <Route index element={<AdminUsers />} />
-          <Route path="users/:userId" element={<AdminUserDetail />} />
+          <Route element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="users/:userId" element={<AdminUserDetail />} />
+            <Route path="exercises" element={<AdminExercises />} />
+            <Route path="audit" element={<AdminAuditLog />} />
+          </Route>
         </Route>
         <Route path="*" element={<Navigate to={APP_BASE} replace />} />
       </Route>

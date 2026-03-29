@@ -4,8 +4,10 @@ import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import { authRequired } from '../middleware/auth.js';
-import { userIsAdmin } from '../config/admin.js';
+import { userIsAdmin, userIsFullAdmin, userIsStaff } from '../config/admin.js';
 import { loginRateLimiter, registerRateLimiter } from '../middleware/authRateLimit.js';
+import { fullAdminRequired } from '../middleware/admin.js';
+import { logAdminAction } from '../lib/adminAudit.js';
 
 const router = Router();
 
@@ -20,9 +22,31 @@ function userPayload(user) {
     timezone: user.timezone,
     weightUnit: user.weightUnit === 'lbs' ? 'lbs' : 'kg',
     isAdmin: userIsAdmin(user),
+    isSupport: !!user.isSupport,
+    isStaff: userIsStaff(user),
     publicProfileEnabled: !!user.publicProfileEnabled,
     publicProfileSlug: user.publicProfileSlug || '',
   };
+}
+
+function signUserToken(userDoc) {
+  return jwt.sign(
+    { sub: userDoc._id.toString(), email: userDoc.email },
+    process.env.JWT_SECRET,
+    { expiresIn: '14d' }
+  );
+}
+
+function signImpersonationToken(targetUser, actorId) {
+  return jwt.sign(
+    {
+      sub: targetUser._id.toString(),
+      email: targetUser.email,
+      act: actorId.toString(),
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: '4h' }
+  );
 }
 
 router.post(
@@ -48,11 +72,7 @@ router.post(
     }
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await User.create({ email, passwordHash, name: name.trim() });
-    const token = jwt.sign(
-      { sub: user._id.toString(), email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '14d' }
-    );
+    const token = signUserToken(user);
     res.status(201).json({
       token,
       user: userPayload(user),
@@ -75,11 +95,9 @@ router.post(
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
-    const token = jwt.sign(
-      { sub: user._id.toString(), email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '14d' }
-    );
+    user.lastLoginAt = new Date();
+    await user.save();
+    const token = signUserToken(user);
     res.json({
       token,
       user: userPayload(user),
@@ -92,6 +110,51 @@ router.get('/me', authRequired, async (req, res) => {
   if (!user) return res.status(404).json({ error: 'User not found' });
   res.json({
     user: userPayload(user),
+    impersonating: !!req.user.actorId,
+    actorId: req.user.actorId || null,
+  });
+});
+
+router.post(
+  '/impersonate',
+  authRequired,
+  fullAdminRequired,
+  body('userId').isMongoId(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const targetId = req.body.userId;
+    if (targetId === req.user.id) {
+      return res.status(400).json({ error: 'Cannot impersonate yourself' });
+    }
+    const target = await User.findById(targetId).select('-passwordHash');
+    if (!target) return res.status(404).json({ error: 'User not found' });
+    const token = signImpersonationToken(target, req.user.id);
+    await logAdminAction(req.user.id, 'impersonate.start', { targetUserId: target._id });
+    res.json({
+      token,
+      user: userPayload(target),
+      impersonating: true,
+      actorId: req.user.id,
+    });
+  }
+);
+
+router.post('/end-impersonate', authRequired, async (req, res) => {
+  if (!req.user.actorId) {
+    return res.status(400).json({ error: 'Not impersonating' });
+  }
+  const actor = await User.findById(req.user.actorId).select('-passwordHash');
+  if (!actor || !userIsFullAdmin(actor)) {
+    return res.status(403).json({ error: 'Invalid impersonation session' });
+  }
+  await logAdminAction(actor._id, 'impersonate.end', { targetUserId: req.user.id });
+  const token = signUserToken(actor);
+  res.json({
+    token,
+    user: userPayload(actor),
+    impersonating: false,
+    actorId: null,
   });
 });
 
@@ -209,11 +272,7 @@ router.patch(
     const issueNewToken = emailChanged || changingPassword;
     const payload = { user: userPayload(user) };
     if (issueNewToken) {
-      payload.token = jwt.sign(
-        { sub: user._id.toString(), email: user.email },
-        process.env.JWT_SECRET,
-        { expiresIn: '14d' }
-      );
+      payload.token = signUserToken(user);
     }
 
     res.json(payload);

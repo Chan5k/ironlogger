@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { appPath } from '../constants/routes.js';
+import LandingAuthModal from '../components/LandingAuthModal.jsx';
 
 const reasons = [
   {
@@ -122,6 +124,8 @@ function AppPreview() {
 
 export default function Landing() {
   const { isAuthenticated, loading } = useAuth();
+  const [authModal, setAuthModal] = useState(/** @type {null | 'login' | 'register'} */ (null));
+
   if (!loading && isAuthenticated) {
     return <Navigate to={appPath()} replace />;
   }
@@ -137,18 +141,20 @@ export default function Landing() {
             IronLog
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              to="/login"
+            <button
+              type="button"
+              onClick={() => setAuthModal('login')}
               className="rounded-xl px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/60 hover:text-white"
             >
               Log in
-            </Link>
-            <Link
-              to="/register"
+            </button>
+            <button
+              type="button"
+              onClick={() => setAuthModal('register')}
               className="rounded-xl bg-accent px-3 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
             >
               Sign up
-            </Link>
+            </button>
           </div>
         </div>
       </header>
@@ -168,18 +174,20 @@ export default function Landing() {
                 charts that actually reflect how you train.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  to="/register"
+                <button
+                  type="button"
+                  onClick={() => setAuthModal('register')}
                   className="rounded-xl bg-accent px-5 py-3 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
                 >
                   Create free account
-                </Link>
-                <Link
-                  to="/login"
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAuthModal('login')}
                   className="rounded-xl border border-slate-600 px-5 py-3 text-center text-sm font-medium text-slate-200 transition-colors hover:border-slate-500 hover:bg-slate-800/40"
                 >
                   I already have an account
-                </Link>
+                </button>
               </div>
             </div>
             <AppPreview />
@@ -245,18 +253,20 @@ export default function Landing() {
               Sign up in seconds. Your data stays with your account.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <Link
-                to="/register"
+              <button
+                type="button"
+                onClick={() => setAuthModal('register')}
                 className="rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
               >
                 Sign up free
-              </Link>
-              <Link
-                to="/login"
+              </button>
+              <button
+                type="button"
+                onClick={() => setAuthModal('login')}
                 className="rounded-xl border border-slate-600 px-5 py-3 text-sm font-medium text-slate-200 hover:border-slate-500"
               >
                 Log in
-              </Link>
+              </button>
             </div>
           </div>
         </section>
@@ -265,6 +275,12 @@ export default function Landing() {
       <footer className="border-t border-slate-800 py-6 text-center text-xs text-slate-600">
         IronLog — workout training log
       </footer>
+
+      <LandingAuthModal
+        mode={authModal}
+        onClose={() => setAuthModal(null)}
+        onSwitchMode={(m) => setAuthModal(m)}
+      />
     </div>
   );
 }
