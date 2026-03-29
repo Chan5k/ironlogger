@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { drawWorkoutShareCard } from '../utils/drawWorkoutShareCard.js';
@@ -6,6 +6,7 @@ import { drawWorkoutShareCard } from '../utils/drawWorkoutShareCard.js';
 export default function WorkoutShareModal({ open, onClose, cardOptions }) {
   const canvasRef = useRef(null);
   const [err, setErr] = useState('');
+  const [entered, setEntered] = useState(false);
 
   const redraw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -17,6 +18,18 @@ export default function WorkoutShareModal({ open, onClose, cardOptions }) {
       setErr('Could not render image.');
     }
   }, [cardOptions]);
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setEntered(false);
+      return undefined;
+    }
+    setEntered(false);
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => setEntered(true));
+    });
+    return () => cancelAnimationFrame(id);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -31,6 +44,15 @@ export default function WorkoutShareModal({ open, onClose, cardOptions }) {
       document.body.style.overflow = prev;
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
 
   async function downloadPng() {
     const canvas = canvasRef.current;
@@ -74,6 +96,9 @@ export default function WorkoutShareModal({ open, onClose, cardOptions }) {
 
   const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
+  const backdropOn = entered;
+  const panelOn = entered;
+
   /** Portal to body so `position:fixed` is viewport-relative (page wrappers use transform animations). */
   return createPortal(
     <div
@@ -82,11 +107,17 @@ export default function WorkoutShareModal({ open, onClose, cardOptions }) {
       role="presentation"
     >
       <div
-        className="absolute inset-0 bg-black/70 motion-reduce:animate-none animate-ui-backdrop-in"
+        className={`absolute inset-0 bg-black/70 transition-opacity duration-motion-slow ease-motion-standard motion-reduce:!opacity-100 motion-reduce:transition-none ${
+          backdropOn ? 'opacity-100' : 'opacity-0'
+        }`}
         aria-hidden
       />
       <div
-        className="relative z-10 flex max-h-[min(92dvh,92vh)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-800 bg-[#0f141d] shadow-xl motion-reduce:animate-none animate-ui-modal-in"
+        className={`relative z-10 flex max-h-[min(92dvh,92vh)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-800 bg-[#0f141d] shadow-2xl shadow-black/40 ring-1 ring-white/[0.06] transition-[opacity,transform] duration-motion-slow ease-motion-emphasized motion-reduce:!translate-y-0 motion-reduce:!scale-100 motion-reduce:!opacity-100 motion-reduce:transition-none ${
+          panelOn
+            ? 'translate-y-0 scale-100 opacity-100'
+            : 'translate-y-5 scale-[0.96] opacity-0 sm:translate-y-3 sm:scale-[0.98]'
+        }`}
         role="dialog"
         onClick={(e) => e.stopPropagation()}
         aria-modal="true"
