@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { drawWorkoutShareCard } from '../utils/drawWorkoutShareCard.js';
 
@@ -21,6 +22,15 @@ export default function WorkoutShareModal({ open, onClose, cardOptions }) {
     if (!open) return;
     redraw();
   }, [open, redraw]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
 
   async function downloadPng() {
     const canvas = canvasRef.current;
@@ -64,9 +74,10 @@ export default function WorkoutShareModal({ open, onClose, cardOptions }) {
 
   const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
-  return (
+  /** Portal to body so `position:fixed` is viewport-relative (page wrappers use transform animations). */
+  return createPortal(
     <div
-      className="fixed inset-0 z-[60] flex items-end justify-center p-4 sm:items-center"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       onClick={onClose}
       role="presentation"
     >
@@ -75,7 +86,7 @@ export default function WorkoutShareModal({ open, onClose, cardOptions }) {
         aria-hidden
       />
       <div
-        className="relative z-10 flex max-h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-800 bg-[#0f141d] shadow-xl motion-reduce:animate-none animate-ui-modal-in"
+        className="relative z-10 flex max-h-[min(92dvh,92vh)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-800 bg-[#0f141d] shadow-xl motion-reduce:animate-none animate-ui-modal-in"
         role="dialog"
         onClick={(e) => e.stopPropagation()}
         aria-modal="true"
@@ -120,6 +131,7 @@ export default function WorkoutShareModal({ open, onClose, cardOptions }) {
           ) : null}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
