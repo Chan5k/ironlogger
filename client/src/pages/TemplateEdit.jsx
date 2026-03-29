@@ -4,6 +4,7 @@ import api from '../api/client.js';
 import { appPath } from '../constants/routes.js';
 import { sharePageUrl } from '../utils/shareLink.js';
 import { offerShareLink } from '../utils/offerShareLink.js';
+import { appAlert } from '../lib/appDialogApi.js';
 import {
   filterExercisesByQuery,
   groupExercisesByCategory,
@@ -104,7 +105,7 @@ export default function TemplateEdit() {
 
   async function save() {
     if (!name.trim() || items.length === 0) {
-      alert('Add a name and at least one exercise.');
+      await appAlert('Add a name and at least one exercise.');
       return;
     }
     setSaving(true);
@@ -132,7 +133,7 @@ export default function TemplateEdit() {
       }
       navigate(appPath('templates'));
     } catch (e) {
-      alert(e.response?.data?.error || 'Save failed');
+      await appAlert(e.response?.data?.error || 'Save failed');
     } finally {
       setSaving(false);
     }
@@ -149,7 +150,7 @@ export default function TemplateEdit() {
           'Share link copied. Anyone with the link can preview; logging in lets them save a copy to their plans.',
       });
     } catch (e) {
-      alert(e.response?.data?.error || 'Could not create share link');
+      await appAlert(e.response?.data?.error || 'Could not create share link');
     }
   }
 

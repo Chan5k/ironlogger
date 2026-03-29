@@ -4,6 +4,7 @@ import api from '../api/client.js';
 import { appPath } from '../constants/routes.js';
 import { sharePageUrl } from '../utils/shareLink.js';
 import { offerShareLink } from '../utils/offerShareLink.js';
+import { appAlert, appConfirm } from '../lib/appDialogApi.js';
 
 export default function Templates() {
   const [templates, setTemplates] = useState([]);
@@ -25,12 +26,12 @@ export default function Templates() {
       });
       navigate(appPath(`workouts/${data.workout._id}`));
     } catch (e) {
-      alert(e.response?.data?.error || 'Could not start workout');
+      await appAlert(e.response?.data?.error || 'Could not start workout');
     }
   }
 
   async function remove(id) {
-    if (!confirm('Delete this plan?')) return;
+    if (!(await appConfirm('Delete this plan?'))) return;
     await api.delete(`/templates/${id}`);
     load();
   }
@@ -44,7 +45,7 @@ export default function Templates() {
         successMessage: 'Share link copied to clipboard.',
       });
     } catch (e) {
-      alert(e.response?.data?.error || 'Could not create share link');
+      await appAlert(e.response?.data?.error || 'Could not create share link');
     }
   }
 

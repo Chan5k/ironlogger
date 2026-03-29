@@ -25,6 +25,7 @@ import {
   enqueueOfflineRequest,
   isOfflineQueueableError,
 } from '../utils/offlineQueue.js';
+import { appAlert, appConfirm } from '../lib/appDialogApi.js';
 import PrCelebrationOverlay, { playPrFanfare } from '../components/PrCelebrationOverlay.jsx';
 import { sharePageUrl } from '../utils/shareLink.js';
 import { offerShareLink } from '../utils/offerShareLink.js';
@@ -407,7 +408,7 @@ export default function WorkoutEdit() {
     try {
       times = sessionTimePayload();
     } catch (e) {
-      alert(e.message);
+      await appAlert(e.message);
       return;
     }
     setSaving(true);
@@ -425,7 +426,7 @@ export default function WorkoutEdit() {
           navigate(appPath(`workouts/${data.workout._id}`), { replace: true });
         } catch (e) {
           if (isOfflineQueueableError(e) && enqueueOfflineRequest({ method: 'POST', url: '/workouts', data: body })) {
-            alert(
+            await appAlert(
               'You appear offline. This workout is queued and will be created when you are back online. Keep this tab and use Sync from the app header when connected.'
             );
           } else {
@@ -444,7 +445,7 @@ export default function WorkoutEdit() {
           await api.put(`/workouts/${id}`, body);
         } catch (e) {
           if (isOfflineQueueableError(e) && enqueueOfflineRequest({ method: 'PUT', url: `/workouts/${id}`, data: body })) {
-            alert('Offline: changes queued. They will sync automatically when you are online, or tap Sync in the header.');
+            await appAlert('Offline: changes queued. They will sync automatically when you are online, or tap Sync in the header.');
           } else {
             throw e;
           }
@@ -493,7 +494,7 @@ export default function WorkoutEdit() {
             setDurHours(0);
             setDurMins(0);
           }
-          alert('Offline: completion change queued. Sync when you are back online.');
+          await appAlert('Offline: completion change queued. Sync when you are back online.');
         } else {
           throw e;
         }
@@ -514,18 +515,18 @@ export default function WorkoutEdit() {
           'Share link copied. Recipients can open it without an account; logging in lets them save a copy to their workouts.',
       });
     } catch (e) {
-      alert(e.response?.data?.error || 'Could not create share link');
+      await appAlert(e.response?.data?.error || 'Could not create share link');
     }
   }
 
   async function deleteWorkout() {
-    if (!confirm('Delete this workout permanently?')) return;
+    if (!(await appConfirm('Delete this workout permanently?'))) return;
     try {
       await api.delete(`/workouts/${id}`);
       navigate(appPath('workouts'));
     } catch (e) {
       if (isOfflineQueueableError(e) && enqueueOfflineRequest({ method: 'DELETE', url: `/workouts/${id}`, data: null })) {
-        alert('Offline: delete queued. It will run when you are online. This workout may still appear until sync.');
+        await appAlert('Offline: delete queued. It will run when you are online. This workout may still appear until sync.');
         navigate(appPath('workouts'));
       } else {
         throw e;

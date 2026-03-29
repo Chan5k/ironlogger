@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import api from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import ExerciseVideoModal from '../components/ExerciseVideoModal.jsx';
+import { appAlert, appConfirm } from '../lib/appDialogApi.js';
 
 const CATEGORIES = [
   'chest',
@@ -51,7 +52,7 @@ export default function Library() {
       setNewVideoUrl('');
       load();
     } catch (err) {
-      alert(err.response?.data?.errors?.[0]?.msg || err.response?.data?.error || 'Could not add exercise');
+      await appAlert(err.response?.data?.errors?.[0]?.msg || err.response?.data?.error || 'Could not add exercise');
     } finally {
       setBusy(false);
     }
@@ -70,7 +71,7 @@ export default function Library() {
       setEditing(null);
       load();
     } catch (err) {
-      alert(err.response?.data?.error || err.response?.data?.errors?.[0]?.msg || 'Save failed');
+      await appAlert(err.response?.data?.error || err.response?.data?.errors?.[0]?.msg || 'Save failed');
     } finally {
       setBusy(false);
     }
@@ -86,7 +87,7 @@ export default function Library() {
       setAdminVideo(null);
       load();
     } catch (err) {
-      alert(err.response?.data?.error || 'Could not update demo link');
+      await appAlert(err.response?.data?.error || 'Could not update demo link');
     } finally {
       setBusy(false);
     }
@@ -94,10 +95,10 @@ export default function Library() {
 
   async function remove(ex) {
     if (!ex.userId) {
-      alert('Built-in exercises cannot be deleted.');
+      await appAlert('Built-in exercises cannot be deleted.');
       return;
     }
-    if (!confirm('Delete this custom exercise?')) return;
+    if (!(await appConfirm('Delete this custom exercise?'))) return;
     await api.delete(`/exercises/${ex._id}`);
     load();
   }

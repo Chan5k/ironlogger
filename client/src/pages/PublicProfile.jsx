@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import api from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { appPath } from '../constants/routes.js';
+import { appAlert, appConfirm } from '../lib/appDialogApi.js';
 
 export default function PublicProfile() {
   const { slug } = useParams();
@@ -83,7 +84,7 @@ export default function PublicProfile() {
       const st = await api.get(`/social/profile/${s}/status`);
       setSocial(st.data);
     } catch (e) {
-      alert(e.response?.data?.error || 'Could not update follow');
+      await appAlert(e.response?.data?.error || 'Could not update follow');
     } finally {
       setFollowBusy(false);
     }
@@ -100,7 +101,7 @@ export default function PublicProfile() {
       const wallRes = await api.get(`/public/profile/${s}/wall?limit=50`);
       setWall(wallRes.data.items || []);
     } catch (e) {
-      alert(e.response?.data?.error || 'Could not send kudos');
+      await appAlert(e.response?.data?.error || 'Could not send kudos');
     } finally {
       setWallBusy(false);
     }
@@ -118,21 +119,21 @@ export default function PublicProfile() {
       const wallRes = await api.get(`/public/profile/${s}/wall?limit=50`);
       setWall(wallRes.data.items || []);
     } catch (err) {
-      alert(err.response?.data?.error || 'Could not post comment');
+      await appAlert(err.response?.data?.error || 'Could not post comment');
     } finally {
       setWallBusy(false);
     }
   }
 
   async function deleteWallEntry(entryId) {
-    if (!slug || !confirm('Remove this entry?')) return;
+    if (!slug || !(await appConfirm('Remove this entry?'))) return;
     try {
       await api.delete(`/social/wall/${encodeURIComponent(slug)}/${entryId}`);
       const s = encodeURIComponent(slug);
       const wallRes = await api.get(`/public/profile/${s}/wall?limit=50`);
       setWall(wallRes.data.items || []);
     } catch (e) {
-      alert(e.response?.data?.error || 'Could not delete');
+      await appAlert(e.response?.data?.error || 'Could not delete');
     }
   }
 

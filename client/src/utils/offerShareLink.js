@@ -1,6 +1,8 @@
+import { appAlert, appCopySheet } from '../lib/appDialogApi.js';
+
 /**
  * Offer a URL for sharing or copying. Mobile Safari often rejects clipboard.writeText
- * even on HTTPS; we then fall back to the Web Share API (native sheet) or a copy prompt.
+ * even on HTTPS; we then fall back to the Web Share API (native sheet) or in-app copy sheet.
  *
  * @param {string} url
  * @param {{ successMessage?: string, shareTitle?: string }} [options]
@@ -11,10 +13,10 @@ export async function offerShareLink(url, options = {}) {
   if (navigator.clipboard?.writeText) {
     try {
       await navigator.clipboard.writeText(url);
-      if (successMessage) alert(successMessage);
+      if (successMessage) await appAlert(successMessage);
       return;
     } catch {
-      /* iOS Safari and some WebViews reject here — try share / prompt */
+      /* iOS Safari and some WebViews reject here — try share / in-app sheet */
     }
   }
 
@@ -27,5 +29,5 @@ export async function offerShareLink(url, options = {}) {
     }
   }
 
-  window.prompt('Copy this link:', url);
+  await appCopySheet({ url, title: 'Copy this link' });
 }

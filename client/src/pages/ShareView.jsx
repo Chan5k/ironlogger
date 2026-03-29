@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { appPath } from '../constants/routes.js';
+import { appAlert } from '../lib/appDialogApi.js';
 
 export default function ShareView() {
   const { token } = useParams();
@@ -37,7 +38,7 @@ export default function ShareView() {
       const { data: d } = await api.post('/share/import-workout', { token });
       navigate(appPath(`workouts/${d.workout._id}`), { replace: true });
     } catch (e) {
-      alert(e?.response?.data?.error || 'Could not save workout');
+      await appAlert(e?.response?.data?.error || 'Could not save workout');
     } finally {
       setBusy(false);
     }
@@ -50,7 +51,7 @@ export default function ShareView() {
       const { data: d } = await api.post('/share/import-template', { token });
       navigate(appPath(`templates/${d.template._id}`), { replace: true });
     } catch (e) {
-      alert(e?.response?.data?.error || 'Could not save plan');
+      await appAlert(e?.response?.data?.error || 'Could not save plan');
     } finally {
       setBusy(false);
     }

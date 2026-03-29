@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../api/client.js';
 import { appPath } from '../constants/routes.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { appConfirm } from '../lib/appDialogApi.js';
 
 function fmt(d) {
   if (!d) return '—';
@@ -71,9 +72,9 @@ export default function AdminUserDetail() {
   async function deleteUser() {
     if (!user) return;
     if (
-      !confirm(
+      !(await appConfirm(
         `Permanently delete ${user.email} and all workouts, plans, activity, and custom exercises?`
-      )
+      ))
     ) {
       return;
     }

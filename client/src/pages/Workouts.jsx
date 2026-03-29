@@ -6,6 +6,7 @@ import { sharePageUrl } from '../utils/shareLink.js';
 import { offerShareLink } from '../utils/offerShareLink.js';
 import { formatWorkoutDuration } from '../utils/workoutDuration.js';
 import { useLiveClock } from '../hooks/useLiveClock.js';
+import { appAlert, appConfirm } from '../lib/appDialogApi.js';
 
 function fmt(d) {
   return new Date(d).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
@@ -35,7 +36,7 @@ export default function Workouts() {
   const liveNow = useLiveClock(hasOpenWorkout);
 
   async function remove(id) {
-    if (!confirm('Delete this workout?')) return;
+    if (!(await appConfirm('Delete this workout?'))) return;
     await api.delete(`/workouts/${id}`);
     load();
   }
@@ -49,7 +50,7 @@ export default function Workouts() {
         successMessage: 'Share link copied to clipboard.',
       });
     } catch (e) {
-      alert(e.response?.data?.error || 'Could not create share link');
+      await appAlert(e.response?.data?.error || 'Could not create share link');
     }
   }
 
