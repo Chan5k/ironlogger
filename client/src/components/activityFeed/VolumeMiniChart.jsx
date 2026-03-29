@@ -17,7 +17,7 @@ export default function VolumeMiniChart({ volumeByExercise }) {
               title={`${ex.name}: ${ex.volume.toLocaleString()}`}
             >
               <div
-                className="w-full rounded-t-sm bg-gradient-to-t from-blue-600/50 to-blue-400/30 transition-[height] duration-300"
+                className="w-full rounded-t-sm bg-gradient-to-t from-blue-600/50 to-blue-400/30 transition-[height] duration-motion-slow ease-motion-standard"
                 style={{ height: px }}
               />
               <ExerciseIcon

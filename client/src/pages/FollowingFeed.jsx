@@ -148,7 +148,7 @@ export default function FollowingFeed() {
                       setRemoveErr('');
                       setRemoveFriend({ userId: row.userId, name: row.name || 'Athlete' });
                     }}
-                    className="rounded-lg border border-rose-900/60 bg-rose-950/25 px-3 py-1.5 text-xs font-medium text-rose-300/95 transition-colors hover:bg-rose-950/45"
+                    className="rounded-lg border border-rose-900/60 bg-rose-950/25 px-3 py-1.5 text-xs font-medium text-rose-300/95 transition-colors duration-motion ease-motion-standard hover:bg-rose-950/45"
                   >
                     Remove
                   </button>

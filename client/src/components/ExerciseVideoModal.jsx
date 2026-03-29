@@ -4,15 +4,21 @@ export default function ExerciseVideoModal({ title, videoUrl, onClose }) {
   const embed = embedUrlFromVideoUrl(videoUrl);
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/75 p-4 sm:items-center"
+      className="fixed inset-0 z-[60] flex items-end justify-center p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-label="Exercise demonstration"
-      onClick={onClose}
       onKeyDown={(e) => e.key === 'Escape' && onClose()}
     >
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-hidden
+        className="absolute inset-0 bg-black/75 motion-reduce:animate-none animate-ui-backdrop-in"
+        onClick={onClose}
+      />
       <div
-        className="w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-700 bg-surface-card shadow-xl"
+        className="relative z-10 w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-700 bg-surface-card shadow-xl motion-reduce:animate-none animate-ui-modal-in"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
@@ -20,7 +26,7 @@ export default function ExerciseVideoModal({ title, videoUrl, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-3 py-1.5 text-sm text-slate-400 hover:bg-slate-800 hover:text-white"
+            className="rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-colors duration-motion ease-motion-standard hover:bg-slate-800 hover:text-white"
           >
             Close
           </button>

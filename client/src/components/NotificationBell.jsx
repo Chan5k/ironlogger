@@ -97,7 +97,7 @@ export default function NotificationBell() {
             return next;
           });
         }}
-        className="relative rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800/60 hover:text-white"
+        className="relative rounded-lg p-2 text-slate-400 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/60 hover:text-white"
         aria-expanded={open}
         aria-label="Notifications"
       >
@@ -111,7 +111,7 @@ export default function NotificationBell() {
 
       {panelMounted ? (
         <div
-          className={`z-[60] rounded-xl border border-slate-800/90 bg-[#121826] py-2 shadow-xl ring-1 ring-black/30 transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[opacity,transform] max-md:fixed max-md:left-3 max-md:right-3 max-md:top-[calc(env(safe-area-inset-top,0px)+4rem)] max-md:mt-0 max-md:max-h-[min(70vh,24rem)] max-md:w-auto max-md:origin-top md:absolute md:right-0 md:top-full md:mt-2 md:max-h-none md:w-[min(100vw-2rem,22rem)] md:origin-top-right ${
+          className={`z-[60] rounded-xl border border-slate-800/90 bg-[#121826] py-2 shadow-xl ring-1 ring-black/30 transition-[opacity,transform] duration-motion-slow ease-motion-standard will-change-[opacity,transform] max-md:fixed max-md:left-3 max-md:right-3 max-md:top-[calc(env(safe-area-inset-top,0px)+4rem)] max-md:mt-0 max-md:max-h-[min(70vh,24rem)] max-md:w-auto max-md:origin-top md:absolute md:right-0 md:top-full md:mt-2 md:max-h-none md:w-[min(100vw-2rem,22rem)] md:origin-top-right ${
             panelVisible
               ? 'pointer-events-auto translate-y-0 scale-100 opacity-100'
               : 'pointer-events-none -translate-y-1 scale-[0.98] opacity-0'
@@ -148,7 +148,7 @@ export default function NotificationBell() {
                     if (!n.readAt) markOneRead(n.id);
                     setOpen(false);
                   }}
-                  className={`block min-w-0 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-slate-800/50 ${
+                  className={`block min-w-0 rounded-lg px-3 py-2.5 text-left transition-colors duration-motion ease-motion-standard hover:bg-slate-800/50 ${
                     n.readAt ? 'opacity-70' : ''
                   }`}
                 >

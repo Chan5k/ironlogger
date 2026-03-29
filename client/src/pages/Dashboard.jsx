@@ -391,7 +391,7 @@ export default function Dashboard() {
                 </div>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-800/90">
                   <div
-                    className="h-full rounded-full bg-blue-500 transition-all duration-500"
+                    className="h-full rounded-full bg-blue-500 transition-all duration-motion-progress ease-motion-standard"
                     style={{ width: `${Math.min(100, g.progressPct ?? 0)}%` }}
                   />
                 </div>
@@ -434,7 +434,7 @@ export default function Dashboard() {
               ) : null}
               <Link
                 to={appPath('workouts/new')}
-                className="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-blue-600/90 px-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+                className="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-blue-600/90 px-4 text-sm font-semibold text-white transition-colors duration-motion ease-motion-standard hover:bg-blue-500"
               >
                 Start workout
               </Link>
@@ -475,7 +475,7 @@ export default function Dashboard() {
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-slate-800/90">
                     <div
-                      className="h-full rounded-full transition-[width] duration-500 ease-out"
+                      className="h-full rounded-full transition-[width] duration-motion-progress ease-motion-standard"
                       style={{
                         width: `${Math.min(100, d.pct)}%`,
                         backgroundColor: CHART_FILL[d.key] || '#64748b',
@@ -609,19 +609,19 @@ export default function Dashboard() {
           <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-2">
             <Link
               to={appPath('workouts/new')}
-              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-950/30 transition-colors hover:bg-blue-500 sm:min-h-11 sm:w-auto sm:min-w-[9rem] sm:py-0"
+              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-950/30 transition-colors duration-motion ease-motion-standard hover:bg-blue-500 sm:min-h-11 sm:w-auto sm:min-w-[9rem] sm:py-0"
             >
               New workout
             </Link>
             <Link
               to={appPath('templates')}
-              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-lg border border-slate-600/70 bg-transparent px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:border-slate-500 hover:bg-slate-800/40 sm:min-h-11 sm:w-auto sm:py-0"
+              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-lg border border-slate-600/70 bg-transparent px-4 py-3 text-sm font-medium text-slate-300 transition-colors duration-motion ease-motion-standard hover:border-slate-500 hover:bg-slate-800/40 sm:min-h-11 sm:w-auto sm:py-0"
             >
               From plan
             </Link>
             <Link
               to={appPath('progress')}
-              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-lg border border-slate-600/70 bg-transparent px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:border-slate-500 hover:bg-slate-800/40 sm:min-h-11 sm:w-auto sm:py-0"
+              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-lg border border-slate-600/70 bg-transparent px-4 py-3 text-sm font-medium text-slate-300 transition-colors duration-motion ease-motion-standard hover:border-slate-500 hover:bg-slate-800/40 sm:min-h-11 sm:w-auto sm:py-0"
             >
               View progress
             </Link>

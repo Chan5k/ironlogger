@@ -701,7 +701,7 @@ export default function WorkoutEdit() {
               Start
             </label>
             <div className="group w-full min-w-0 max-w-full">
-              <div className="flex min-h-[44px] w-full min-w-0 max-w-full items-center rounded-xl border border-slate-700 bg-surface px-3 py-2 transition-[border-color,box-shadow] group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
+              <div className="flex min-h-[44px] w-full min-w-0 max-w-full items-center rounded-xl border border-slate-700 bg-surface px-3 py-2 transition-[border-color,box-shadow] duration-motion ease-motion-standard group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
                 <input
                   id="session-start"
                   type="datetime-local"
@@ -718,7 +718,7 @@ export default function WorkoutEdit() {
               End (optional)
             </label>
             <div className="group w-full min-w-0 max-w-full">
-              <div className="flex min-h-[44px] w-full min-w-0 max-w-full items-center rounded-xl border border-slate-700 bg-surface px-3 py-2 transition-[border-color,box-shadow] group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
+              <div className="flex min-h-[44px] w-full min-w-0 max-w-full items-center rounded-xl border border-slate-700 bg-surface px-3 py-2 transition-[border-color,box-shadow] duration-motion ease-motion-standard group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
                 <input
                   id="session-end"
                   type="datetime-local"
@@ -822,7 +822,7 @@ export default function WorkoutEdit() {
               <button
                 type="button"
                 onClick={() => setShareModalOpen(true)}
-                className="h-11 w-full rounded-xl border border-blue-500/40 bg-blue-600/15 px-4 text-sm font-semibold text-blue-200 transition-colors hover:bg-blue-600/25"
+                className="h-11 w-full rounded-xl border border-blue-500/40 bg-blue-600/15 px-4 text-sm font-semibold text-blue-200 transition-colors duration-motion ease-motion-standard hover:bg-blue-600/25"
               >
                 Share image
               </button>
@@ -904,7 +904,7 @@ export default function WorkoutEdit() {
                   <div
                     key={si}
                     role="row"
-                    className={`flex flex-wrap items-center gap-2 rounded-xl border px-2 py-2 transition-[background-color,box-shadow,border-color] duration-200 sm:flex-nowrap sm:gap-2 sm:px-1 ${rowBg} ${
+                    className={`flex flex-wrap items-center gap-2 rounded-xl border px-2 py-2 transition-[background-color,box-shadow,border-color] duration-motion ease-motion-standard sm:flex-nowrap sm:gap-2 sm:px-1 ${rowBg} ${
                       s.completed
                         ? 'border-emerald-500/25'
                         : 'border-slate-800/80 hover:border-slate-700'
@@ -992,7 +992,7 @@ export default function WorkoutEdit() {
                         e.stopPropagation();
                         toggleSetComplete(exIdx, si, !s.completed);
                       }}
-                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 transition-colors sm:h-11 sm:w-11 ${
+                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 transition-colors duration-motion ease-motion-standard sm:h-11 sm:w-11 ${
                         s.completed
                           ? 'border-emerald-500/60 bg-emerald-500/20 text-emerald-300'
                           : 'border-slate-600 bg-slate-800/60 text-slate-500 hover:border-slate-500 hover:text-slate-300'

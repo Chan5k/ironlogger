@@ -59,7 +59,7 @@ export default function WorkoutLikeButton({
       type="button"
       onClick={toggle}
       disabled={disabled || pending}
-      className={`inline-flex items-center gap-2 rounded-xl ${pad} ${textCls} font-medium transition-all duration-200 active:scale-[0.94] disabled:opacity-50 ${
+      className={`inline-flex items-center gap-2 rounded-xl ${pad} ${textCls} font-medium transition-all duration-motion ease-motion-standard active:scale-[0.94] disabled:opacity-50 ${
         isFeed ? 'hover:bg-slate-800/60' : ''
       } ${
         liked
@@ -72,7 +72,7 @@ export default function WorkoutLikeButton({
       aria-label={liked ? 'Unlike workout' : 'Like workout'}
     >
       <Heart
-        className={`${iconClass} shrink-0 transition-all duration-200 ease-out ${
+        className={`${iconClass} shrink-0 transition-all duration-motion ease-motion-standard ${
           liked ? 'fill-current text-rose-400' : ''
         } ${pop ? 'scale-125 animate-feed-like-pop' : liked ? 'scale-110' : 'scale-100'}`}
         strokeWidth={isFeed ? 2 : 1.75}

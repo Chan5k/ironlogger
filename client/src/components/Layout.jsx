@@ -63,7 +63,7 @@ const IconAdmin = makeNavIcon(Shield);
 
 function mobileNavLinkClass(isActive) {
   return [
-    'group relative flex w-full items-center gap-3 rounded-lg px-3 py-3 text-[15px] font-medium transition-[background-color,color] duration-150 ease-out',
+    'group relative flex w-full items-center gap-3 rounded-lg px-3 py-3 text-[15px] font-medium transition-[background-color,color] duration-motion ease-motion-standard',
     'active:bg-slate-800/55',
     isActive
       ? 'bg-slate-800/50 text-white'
@@ -73,7 +73,7 @@ function mobileNavLinkClass(isActive) {
 
 function railNavLinkClass(isActive) {
   return [
-    'group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium transition-colors duration-150',
+    'group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium transition-colors duration-motion ease-motion-standard',
     isActive
       ? 'bg-blue-600/15 text-white ring-1 ring-blue-500/25'
       : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-100',
@@ -102,7 +102,7 @@ function NavSectionsList({ navSections, onNavClick, variant = 'drawer' }) {
                     <>
                       {variant === 'drawer' ? (
                         <span
-                          className="pointer-events-none absolute left-0 top-2 bottom-2 w-[3px] rounded-r-sm bg-white/90 transition-opacity duration-150"
+                          className="pointer-events-none absolute left-0 top-2 bottom-2 w-[3px] rounded-r-sm bg-white/90 transition-opacity duration-motion ease-motion-standard"
                           style={{ opacity: isActive ? 1 : 0 }}
                           aria-hidden
                         />
@@ -111,7 +111,7 @@ function NavSectionsList({ navSections, onNavClick, variant = 'drawer' }) {
                         className={
                           isActive
                             ? 'text-blue-400/95'
-                            : 'text-slate-500 transition-colors duration-150 group-hover:text-slate-300'
+                            : 'text-slate-500 transition-colors duration-motion ease-motion-standard group-hover:text-slate-300'
                         }
                       />
                       <span className="relative min-w-0 flex-1">{label}</span>
@@ -281,7 +281,7 @@ export default function Layout() {
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <button
             type="button"
-            className="-ml-1 rounded-lg p-2 text-slate-300 transition-colors hover:bg-slate-800/60 hover:text-white active:scale-[0.97] md:hidden"
+            className="-ml-1 rounded-lg p-2 text-slate-300 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/60 hover:text-white active:scale-[0.97] md:hidden"
             aria-expanded={menuOpen}
             aria-controls="mobile-navigation"
             aria-label="Open menu"
@@ -292,7 +292,7 @@ export default function Layout() {
           </button>
           <Link
             to={appPath()}
-            className="truncate text-lg font-semibold tracking-tight text-white transition-colors hover:text-blue-100 focus:outline-none focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-blue-500/40"
+            className="truncate text-lg font-semibold tracking-tight text-white transition-colors duration-motion ease-motion-standard hover:text-blue-100 focus:outline-none focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-blue-500/40"
           >
             IronLog
           </Link>
@@ -318,7 +318,7 @@ export default function Layout() {
       {/* Mobile drawer + backdrop */}
       <div className="md:hidden" aria-hidden={!menuOpen}>
         <div
-          className={`fixed inset-0 z-[55] bg-black/60 transition-opacity duration-200 ease-out ${
+          className={`fixed inset-0 z-[55] bg-black/60 transition-opacity duration-motion ease-motion-standard ${
             menuOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
           }`}
           onClick={() => setMenuOpen(false)}
@@ -326,7 +326,7 @@ export default function Layout() {
         />
         <aside
           id="mobile-navigation"
-          className={`fixed left-0 top-0 z-[56] flex h-full w-[min(19rem,88vw)] max-w-full flex-col border-r border-slate-800/90 bg-surface-card shadow-[4px_0_24px_rgba(0,0,0,0.35)] transition-transform duration-200 ease-out safe-pt safe-pb ${
+          className={`fixed left-0 top-0 z-[56] flex h-full w-[min(19rem,88vw)] max-w-full flex-col border-r border-slate-800/90 bg-surface-card shadow-[4px_0_24px_rgba(0,0,0,0.35)] transition-transform duration-motion-slow ease-motion-emphasized safe-pt safe-pb ${
             menuOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'
           }`}
           aria-label="Main navigation"
@@ -342,7 +342,7 @@ export default function Layout() {
               </div>
               <button
                 type="button"
-                className="shrink-0 rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800/60 hover:text-white active:bg-slate-800"
+                className="shrink-0 rounded-lg p-2 text-slate-400 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/60 hover:text-white active:bg-slate-800"
                 aria-label="Close menu"
                 data-testid="mobile-menu-close"
                 onClick={() => setMenuOpen(false)}
@@ -373,7 +373,7 @@ export default function Layout() {
                 await appAlert(e.response?.data?.error || 'Could not end impersonation');
               }
             }}
-            className="rounded-lg bg-amber-200/15 px-3 py-1.5 text-sm font-semibold text-amber-50 ring-1 ring-amber-500/40 hover:bg-amber-200/25"
+            className="rounded-lg bg-amber-200/15 px-3 py-1.5 text-sm font-semibold text-amber-50 ring-1 ring-amber-500/40 transition-[background-color,box-shadow] duration-motion ease-motion-standard hover:bg-amber-200/25"
           >
             Exit impersonation
           </button>
@@ -396,7 +396,7 @@ export default function Layout() {
             type="button"
             disabled={offlineFlushing || (typeof navigator !== 'undefined' && !navigator.onLine)}
             onClick={() => runOfflineFlush()}
-            className="font-medium text-amber-100 underline decoration-amber-500/60 underline-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="font-medium text-amber-100 underline decoration-amber-500/60 underline-offset-2 transition-opacity duration-motion ease-motion-standard disabled:cursor-not-allowed disabled:opacity-50"
           >
             {offlineFlushing ? 'Syncing…' : 'Sync now'}
           </button>
@@ -411,7 +411,7 @@ export default function Layout() {
               to={appPath()}
               className={({ isActive }) =>
                 [
-                  'border-b-2 py-3 text-sm font-semibold transition-colors',
+                  'border-b-2 py-3 text-sm font-semibold transition-colors duration-motion ease-motion-standard',
                   isActive
                     ? 'border-blue-600 text-white'
                     : 'border-transparent text-slate-500 hover:text-slate-300',
@@ -424,7 +424,7 @@ export default function Layout() {
               to={appPath('statistics')}
               className={({ isActive }) =>
                 [
-                  'border-b-2 py-3 text-sm font-semibold transition-colors',
+                  'border-b-2 py-3 text-sm font-semibold transition-colors duration-motion ease-motion-standard',
                   isActive
                     ? 'border-blue-600 text-white'
                     : 'border-transparent text-slate-500 hover:text-slate-300',
@@ -438,7 +438,12 @@ export default function Layout() {
       ) : null}
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-8 md:py-8">
-        <Outlet />
+        <div
+          key={location.pathname}
+          className="motion-reduce:animate-none animate-ui-page-in"
+        >
+          <Outlet />
+        </div>
       </main>
       </div>
       </div>

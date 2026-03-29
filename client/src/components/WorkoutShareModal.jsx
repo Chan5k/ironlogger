@@ -66,12 +66,16 @@ export default function WorkoutShareModal({ open, onClose, cardOptions }) {
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/70 p-4 sm:items-center"
+      className="fixed inset-0 z-[60] flex items-end justify-center p-4 sm:items-center"
       onClick={onClose}
       role="presentation"
     >
       <div
-        className="flex max-h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-800 bg-[#0f141d] shadow-xl"
+        className="absolute inset-0 bg-black/70 motion-reduce:animate-none animate-ui-backdrop-in"
+        aria-hidden
+      />
+      <div
+        className="relative z-10 flex max-h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-800 bg-[#0f141d] shadow-xl motion-reduce:animate-none animate-ui-modal-in"
         role="dialog"
         onClick={(e) => e.stopPropagation()}
         aria-modal="true"

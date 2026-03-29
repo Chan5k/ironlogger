@@ -13,10 +13,10 @@ export default function Register() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-8">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-8 motion-reduce:animate-none animate-ui-page-in">
       <Link
         to="/"
-        className="mb-6 text-sm text-slate-500 transition-colors hover:text-slate-300"
+        className="mb-6 text-sm text-slate-500 transition-colors duration-motion ease-motion-standard hover:text-slate-300"
       >
         ← Back to home
       </Link>

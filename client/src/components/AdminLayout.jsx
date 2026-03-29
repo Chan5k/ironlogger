@@ -3,7 +3,7 @@ import { appPath } from '../constants/routes.js';
 
 const tabClass = ({ isActive }) =>
   [
-    'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+    'rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-motion ease-motion-standard',
     isActive
       ? 'bg-blue-600/20 text-white ring-1 ring-blue-500/30'
       : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200',

@@ -34,8 +34,12 @@ function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-slate-400">
-        Loading…
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 text-slate-400 motion-reduce:animate-none animate-ui-fade-in">
+        <span
+          className="inline-block h-9 w-9 animate-spin rounded-full border-2 border-slate-600 border-t-accent motion-reduce:animate-none"
+          aria-hidden
+        />
+        <span className="text-sm">Loading…</span>
       </div>
     );
   }

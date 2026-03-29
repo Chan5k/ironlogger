@@ -136,7 +136,7 @@ export default function Landing() {
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
           <Link
             to="/"
-            className="text-lg font-semibold tracking-tight text-white transition-colors hover:text-accent-muted focus:outline-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-accent"
+            className="text-lg font-semibold tracking-tight text-white transition-colors duration-motion ease-motion-standard hover:text-accent-muted focus:outline-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-accent"
           >
             IronLog
           </Link>
@@ -144,14 +144,14 @@ export default function Landing() {
             <button
               type="button"
               onClick={() => setAuthModal('login')}
-              className="rounded-xl px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/60 hover:text-white"
+              className="rounded-xl px-3 py-2 text-sm font-medium text-slate-300 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/60 hover:text-white"
             >
               Log in
             </button>
             <button
               type="button"
               onClick={() => setAuthModal('register')}
-              className="rounded-xl bg-accent px-3 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              className="rounded-xl bg-accent px-3 py-2 text-sm font-semibold text-white transition-opacity duration-motion ease-motion-standard hover:opacity-90"
             >
               Sign up
             </button>
@@ -159,7 +159,7 @@ export default function Landing() {
         </div>
       </header>
 
-      <main>
+      <main className="motion-reduce:animate-none animate-ui-page-in">
         <section className="mx-auto max-w-5xl px-4 pb-16 pt-10 sm:pb-20 sm:pt-14">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-10">
             <div>
@@ -177,14 +177,14 @@ export default function Landing() {
                 <button
                   type="button"
                   onClick={() => setAuthModal('register')}
-                  className="rounded-xl bg-accent px-5 py-3 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                  className="rounded-xl bg-accent px-5 py-3 text-center text-sm font-semibold text-white transition-opacity duration-motion ease-motion-standard hover:opacity-90"
                 >
                   Create free account
                 </button>
                 <button
                   type="button"
                   onClick={() => setAuthModal('login')}
-                  className="rounded-xl border border-slate-600 px-5 py-3 text-center text-sm font-medium text-slate-200 transition-colors hover:border-slate-500 hover:bg-slate-800/40"
+                  className="rounded-xl border border-slate-600 px-5 py-3 text-center text-sm font-medium text-slate-200 transition-colors duration-motion ease-motion-standard hover:border-slate-500 hover:bg-slate-800/40"
                 >
                   I already have an account
                 </button>
@@ -236,7 +236,7 @@ export default function Landing() {
               {features.map(({ title, body }) => (
                 <li
                   key={title}
-                  className="rounded-2xl border border-slate-800 bg-surface-card p-5 transition-colors hover:border-slate-700"
+                  className="rounded-2xl border border-slate-800 bg-surface-card p-5 transition-colors duration-motion ease-motion-standard hover:border-slate-700"
                 >
                   <h3 className="font-semibold text-white">{title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-slate-400">{body}</p>
@@ -256,14 +256,14 @@ export default function Landing() {
               <button
                 type="button"
                 onClick={() => setAuthModal('register')}
-                className="rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                className="rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-white transition-opacity duration-motion ease-motion-standard hover:opacity-90"
               >
                 Sign up free
               </button>
               <button
                 type="button"
                 onClick={() => setAuthModal('login')}
-                className="rounded-xl border border-slate-600 px-5 py-3 text-sm font-medium text-slate-200 hover:border-slate-500"
+                className="rounded-xl border border-slate-600 px-5 py-3 text-sm font-medium text-slate-200 transition-colors duration-motion ease-motion-standard hover:border-slate-500"
               >
                 Log in
               </button>

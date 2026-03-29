@@ -11,7 +11,7 @@ export default function WorkoutPostCard({ post, style }) {
 
   return (
     <article
-      className="animate-feed-post rounded-[11px] border border-slate-800/90 bg-[#121826]/95 p-4 shadow-sm shadow-black/15 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-slate-700/80 hover:shadow-md hover:shadow-black/25 md:p-5"
+      className="animate-feed-post rounded-[11px] border border-slate-800/90 bg-[#121826]/95 p-4 shadow-sm shadow-black/15 transition-[transform,box-shadow] duration-motion-slow ease-motion-standard hover:-translate-y-0.5 hover:border-slate-700/80 hover:shadow-md hover:shadow-black/25 md:p-5"
       style={style}
     >
       <header className="flex items-start gap-3">

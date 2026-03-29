@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { setAppDialogImpl } from '../lib/appDialogApi.js';
+import { MOTION } from '../lib/motion.js';
 
 /**
  * In-app alerts / confirms / copy sheet — bottom sheet on narrow viewports, centered card on md+.
@@ -23,7 +24,7 @@ export default function AppDialogProvider({ children }) {
       const next = queueRef.current.shift() ?? null;
       activeRef.current = next;
       setActive(next);
-    }, 220);
+    }, MOTION.slow);
   }, []);
 
   useLayoutEffect(() => {
@@ -110,7 +111,7 @@ export default function AppDialogProvider({ children }) {
           type="button"
           tabIndex={-1}
           aria-hidden
-          className={`absolute inset-0 bg-black/65 backdrop-blur-[2px] transition-opacity duration-200 ease-out motion-reduce:transition-none ${
+          className={`absolute inset-0 bg-black/65 backdrop-blur-[2px] transition-opacity duration-motion-slow ease-motion-standard motion-reduce:transition-none ${
             sheetOpen ? 'opacity-100' : 'opacity-0'
           }`}
           onClick={() => {
@@ -124,7 +125,7 @@ export default function AppDialogProvider({ children }) {
           role={active.kind === 'confirm' || active.kind === 'prompt' ? 'alertdialog' : 'dialog'}
           aria-modal="true"
           aria-labelledby="app-dialog-title"
-          className={`relative z-10 flex max-h-[min(90dvh,32rem)] w-full max-w-lg flex-col border border-slate-600/80 bg-[#121826] shadow-2xl shadow-black/50 ring-1 ring-white/5 transition-[transform,opacity] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none max-sm:max-h-[min(85dvh,28rem)] max-sm:rounded-t-2xl max-sm:border-b-0 sm:rounded-2xl ${
+          className={`relative z-10 flex max-h-[min(90dvh,32rem)] w-full max-w-lg flex-col border border-slate-600/80 bg-[#121826] shadow-2xl shadow-black/50 ring-1 ring-white/5 transition-[transform,opacity] duration-motion-slow ease-motion-emphasized motion-reduce:transition-none max-sm:max-h-[min(85dvh,28rem)] max-sm:rounded-t-2xl max-sm:border-b-0 sm:rounded-2xl ${
             sheetOpen
               ? 'translate-y-0 opacity-100 sm:translate-y-0 sm:scale-100'
               : 'translate-y-full opacity-100 sm:translate-y-3 sm:scale-[0.96] sm:opacity-0'
@@ -163,14 +164,14 @@ export default function AppDialogProvider({ children }) {
                   <>
                     <button
                       type="button"
-                      className="rounded-xl border border-slate-600/80 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors hover:bg-slate-800/50 sm:py-2.5"
+                      className="rounded-xl border border-slate-600/80 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/50 sm:py-2.5"
                       onClick={() => finishAndAdvance(false)}
                     >
                       Cancel
                     </button>
                     <button
                       type="button"
-                      className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500 sm:py-2.5"
+                      className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors duration-motion ease-motion-standard hover:bg-blue-500 sm:py-2.5"
                       onClick={() => finishAndAdvance(true)}
                     >
                       OK
@@ -179,7 +180,7 @@ export default function AppDialogProvider({ children }) {
                 ) : (
                   <button
                     type="button"
-                    className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500 sm:ml-auto sm:w-auto sm:py-2.5"
+                    className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors duration-motion ease-motion-standard hover:bg-blue-500 sm:ml-auto sm:w-auto sm:py-2.5"
                     onClick={() => finishAndAdvance(undefined)}
                   >
                     OK
@@ -246,14 +247,14 @@ function PromptBody({ title, message, placeholder, defaultValue, confirmLabel, o
       <div className="mt-4 flex flex-col-reverse gap-2 border-t border-slate-800/90 px-4 py-4 safe-pb sm:flex-row sm:justify-end sm:gap-3">
         <button
           type="button"
-          className="rounded-xl border border-slate-600/80 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors hover:bg-slate-800/50 sm:py-2.5"
+          className="rounded-xl border border-slate-600/80 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/50 sm:py-2.5"
           onClick={onCancel}
         >
           Cancel
         </button>
         <button
           type="button"
-          className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500 sm:py-2.5"
+          className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors duration-motion ease-motion-standard hover:bg-blue-500 sm:py-2.5"
           onClick={submit}
         >
           {confirmLabel}
@@ -307,14 +308,14 @@ function CopySheetBody({ title, url, onDone }) {
       <div className="mt-2 flex flex-col-reverse gap-2 border-t border-slate-800/90 px-4 py-4 safe-pb sm:flex-row sm:justify-end sm:gap-3">
         <button
           type="button"
-          className="rounded-xl border border-slate-600/80 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors hover:bg-slate-800/50 sm:py-2.5"
+          className="rounded-xl border border-slate-600/80 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/50 sm:py-2.5"
           onClick={onDone}
         >
           Done
         </button>
         <button
           type="button"
-          className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500 sm:py-2.5"
+          className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors duration-motion ease-motion-standard hover:bg-blue-500 sm:py-2.5"
           onClick={() => copy()}
         >
           Copy

@@ -66,7 +66,7 @@ export default function Leaderboards() {
             key={m.id}
             type="button"
             onClick={() => setMetric(m.id)}
-            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-motion ease-motion-standard ${
               metric === m.id
                 ? 'bg-blue-600/15 text-white ring-1 ring-blue-500/30'
                 : 'text-slate-500 hover:bg-slate-800/50 hover:text-slate-200'
@@ -86,7 +86,7 @@ export default function Leaderboards() {
             key={s.id}
             type="button"
             onClick={() => setScope(s.id)}
-            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-motion ease-motion-standard ${
               scope === s.id
                 ? 'bg-slate-800 text-white ring-1 ring-slate-600/50'
                 : 'text-slate-500 hover:bg-slate-800/40 hover:text-slate-200'
@@ -122,7 +122,7 @@ export default function Leaderboards() {
             {data.entries.map((row) => (
               <li
                 key={row.userId}
-                className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                className={`flex items-center gap-3 px-4 py-3 transition-colors duration-motion ease-motion-standard ${
                   row.isViewer ? 'bg-blue-600/10' : ''
                 }`}
               >
@@ -157,7 +157,7 @@ export default function Leaderboards() {
               type="button"
               disabled={page <= 1 || loading}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-colors hover:bg-slate-800 hover:text-white disabled:opacity-40"
+              className="rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-colors duration-motion ease-motion-standard hover:bg-slate-800 hover:text-white disabled:opacity-40"
             >
               Previous
             </button>
@@ -169,7 +169,7 @@ export default function Leaderboards() {
               type="button"
               disabled={!data?.hasMore || loading}
               onClick={() => setPage((p) => p + 1)}
-              className="rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-colors hover:bg-slate-800 hover:text-white disabled:opacity-40"
+              className="rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-colors duration-motion ease-motion-standard hover:bg-slate-800 hover:text-white disabled:opacity-40"
             >
               Next
             </button>

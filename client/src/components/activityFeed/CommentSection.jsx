@@ -52,7 +52,7 @@ export default function CommentSection({ workoutId, initialCount, onCountChange 
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-400 ring-1 ring-slate-700/60 transition-all duration-200 hover:bg-slate-800/50 hover:text-slate-200 active:scale-[0.98]"
+        className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-400 ring-1 ring-slate-700/60 transition-all duration-motion ease-motion-standard hover:bg-slate-800/50 hover:text-slate-200 active:scale-[0.98]"
         aria-expanded={open}
       >
         <MessageCircle className="h-5 w-5 shrink-0" strokeWidth={2} aria-hidden />
@@ -60,12 +60,12 @@ export default function CommentSection({ workoutId, initialCount, onCountChange 
       </button>
 
       <div
-        className={`w-full min-w-0 basis-full transition-[margin] duration-300 ease-out ${
+        className={`w-full min-w-0 basis-full transition-[margin] duration-motion-slow ease-motion-standard ${
           open ? 'mt-3' : 'mt-0'
         }`}
       >
         <div
-          className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+          className={`grid transition-[grid-template-rows] duration-motion-slow ease-motion-standard ${
             open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
           }`}
         >
@@ -97,7 +97,7 @@ export default function CommentSection({ workoutId, initialCount, onCountChange 
                 <button
                   type="submit"
                   disabled={submitting || !text.trim()}
-                  className="shrink-0 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:opacity-40"
+                  className="shrink-0 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition-colors duration-motion ease-motion-standard hover:bg-blue-500 disabled:opacity-40"
                 >
                   Post
                 </button>

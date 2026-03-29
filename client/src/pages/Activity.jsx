@@ -107,7 +107,7 @@ export default function Activity() {
           Shell carries border/bg/padding; the input is flex-sized with zero padding.
         */}
         <div className="group mb-4 w-full min-w-0 max-w-full">
-          <div className="flex min-h-[44px] w-full min-w-0 max-w-full items-center rounded-lg border border-slate-700 bg-surface px-3 py-2 transition-[border-color,box-shadow] group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
+          <div className="flex min-h-[44px] w-full min-w-0 max-w-full items-center rounded-lg border border-slate-700 bg-surface px-3 py-2 transition-[border-color,box-shadow] duration-motion ease-motion-standard group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
             <input
               id="activity-day-key"
               type="date"

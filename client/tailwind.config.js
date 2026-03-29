@@ -24,7 +24,34 @@ export default {
           muted: '#3b82f6',
         },
       },
+      transitionDuration: {
+        'motion-fast': '150ms',
+        motion: '200ms',
+        'motion-slow': '280ms',
+        'motion-out': '320ms',
+        'motion-progress': '500ms',
+      },
+      transitionTimingFunction: {
+        'motion-standard': 'cubic-bezier(0.22, 1, 0.36, 1)',
+        'motion-emphasized': 'cubic-bezier(0.32, 0.72, 0, 1)',
+      },
       keyframes: {
+        uiPageIn: {
+          '0%': { opacity: '0', transform: 'translateY(12px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        uiFadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        uiModalIn: {
+          '0%': { opacity: '0', transform: 'translateY(1rem) scale(0.98)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        uiBackdropIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
         prBackdrop: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
@@ -51,6 +78,10 @@ export default {
         },
       },
       animation: {
+        'ui-page-in': 'uiPageIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        'ui-fade-in': 'uiFadeIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        'ui-modal-in': 'uiModalIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        'ui-backdrop-in': 'uiBackdropIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both',
         'pr-backdrop': 'prBackdrop 0.55s ease-out both',
         'pr-card-in': 'prCardIn 0.95s cubic-bezier(0.22, 1, 0.32, 1.2) both',
         'pr-reveal-line': 'prRevealLine 0.55s ease-out both',

@@ -109,7 +109,7 @@ export default function Statistics() {
             key={label}
             type="button"
             onClick={() => setRangeDays(days)}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-motion ease-motion-standard ${
               rangeDays === days
                 ? 'bg-blue-600/15 text-white ring-1 ring-blue-500/30'
                 : 'text-slate-500 hover:bg-slate-800/50 hover:text-slate-200'

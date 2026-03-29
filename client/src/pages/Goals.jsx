@@ -223,7 +223,7 @@ export default function Goals() {
                 Deadline (optional)
               </label>
               <div className="group w-full min-w-0">
-                <div className="flex h-11 w-full min-w-0 items-center rounded-xl border border-slate-700 bg-surface px-3 transition-[border-color,box-shadow] group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
+                <div className="flex h-11 w-full min-w-0 items-center rounded-xl border border-slate-700 bg-surface px-3 transition-[border-color,box-shadow] duration-motion ease-motion-standard group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
                   <input
                     id="goal-deadline"
                     type="date"
@@ -273,7 +273,7 @@ export default function Goals() {
                       ) : null}
                       <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800/90">
                         <div
-                          className={`h-full rounded-full transition-all duration-500 ${
+                          className={`h-full rounded-full transition-all duration-motion-progress ease-motion-standard ${
                             g.isCompleted ? 'bg-emerald-500' : 'bg-blue-500'
                           }`}
                           style={{ width: `${Math.min(100, g.progressPct ?? 0)}%` }}

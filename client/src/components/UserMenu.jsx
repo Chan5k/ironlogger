@@ -131,7 +131,7 @@ export default function UserMenu({ onSignOut }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-lg py-1.5 pl-1 pr-2 text-left transition-colors hover:bg-slate-800/60 active:scale-[0.98]"
+        className="flex items-center gap-2 rounded-lg py-1.5 pl-1 pr-2 text-left transition-colors duration-motion ease-motion-standard hover:bg-slate-800/60 active:scale-[0.98]"
         aria-expanded={open || menuVisible}
         aria-haspopup="menu"
         aria-label="Account menu"
@@ -140,7 +140,7 @@ export default function UserMenu({ onSignOut }) {
           {initials}
         </span>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-[200ms] ease-out motion-reduce:duration-0 ${open ? 'rotate-180' : ''}`}
+          className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-motion ease-motion-standard motion-reduce:duration-0 ${open ? 'rotate-180' : ''}`}
           strokeWidth={2}
           aria-hidden
         />
@@ -148,7 +148,7 @@ export default function UserMenu({ onSignOut }) {
 
       {menuMounted ? (
         <div
-          className={`absolute right-0 z-[60] mt-2 w-52 origin-top-right rounded-[10px] border border-slate-700/80 bg-surface-card py-1 shadow-xl ring-1 ring-black/20 transition-[opacity,transform] duration-[200ms] ease-out motion-reduce:duration-0 ${
+          className={`absolute right-0 z-[60] mt-2 w-52 origin-top-right rounded-[10px] border border-slate-700/80 bg-surface-card py-1 shadow-xl ring-1 ring-black/20 transition-[opacity,transform] duration-motion-slow ease-motion-standard motion-reduce:duration-0 ${
             menuVisible
               ? 'pointer-events-auto translate-y-0 scale-100 opacity-100'
               : 'pointer-events-none -translate-y-2 scale-[0.98] opacity-0'
@@ -160,7 +160,7 @@ export default function UserMenu({ onSignOut }) {
             to={profileTo}
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-200 transition-colors hover:bg-slate-800/70"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-200 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/70"
           >
             <User className="h-4 w-4 shrink-0 text-slate-500" strokeWidth={1.75} aria-hidden />
             Profile
@@ -169,7 +169,7 @@ export default function UserMenu({ onSignOut }) {
             to={appPath('settings')}
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-200 transition-colors hover:bg-slate-800/70"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-200 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/70"
           >
             <Settings className="h-4 w-4 shrink-0 text-slate-500" strokeWidth={1.75} aria-hidden />
             Settings
@@ -179,7 +179,7 @@ export default function UserMenu({ onSignOut }) {
             type="button"
             role="menuitem"
             onClick={() => openSignOutConfirm()}
-            className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm text-rose-400/95 transition-colors hover:bg-rose-950/30"
+            className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm text-rose-400/95 transition-colors duration-motion ease-motion-standard hover:bg-rose-950/30"
           >
             <LogOut className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden />
             Sign out
@@ -197,7 +197,7 @@ export default function UserMenu({ onSignOut }) {
                 type="button"
                 tabIndex={-1}
                 aria-hidden
-                className={`absolute inset-0 bg-black/65 backdrop-blur-[3px] transition-opacity duration-[240ms] ease-out motion-reduce:transition-none motion-reduce:opacity-100 ${
+                className={`absolute inset-0 bg-black/65 backdrop-blur-[3px] transition-opacity duration-motion-slow ease-motion-standard motion-reduce:transition-none motion-reduce:opacity-100 ${
                   signOutLayerVisible ? 'opacity-100' : 'opacity-0'
                 }`}
                 onClick={() => dismissSignOutConfirm()}
@@ -207,7 +207,7 @@ export default function UserMenu({ onSignOut }) {
                 aria-modal="true"
                 aria-labelledby="sign-out-dialog-title"
                 aria-describedby="sign-out-dialog-desc"
-                className={`relative z-10 w-full max-w-[min(100%,22rem)] rounded-2xl border border-slate-600/80 bg-surface-card px-5 pb-5 pt-4 shadow-2xl shadow-black/50 ring-1 ring-white/5 transition-[opacity,transform] duration-[240ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+                className={`relative z-10 w-full max-w-[min(100%,22rem)] rounded-2xl border border-slate-600/80 bg-surface-card px-5 pb-5 pt-4 shadow-2xl shadow-black/50 ring-1 ring-white/5 transition-[opacity,transform] duration-motion-slow ease-motion-standard motion-reduce:transition-none ${
                   signOutLayerVisible
                     ? 'translate-y-0 scale-100 opacity-100'
                     : 'translate-y-3 scale-[0.96] opacity-0'
@@ -240,14 +240,14 @@ export default function UserMenu({ onSignOut }) {
                   <button
                     ref={signOutCancelRef}
                     type="button"
-                    className="rounded-xl border border-slate-600/80 bg-slate-800/40 px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                    className="rounded-xl border border-slate-600/80 bg-slate-800/40 px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                     onClick={() => dismissSignOutConfirm()}
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
-                    className="rounded-xl bg-rose-600/90 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-950/40 transition-colors hover:bg-rose-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+                    className="rounded-xl bg-rose-600/90 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-950/40 transition-colors duration-motion ease-motion-standard hover:bg-rose-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
                     onClick={() => confirmSignOut()}
                   >
                     Sign out
