@@ -222,13 +222,17 @@ export default function Goals() {
               <label className="mb-1 block text-xs text-slate-500" htmlFor="goal-deadline">
                 Deadline (optional)
               </label>
-              <input
-                id="goal-deadline"
-                type="date"
-                value={form.deadline}
-                onChange={(e) => setForm((f) => ({ ...f, deadline: e.target.value }))}
-                className="h-11 w-full rounded-xl border border-slate-700 bg-surface px-3 text-white"
-              />
+              <div className="group w-full min-w-0">
+                <div className="flex h-11 w-full min-w-0 items-center rounded-xl border border-slate-700 bg-surface px-3 transition-[border-color,box-shadow] group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
+                  <input
+                    id="goal-deadline"
+                    type="date"
+                    value={form.deadline}
+                    onChange={(e) => setForm((f) => ({ ...f, deadline: e.target.value }))}
+                    className="min-h-0 min-w-0 flex-1 border-0 bg-transparent p-0 text-base text-white outline-none [color-scheme:dark] focus:ring-0 focus-visible:ring-0"
+                  />
+                </div>
+              </div>
             </div>
           </div>
           <button
