@@ -8,6 +8,7 @@ import { userIsAdmin, userIsFullAdmin, userIsStaff } from '../config/admin.js';
 import { loginRateLimiter, registerRateLimiter } from '../middleware/authRateLimit.js';
 import { fullAdminRequired } from '../middleware/admin.js';
 import { logAdminAction } from '../lib/adminAudit.js';
+import { seasonRankPayloadForUser } from '../lib/rankLadder.js';
 
 const router = Router();
 
@@ -26,6 +27,7 @@ function userPayload(user) {
     isStaff: userIsStaff(user),
     publicProfileEnabled: !!user.publicProfileEnabled,
     publicProfileSlug: user.publicProfileSlug || '',
+    seasonRank: seasonRankPayloadForUser(user),
   };
 }
 

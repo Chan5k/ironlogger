@@ -10,6 +10,7 @@ import Notification from '../models/Notification.js';
 import { authRequired } from '../middleware/auth.js';
 import { optionalAuth } from '../middleware/optionalAuth.js';
 import { buildLeaderboard } from '../lib/leaderboards.js';
+import { buildSeasonRankLeaderboard } from '../lib/seasonRankLeaderboard.js';
 import {
   addWorkoutComment,
   fetchActivityFeed,
@@ -379,7 +380,7 @@ router.post(
 router.get(
   '/leaderboards',
   authRequired,
-  query('metric').isIn(['volume', 'workouts', 'streak']),
+  query('metric').isIn(['volume', 'workouts', 'streak', 'seasonRank']),
   query('scope').isIn(['following', 'global']),
   query('page').optional().isInt({ min: 1, max: 500 }),
   query('limit').optional().isInt({ min: 1, max: 50 }),
@@ -389,6 +390,16 @@ router.get(
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 20;
     try {
+      if (req.query.metric === 'seasonRank') {
+        const data = await buildSeasonRankLeaderboard({
+          scope: req.query.scope,
+          page,
+          limit,
+          viewerId: req.user.id,
+        });
+        res.json(data);
+        return;
+      }
       const data = await buildLeaderboard({
         scope: req.query.scope,
         metric: req.query.metric,

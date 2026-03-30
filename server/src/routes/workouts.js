@@ -15,6 +15,7 @@ import {
   dateKeyInTimeZone,
 } from '../lib/trainingStreak.js';
 import { totalVolumeKgNonWarmup } from '../lib/workoutVolume.js';
+import { tryAwardSeasonRankPointsForWorkout } from '../lib/seasonRankPoints.js';
 
 /** Longest run of consecutive calendar days present in `set` (YYYY-MM-DD keys). */
 function bestStreakFromDaySet(trainingDays) {
@@ -599,6 +600,13 @@ router.post(
     }
 
     const workout = await Workout.create(createPayload);
+    if (workout.completedAt) {
+      try {
+        await tryAwardSeasonRankPointsForWorkout(workout);
+      } catch (e) {
+        console.error('season rank award', e);
+      }
+    }
     res.status(201).json({ workout });
   }
 );
@@ -648,6 +656,13 @@ router.put(
     }
 
     await workout.save();
+    if (workout.completedAt) {
+      try {
+        await tryAwardSeasonRankPointsForWorkout(workout);
+      } catch (e) {
+        console.error('season rank award', e);
+      }
+    }
     res.json({ workout });
   }
 );

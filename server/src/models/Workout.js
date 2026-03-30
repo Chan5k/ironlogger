@@ -31,6 +31,8 @@ const workoutSchema = new mongoose.Schema(
     startedAt: { type: Date, default: Date.now },
     completedAt: { type: Date, default: null },
     templateId: { type: mongoose.Schema.Types.ObjectId, ref: 'WorkoutTemplate', default: null },
+    /** True after seasonal rank points were granted for this completion */
+    ladderPointsAwarded: { type: Boolean, default: false },
     exercises: [workoutExerciseSchema],
   },
   { timestamps: true }

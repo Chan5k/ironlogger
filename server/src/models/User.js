@@ -18,6 +18,11 @@ const userSchema = new mongoose.Schema(
     lastLoginAt: { type: Date, default: null },
     publicProfileEnabled: { type: Boolean, default: false },
     publicProfileSlug: { type: String, trim: true, lowercase: true },
+    /** Monthly (UTC) competitive season id `YYYY-MM` last written for ladderSeasonPoints */
+    ladderSeasonId: { type: String, default: '', trim: true },
+    ladderSeasonPoints: { type: Number, default: 0, min: 0 },
+    /** YYYY-MM-DD in user timezone: last day a daily first-workout bonus was granted */
+    rankDailyBonusDayKey: { type: String, default: '', trim: true },
     /** Web Push subscriptions for reminder notifications when the app is closed */
     pushSubscriptions: [
       {
@@ -34,5 +39,6 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.index({ publicProfileSlug: 1 }, { unique: true, sparse: true });
+userSchema.index({ ladderSeasonId: 1, ladderSeasonPoints: -1, _id: 1 });
 
 export default mongoose.model('User', userSchema);

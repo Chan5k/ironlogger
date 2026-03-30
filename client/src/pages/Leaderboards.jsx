@@ -1,13 +1,32 @@
 import { useCallback, useEffect, useState } from 'react';
 import api from '../api/client.js';
+import { useAuth } from '../context/AuthContext.jsx';
+import { RankIcon } from '../components/ranks/RankIcon.jsx';
 
 const METRICS = [
   { id: 'volume', label: 'Weekly volume', unit: 'kg×reps' },
   { id: 'workouts', label: 'Workouts', unit: 'sessions (7d)' },
   { id: 'streak', label: 'Streak', unit: '' },
+  { id: 'seasonRank', label: 'Season rank', unit: 'monthly ladder' },
 ];
 
+function formatSeasonEnd(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    return new Intl.DateTimeFormat(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC',
+    }).format(d);
+  } catch {
+    return '';
+  }
+}
+
 export default function Leaderboards() {
+  const { user } = useAuth();
   const [metric, setMetric] = useState('volume');
   const [scope, setScope] = useState('following');
   const [page, setPage] = useState(1);
@@ -46,17 +65,24 @@ export default function Leaderboards() {
       if (scope === 'global') return `${row.value} day${row.value !== 1 ? 's' : ''} trained (7d)`;
       return `${row.value}-day streak`;
     }
+    if (metric === 'seasonRank') {
+      return `${Number(row.value).toLocaleString()} pts`;
+    }
     return String(row.value);
   }
 
   const metricMeta = METRICS.find((m) => m.id === metric);
+  const sr = user?.seasonRank;
+  const isSeason = metric === 'seasonRank';
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-white md:text-[1.65rem]">Leaderboards</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Rolling 7-day window. Following includes you and people you follow.
+          {isSeason
+            ? 'Season rank uses a UTC calendar month. Only signed-in athletes appear once they earn points.'
+            : 'Rolling 7-day window. Following includes you and people you follow.'}
         </p>
       </div>
 
@@ -76,6 +102,32 @@ export default function Leaderboards() {
           </button>
         ))}
       </div>
+
+      {isSeason && sr?.rankLabel ? (
+        <div className="rounded-xl border border-slate-800/90 bg-[#121826]/95 px-4 py-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <RankIcon iconId={sr.rankIconId} className="h-12 w-12" title={sr.rankLabel} />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Your season</p>
+              <p className="text-sm font-medium text-white">{sr.seasonLabel ?? ''}</p>
+              <p className="mt-0.5 text-sm text-slate-400">
+                <span className="text-slate-200">{sr.rankLabel}</span>
+                <span className="mx-1.5 text-slate-600">·</span>
+                {(Number(sr.seasonPoints) || 0).toLocaleString()} pts
+                {!sr.isMaxRank && sr.nextRankLabel ? (
+                  <span className="text-slate-500">
+                    {' '}
+                    · {sr.pointsToNextRank} to {sr.nextRankLabel}
+                  </span>
+                ) : null}
+              </p>
+              {sr.seasonEndsAt ? (
+                <p className="mt-1 text-xs text-slate-600">Resets {formatSeasonEnd(sr.seasonEndsAt)} (UTC)</p>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap gap-2">
         {[
@@ -97,6 +149,15 @@ export default function Leaderboards() {
         ))}
       </div>
 
+      {isSeason && data?.seasonLabel ? (
+        <p className="text-sm text-slate-400">
+          <span className="font-medium text-slate-300">{data.seasonLabel}</span>
+          {data.seasonEndsAt ? (
+            <span className="text-slate-600"> · ends {formatSeasonEnd(data.seasonEndsAt)} UTC</span>
+          ) : null}
+        </p>
+      ) : null}
+
       {data?.metricNote ? (
         <p className="text-xs text-slate-500">{data.metricNote}</p>
       ) : null}
@@ -106,7 +167,9 @@ export default function Leaderboards() {
 
       {!loading && !err && data?.entries?.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-700/80 bg-[#0f141d]/50 px-6 py-10 text-center text-sm text-slate-500">
-          No entries yet for this view. Log a workout or follow friends to compare.
+          {isSeason
+            ? 'No season points yet in this view. Complete a workout to climb the ladder.'
+            : 'No entries yet for this view. Log a workout or follow friends to compare.'}
         </div>
       ) : null}
 
@@ -129,15 +192,23 @@ export default function Leaderboards() {
                 <span className="w-8 shrink-0 text-center text-sm font-semibold tabular-nums text-slate-500">
                   {row.rank}
                 </span>
-                <div
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-                    row.isViewer
-                      ? 'bg-blue-600/30 text-blue-100 ring-1 ring-blue-500/40'
-                      : 'bg-slate-700/80 text-slate-200 ring-1 ring-slate-600/50'
-                  }`}
-                >
-                  {row.initials}
-                </div>
+                {isSeason && row.rankIconId ? (
+                  <RankIcon
+                    iconId={row.rankIconId}
+                    className="h-9 w-9 shrink-0"
+                    title={row.rankLabel}
+                  />
+                ) : (
+                  <div
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                      row.isViewer
+                        ? 'bg-blue-600/30 text-blue-100 ring-1 ring-blue-500/40'
+                        : 'bg-slate-700/80 text-slate-200 ring-1 ring-slate-600/50'
+                    }`}
+                  >
+                    {row.initials}
+                  </div>
+                )}
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-white">
                     {row.name}
@@ -145,6 +216,9 @@ export default function Leaderboards() {
                       <span className="ml-2 text-xs font-normal text-blue-400/90">You</span>
                     ) : null}
                   </p>
+                  {isSeason && row.rankLabel ? (
+                    <p className="truncate text-xs text-slate-500">{row.rankLabel}</p>
+                  ) : null}
                 </div>
                 <p className="shrink-0 text-sm font-medium tabular-nums text-slate-300">
                   {formatValue(row)}
