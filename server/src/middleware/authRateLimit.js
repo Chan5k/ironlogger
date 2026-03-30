@@ -17,12 +17,3 @@ export const registerRateLimiter = rateLimit({
   standardHeaders: 'draft-7',
   legacyHeaders: false,
 });
-
-/** Activity import hook (Apple Shortcuts): allow bursts but cap abuse per IP. */
-export const activityImportRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 120,
-  message: { error: 'Too many activity imports. Try again later.' },
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-});

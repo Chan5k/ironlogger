@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
@@ -325,42 +324,5 @@ router.delete(
     res.status(204).send();
   }
 );
-
-function hashActivitySyncToken(plain) {
-  return crypto.createHash('sha256').update(String(plain), 'utf8').digest('hex');
-}
-
-/** Whether a personal token exists for POST /api/activity/import (Apple Shortcuts + Health). */
-router.get('/activity-sync-token', authRequired, async (req, res) => {
-  const user = await User.findById(req.user.id).select('activitySyncTokenHash activitySyncTokenCreatedAt');
-  if (!user) return res.status(404).json({ error: 'User not found' });
-  res.json({
-    configured: !!user.activitySyncTokenHash,
-    createdAt: user.activitySyncTokenCreatedAt || null,
-  });
-});
-
-/** Create or replace token. Plaintext returned once. */
-router.post('/activity-sync-token', authRequired, async (req, res) => {
-  const raw = crypto.randomBytes(24).toString('base64url');
-  const hash = hashActivitySyncToken(raw);
-  await User.updateOne(
-    { _id: req.user.id },
-    { $set: { activitySyncTokenHash: hash, activitySyncTokenCreatedAt: new Date() } }
-  );
-  res.status(201).json({
-    token: raw,
-    message:
-      'Copy this token now — it is not shown again. Paste it into your iOS Shortcut (Authorization: Bearer or JSON syncToken). Revoke here anytime.',
-  });
-});
-
-router.delete('/activity-sync-token', authRequired, async (req, res) => {
-  await User.updateOne(
-    { _id: req.user.id },
-    { $set: { activitySyncTokenHash: null, activitySyncTokenCreatedAt: null } }
-  );
-  res.status(204).send();
-});
 
 export default router;

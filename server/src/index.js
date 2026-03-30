@@ -16,7 +16,6 @@ import notificationsRoutes from './routes/notifications.js';
 import cronRoutes from './routes/cron.js';
 import goalRoutes from './routes/goals.js';
 import nutritionRoutes from './routes/nutrition.js';
-import activityImportRoutes from './routes/activityImport.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -74,7 +73,6 @@ app.use('/api/workouts', workoutRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/nutrition', nutritionRoutes);
 app.use('/api/templates', templateRoutes);
-app.use('/api/activity/import', activityImportRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/admin', adminRoutes);
 
