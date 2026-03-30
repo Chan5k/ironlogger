@@ -78,12 +78,15 @@ export default function LandingAuthModal({ mode, onClose, onSwitchMode }) {
   const panelActive = entered && !exiting;
 
   const portal = createPortal(
-    <div className="fixed inset-0 z-[200] flex items-end justify-center p-4 sm:items-center sm:p-6" role="presentation">
+    <div
+      className="fixed inset-0 z-[200] flex min-h-[100dvh] items-center justify-center overflow-y-auto overflow-x-hidden p-4 sm:p-6"
+      role="presentation"
+    >
       <button
         type="button"
         tabIndex={-1}
         aria-hidden
-        className={`absolute inset-0 bg-[#05080d]/80 backdrop-blur-sm transition-[opacity,backdrop-filter] duration-motion-slow ease-motion-standard motion-reduce:transition-none ${
+        className={`fixed inset-0 bg-[#05080d]/80 backdrop-blur-sm transition-[opacity,backdrop-filter] duration-motion-slow ease-motion-standard motion-reduce:transition-none ${
           backdropActive ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={() => runClose()}
@@ -93,13 +96,12 @@ export default function LandingAuthModal({ mode, onClose, onSwitchMode }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="landing-auth-title"
-        className={`relative z-10 flex max-h-[min(90dvh,36rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-600/80 bg-[#121826] shadow-2xl shadow-black/50 ring-1 ring-white/[0.06] transition-[opacity,transform] duration-motion-slow ease-motion-standard motion-reduce:transition-none max-sm:max-h-[min(88dvh,34rem)] max-sm:rounded-t-2xl max-sm:rounded-b-xl ${
+        className={`relative z-10 my-auto flex max-h-[min(90dvh,36rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-600/80 bg-[#121826] shadow-2xl shadow-black/50 ring-1 ring-white/[0.06] transition-[opacity,transform] duration-motion-slow ease-motion-standard motion-reduce:transition-none ${
           panelActive
             ? 'translate-y-0 scale-100 opacity-100'
-            : 'translate-y-6 scale-[0.96] opacity-0 sm:translate-y-4 sm:scale-[0.98]'
+            : 'translate-y-4 scale-[0.97] opacity-0 motion-reduce:translate-y-0 motion-reduce:scale-100'
         }`}
       >
-        <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-slate-600/80 sm:hidden" aria-hidden />
         <div className="flex items-start justify-between gap-3 border-b border-slate-800/90 px-5 pb-3 pt-4 sm:pt-5">
           <div className="min-w-0">
             <h2 id="landing-auth-title" className="text-xl font-bold tracking-tight text-white">
