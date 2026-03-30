@@ -25,6 +25,72 @@ function formatSeasonEnd(iso) {
   }
 }
 
+function SeasonRankGuide() {
+  return (
+    <details className="group rounded-xl border border-slate-800/90 bg-[#121826]/80 ring-1 ring-slate-800/50">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-left [&::-webkit-details-marker]:hidden">
+        <span className="text-sm font-medium text-slate-200">How to earn points &amp; rank up</span>
+        <span
+          className="shrink-0 text-slate-500 transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none"
+          aria-hidden
+        >
+          ▼
+        </span>
+      </summary>
+      <div className="space-y-4 border-t border-slate-800/80 px-4 pb-4 pt-3 text-sm text-slate-400">
+        <section className="space-y-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Earning points</h3>
+          <ul className="list-inside list-disc space-y-1.5 text-slate-400 marker:text-slate-600">
+            <li>
+              <span className="text-slate-300">Complete a workout</span> — you get points once when you mark a session
+              finished. The workout must include at least one <strong className="font-medium text-slate-300">non-warmup</strong>{' '}
+              set with <strong className="font-medium text-slate-300">at least one rep</strong> logged. Warmup-only sessions
+              do not count.
+            </li>
+            <li>
+              <span className="text-slate-300">+15</span> base points per qualifying completion.
+            </li>
+            <li>
+              <span className="text-slate-300">Volume bonus:</span> +1 point per{' '}
+              <strong className="font-medium text-slate-300">500 kg×reps</strong> of non-warmup volume in that workout (stored
+              weights are in kg), up to <strong className="font-medium text-slate-300">+25</strong> extra per session.
+            </li>
+            <li>
+              <span className="text-slate-300">Daily bonus:</span> the first qualifying workout on a{' '}
+              <strong className="font-medium text-slate-300">calendar day</strong> in your account timezone (Settings) earns an
+              extra <strong className="font-medium text-slate-300">+5</strong>. Later workouts the same day still get base +
+              volume, but not another daily bonus.
+            </li>
+            <li>
+              Each workout awards points <strong className="font-medium text-slate-300">at most once</strong>, even if you edit
+              it later.
+            </li>
+          </ul>
+        </section>
+        <section className="space-y-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Seasons</h3>
+          <p>
+            Seasons follow <strong className="font-medium text-slate-300">UTC calendar months</strong> (e.g. 1–31 March UTC).
+            When a new month starts, everyone&apos;s <strong className="font-medium text-slate-300">season score resets to 0</strong>{' '}
+            the next time they earn points. Leaderboards show who has the most points in the current month.
+          </p>
+        </section>
+        <section className="space-y-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Ranks</h3>
+          <p>
+            Your <strong className="font-medium text-slate-300">rank</strong> (Wood → Ultimate Champion, levels 1–3 with 3
+            highest in each tier) depends only on your <strong className="font-medium text-slate-300">season points</strong>.
+            Earn more points this month to move up. The card above shows how many points you need for the next rank.
+          </p>
+          <p className="text-xs text-slate-500">
+            Tiers: Wood, Iron, Silver, Gold, Platinum, Emerald, Diamond, Master, Ultimate Champion — each has ranks 1, 2, and 3.
+          </p>
+        </section>
+      </div>
+    </details>
+  );
+}
+
 export default function Leaderboards() {
   const { user } = useAuth();
   const [metric, setMetric] = useState('volume');
@@ -103,6 +169,8 @@ export default function Leaderboards() {
         ))}
       </div>
 
+      {isSeason ? <SeasonRankGuide /> : null}
+
       {isSeason && sr?.rankLabel ? (
         <div className="rounded-xl border border-slate-800/90 bg-[#121826]/95 px-4 py-4">
           <div className="flex flex-wrap items-center gap-4">
@@ -158,7 +226,7 @@ export default function Leaderboards() {
         </p>
       ) : null}
 
-      {data?.metricNote ? (
+      {!isSeason && data?.metricNote ? (
         <p className="text-xs text-slate-500">{data.metricNote}</p>
       ) : null}
 
