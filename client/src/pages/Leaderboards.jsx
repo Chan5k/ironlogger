@@ -26,19 +26,44 @@ function formatSeasonEnd(iso) {
 }
 
 function SeasonRankGuide() {
+  const [open, setOpen] = useState(false);
+  const panelId = 'season-rank-guide-panel';
+
   return (
-    <details className="group rounded-xl border border-slate-800/90 bg-[#121826]/80 ring-1 ring-slate-800/50">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-left [&::-webkit-details-marker]:hidden">
+    <div className="overflow-hidden rounded-xl border border-slate-800/90 bg-[#121826]/80 ring-1 ring-slate-800/50">
+      <button
+        type="button"
+        id="season-rank-guide-trigger"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left transition-colors duration-motion ease-motion-standard hover:bg-slate-800/35 motion-reduce:transition-none"
+      >
         <span className="text-sm font-medium text-slate-200">How to earn points &amp; rank up</span>
         <span
-          className="shrink-0 text-slate-500 transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none"
+          className={`shrink-0 text-slate-500 transition-transform duration-motion-out ease-motion-emphasized motion-reduce:transition-none ${
+            open ? 'rotate-180' : ''
+          }`}
           aria-hidden
         >
           ▼
         </span>
-      </summary>
-      <div className="space-y-4 border-t border-slate-800/80 px-4 pb-4 pt-3 text-sm text-slate-400">
-        <section className="space-y-2">
+      </button>
+      <div
+        id={panelId}
+        role="region"
+        aria-labelledby="season-rank-guide-trigger"
+        className={`grid overflow-hidden transition-[grid-template-rows] duration-motion-out ease-motion-standard motion-reduce:transition-none ${
+          open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+        }`}
+      >
+        <div className="min-h-0 overflow-hidden" aria-hidden={!open}>
+          <div
+            className={`space-y-4 border-t border-slate-800/80 px-4 pb-4 pt-3 text-sm text-slate-400 transition-[opacity,transform] duration-motion ease-motion-standard motion-reduce:transition-none ${
+              open ? 'translate-y-0 opacity-100 delay-75 motion-reduce:delay-0' : '-translate-y-1 opacity-0 delay-0'
+            }`}
+          >
+            <section className="space-y-2">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Earning points</h3>
           <ul className="list-inside list-disc space-y-1.5 text-slate-400 marker:text-slate-600">
             <li>
@@ -66,16 +91,16 @@ function SeasonRankGuide() {
               it later.
             </li>
           </ul>
-        </section>
-        <section className="space-y-2">
+            </section>
+            <section className="space-y-2">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Seasons</h3>
           <p>
             Seasons follow <strong className="font-medium text-slate-300">UTC calendar months</strong> (e.g. 1–31 March UTC).
             When a new month starts, everyone&apos;s <strong className="font-medium text-slate-300">season score resets to 0</strong>{' '}
             the next time they earn points. Leaderboards show who has the most points in the current month.
           </p>
-        </section>
-        <section className="space-y-2">
+            </section>
+            <section className="space-y-2">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Ranks</h3>
           <p>
             Your <strong className="font-medium text-slate-300">rank</strong> (Wood → Ultimate Champion, levels 1–3 with 3
@@ -87,9 +112,11 @@ function SeasonRankGuide() {
           <p className="text-xs text-slate-500">
             Tiers: Wood, Iron, Silver, Gold, Platinum, Emerald, Diamond, Master, Ultimate Champion — each has ranks 1, 2, and 3.
           </p>
-        </section>
+            </section>
+          </div>
+        </div>
       </div>
-    </details>
+    </div>
   );
 }
 

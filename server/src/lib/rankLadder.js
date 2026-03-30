@@ -119,6 +119,10 @@ export function seasonRankPayloadForUser(user) {
     seasonEndsAt: bounds?.end?.toISOString() ?? null,
     seasonPoints,
     rankLabel: rank.label,
+    /** Tier name (Wood … Ultimate Champion) — public “division”. */
+    division: rank.tier,
+    /** Sub-rank within the tier (1–3; 3 is highest). */
+    rankLevel: rank.sub,
     rankIconId: rank.iconId,
     rankIndex: rank.index,
     pointsToNextRank: rank.isMaxRank ? 0 : rank.pointsToNext,

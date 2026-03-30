@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import api from '../api/client.js';
+import { RankIcon } from '../components/ranks/RankIcon.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { appPath } from '../constants/routes.js';
 import { appAlert, appConfirm } from '../lib/appDialogApi.js';
@@ -181,6 +182,40 @@ export default function PublicProfile() {
               <p className="mt-1 text-sm text-slate-500">Public IronLog profile</p>
               {data.stats?.followerCount != null ? (
                 <p className="mt-2 text-xs text-slate-500">{data.stats.followerCount} follower(s)</p>
+              ) : null}
+
+              {data.seasonRank?.rankLabel ? (
+                <div className="mt-5 rounded-xl border border-slate-700/90 bg-surface-elevated/40 px-4 py-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                    Season rank · {data.seasonRank.seasonLabel}
+                  </p>
+                  <div className="mt-3 flex items-start gap-4">
+                    <RankIcon
+                      iconId={data.seasonRank.rankIconId}
+                      className="h-14 w-14 shrink-0"
+                      title={data.seasonRank.rankLabel}
+                    />
+                    <div className="min-w-0 flex-1 space-y-2 text-sm">
+                      <div>
+                        <p className="text-xs text-slate-500">Division</p>
+                        <p className="font-semibold text-white">{data.seasonRank.division}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Rank</p>
+                        <p className="font-medium text-slate-200">{data.seasonRank.rankLabel}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Season points (UTC month)</p>
+                        <p className="font-mono tabular-nums text-slate-200">
+                          {(Number(data.seasonRank.seasonPoints) || 0).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-[11px] text-slate-600">
+                    Same monthly ladder as in-app leaderboards. Resets at the end of each UTC calendar month.
+                  </p>
+                </div>
               ) : null}
 
               {isAuthenticated && social && !social.isOwnProfile ? (

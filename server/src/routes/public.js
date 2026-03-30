@@ -7,6 +7,7 @@ import ShareLink from '../models/ShareLink.js';
 import ProfileFollow from '../models/ProfileFollow.js';
 import ProfileWallEntry from '../models/ProfileWallEntry.js';
 import { optionalAuth } from '../middleware/optionalAuth.js';
+import { seasonRankPayloadForUser } from '../lib/rankLadder.js';
 
 const router = Router();
 
@@ -31,7 +32,7 @@ router.get('/profile/:slug', param('slug').trim().notEmpty(), async (req, res) =
     publicProfileEnabled: true,
     publicProfileSlug: slug,
   })
-    .select('name weightUnit publicProfileSlug')
+    .select('name weightUnit publicProfileSlug ladderSeasonId ladderSeasonPoints')
     .lean();
   if (!user) return res.status(404).json({ error: 'Profile not found' });
 
@@ -76,6 +77,8 @@ router.get('/profile/:slug', param('slug').trim().notEmpty(), async (req, res) =
       slug: user.publicProfileSlug,
       weightUnit: user.weightUnit === 'lbs' ? 'lbs' : 'kg',
     },
+    /** Current UTC-month competitive rank — visible to all visitors (no auth). */
+    seasonRank: seasonRankPayloadForUser(user),
     stats: {
       totalWorkouts,
       workoutsLast30Days: monthCount,

@@ -12,6 +12,7 @@ import { staffRequired, fullAdminRequired } from '../middleware/admin.js';
 import { parseAdminEmails, userIsAdmin } from '../config/admin.js';
 import { adminApiRateLimiter } from '../middleware/adminRateLimit.js';
 import { logAdminAction } from '../lib/adminAudit.js';
+import { currentSeasonIdUTC, seasonRankPayloadForUser } from '../lib/rankLadder.js';
 
 const router = Router();
 router.use(authRequired);
@@ -188,6 +189,7 @@ router.get('/users/:id', param('id').isMongoId(), async (req, res) => {
       activityEntries: activityCount,
       customExercises: customExerciseCount,
     },
+    seasonRank: seasonRankPayloadForUser(user),
   });
 });
 
@@ -306,6 +308,52 @@ router.patch(
     }
     await target.save();
     res.json({ user: publicUser(target) });
+  }
+);
+
+router.patch(
+  '/users/:id/season-rank',
+  fullAdminRequired,
+  param('id').isMongoId(),
+  body('ladderSeasonPoints').isInt({ min: 0, max: 99_999_999 }),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const target = await User.findById(req.params.id);
+    if (!target) return res.status(404).json({ error: 'User not found' });
+
+    const rawSeason = req.body.ladderSeasonId;
+    let sid = currentSeasonIdUTC();
+    if (rawSeason != null && String(rawSeason).trim() !== '') {
+      const t = String(rawSeason).trim();
+      if (!/^\d{4}-\d{2}$/.test(t)) {
+        return res.status(400).json({ error: 'ladderSeasonId must be YYYY-MM (UTC month)' });
+      }
+      sid = t;
+    }
+
+    const before = {
+      ladderSeasonId: target.ladderSeasonId || '',
+      ladderSeasonPoints: Math.max(0, Number(target.ladderSeasonPoints) || 0),
+    };
+    const nextPts = Number(req.body.ladderSeasonPoints);
+
+    target.ladderSeasonId = sid;
+    target.ladderSeasonPoints = nextPts;
+    await target.save();
+
+    await logAdminAction(req.user.id, 'user.season_rank_set', {
+      targetUserId: target._id,
+      meta: {
+        before,
+        after: { ladderSeasonId: sid, ladderSeasonPoints: nextPts },
+      },
+    });
+
+    res.json({
+      user: publicUser(target),
+      seasonRank: seasonRankPayloadForUser(target),
+    });
   }
 );
 

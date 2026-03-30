@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../api/client.js';
+import { RankIcon } from '../components/ranks/RankIcon.jsx';
 import { appPath } from '../constants/routes.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { appConfirm, appPrompt } from '../lib/appDialogApi.js';
@@ -33,6 +34,9 @@ export default function AdminUserDetail() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [notesDraft, setNotesDraft] = useState('');
+  const [seasonRank, setSeasonRank] = useState(null);
+  const [seasonIdDraft, setSeasonIdDraft] = useState('');
+  const [seasonPointsDraft, setSeasonPointsDraft] = useState('');
 
   const uid = user?._id || user?.id;
 
@@ -52,6 +56,14 @@ export default function AdminUserDetail() {
       ]);
       setUser(u.data.user);
       setNotesDraft(u.data.user?.adminNotes ?? '');
+      const sr = u.data.seasonRank ?? null;
+      setSeasonRank(sr);
+      const udoc = u.data.user;
+      const rawSid = (udoc.ladderSeasonId && String(udoc.ladderSeasonId).trim()) || '';
+      setSeasonIdDraft(/^\d{4}-\d{2}$/.test(rawSid) ? rawSid : sr?.seasonId || '');
+      setSeasonPointsDraft(
+        String(udoc.ladderSeasonPoints != null ? udoc.ladderSeasonPoints : 0)
+      );
       setStats(u.data.stats);
       setWorkouts(w.data.workouts || []);
       setWorkoutTotal(w.data.total ?? 0);
@@ -157,6 +169,42 @@ export default function AdminUserDetail() {
       setMsg('Support access updated.');
     } catch (e) {
       setMsg(e.response?.data?.error || 'Update failed');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveSeasonRank() {
+    if (!userId || !meIsFullAdmin) return;
+    const pts = parseInt(String(seasonPointsDraft).trim(), 10);
+    if (Number.isNaN(pts) || pts < 0 || pts > 99_999_999) {
+      setMsg('Season points must be an integer from 0 to 99,999,999.');
+      return;
+    }
+    const sid = seasonIdDraft.trim();
+    if (sid && !/^\d{4}-\d{2}$/.test(sid)) {
+      setMsg('Season id must be YYYY-MM (UTC month).');
+      return;
+    }
+    setBusy(true);
+    setMsg('');
+    try {
+      const payload = { ladderSeasonPoints: pts };
+      if (sid) payload.ladderSeasonId = sid;
+      const { data } = await api.patch(`/admin/users/${userId}/season-rank`, payload);
+      setUser(data.user);
+      setSeasonRank(data.seasonRank ?? null);
+      const nextUser = data.user;
+      const nextRawSid = (nextUser.ladderSeasonId && String(nextUser.ladderSeasonId).trim()) || '';
+      setSeasonIdDraft(
+        /^\d{4}-\d{2}$/.test(nextRawSid) ? nextRawSid : data.seasonRank?.seasonId || ''
+      );
+      setSeasonPointsDraft(
+        String(nextUser.ladderSeasonPoints != null ? nextUser.ladderSeasonPoints : 0)
+      );
+      setMsg('Season rank / points updated.');
+    } catch (e) {
+      setMsg(e.response?.data?.error || e.response?.data?.errors?.[0]?.msg || 'Update failed');
     } finally {
       setBusy(false);
     }
@@ -372,6 +420,64 @@ export default function AdminUserDetail() {
         </div>
         {isSelf ? (
           <p className="mt-2 text-xs text-slate-500">You cannot impersonate or delete your own account here.</p>
+        ) : null}
+
+        {meIsFullAdmin ? (
+          <div className="mt-6 space-y-4 border-t border-slate-800/80 pt-6">
+            <h3 className="text-sm font-semibold text-white">Season rank (leaderboard)</h3>
+            <p className="text-xs text-slate-500">
+              Rank is derived from season points (UTC month). Leave season blank when saving to use the current UTC month.
+            </p>
+            {seasonRank?.rankLabel ? (
+              <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-800 bg-[#0b0e14] px-3 py-3">
+                <RankIcon iconId={seasonRank.rankIconId} className="h-10 w-10 shrink-0" title={seasonRank.rankLabel} />
+                <div className="min-w-0 text-sm">
+                  <p className="font-medium text-slate-200">{seasonRank.rankLabel}</p>
+                  <p className="text-xs text-slate-500">
+                    Division: {seasonRank.division}
+                    {seasonRank.rankLevel != null ? ` · Tier level ${seasonRank.rankLevel}` : null}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Effective for {seasonRank.seasonLabel} — {(Number(seasonRank.seasonPoints) || 0).toLocaleString()} pts
+                  </p>
+                </div>
+              </div>
+            ) : null}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block text-xs text-slate-400">
+                Season (UTC, YYYY-MM)
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder={seasonRank?.seasonId || '2026-03'}
+                  value={seasonIdDraft}
+                  onChange={(e) => setSeasonIdDraft(e.target.value)}
+                  disabled={busy}
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-[#0b0e14] px-3 py-2 font-mono text-sm text-white outline-none focus:border-accent disabled:opacity-50"
+                />
+              </label>
+              <label className="block text-xs text-slate-400">
+                Season points
+                <input
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={seasonPointsDraft}
+                  onChange={(e) => setSeasonPointsDraft(e.target.value)}
+                  disabled={busy}
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-[#0b0e14] px-3 py-2 font-mono text-sm text-white outline-none focus:border-accent disabled:opacity-50"
+                />
+              </label>
+            </div>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => saveSeasonRank()}
+              className="rounded-xl border border-amber-700/50 bg-amber-950/25 px-4 py-2 text-sm font-medium text-amber-100 disabled:opacity-50"
+            >
+              Save season points
+            </button>
+          </div>
         ) : null}
       </section>
 
