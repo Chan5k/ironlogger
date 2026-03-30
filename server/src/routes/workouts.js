@@ -436,6 +436,8 @@ router.post(
           : null;
       const nameKey = (t.name || '').trim().toLowerCase();
       let maxWeight = 0;
+      let maxSetVolume = 0;
+      const repsByWeight = {};
       for (const w of workouts) {
         for (const ex of w.exercises || []) {
           const byId = eid && ex.exerciseId?.toString() === eid;
@@ -448,11 +450,17 @@ router.post(
           for (const s of ex.sets || []) {
             if (!isCountingSet(s) || !s.completed) continue;
             const wv = Number(s.weight) || 0;
+            const rv = Math.floor(Number(s.reps) || 0);
             if (wv > maxWeight) maxWeight = wv;
+            const vol = wv * rv;
+            if (vol > maxSetVolume) maxSetVolume = vol;
+            const key = String(wv);
+            const prevR = repsByWeight[key] ?? 0;
+            if (rv > prevR) repsByWeight[key] = rv;
           }
         }
       }
-      return { maxWeight };
+      return { maxWeight, maxSetVolume, repsByWeight };
     });
 
     res.json({ baselines });

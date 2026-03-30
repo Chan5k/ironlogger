@@ -60,7 +60,10 @@ export default function AddFriendInvite() {
     return (
       <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-8 text-white">
         <p className="text-slate-300">This invite link is not valid.</p>
-        <Link to="/" className="mt-4 text-sm text-accent-muted hover:text-accent">
+        <Link
+          to="/"
+          className="mt-4 inline-flex min-h-11 min-w-11 items-center rounded-xl px-3 py-2 text-sm text-accent-muted transition-colors hover:bg-slate-800/60 hover:text-accent"
+        >
           ← Home
         </Link>
       </div>

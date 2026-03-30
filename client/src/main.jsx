@@ -1,11 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, useLocation } from 'react-router-dom';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { registerSW } from 'virtual:pwa-register';
 import { AuthProvider } from './context/AuthContext.jsx';
 import AppDialogProvider from './components/AppDialogProvider.jsx';
 import App from './App.jsx';
 import './index.css';
+
+function SpeedInsightsRouteBridge() {
+  const { pathname } = useLocation();
+  return <SpeedInsights framework="react" route={pathname} />;
+}
 
 function routerBasename() {
   const b = import.meta.env.BASE_URL || '/';
@@ -18,6 +24,7 @@ registerSW({ immediate: true });
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter basename={routerBasename()}>
+      <SpeedInsightsRouteBridge />
       <AuthProvider>
         <AppDialogProvider>
           <App />

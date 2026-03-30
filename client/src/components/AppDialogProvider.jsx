@@ -100,18 +100,22 @@ export default function AppDialogProvider({ children }) {
     return () => setAppDialogImpl(null);
   }, [alertFn, confirmFn, promptFn, copySheetFn]);
 
+  const sheetMode = active?.kind === 'copy';
+
   const portal =
     active &&
     createPortal(
       <div
-        className="fixed inset-0 z-[400] flex max-h-[100dvh] items-end justify-center sm:items-center sm:p-4"
+        className={`fixed inset-0 z-[400] flex max-h-[100dvh] justify-center overflow-y-auto overflow-x-hidden p-4 ${
+          sheetMode ? 'items-end sm:items-center' : 'items-center'
+        }`}
         role="presentation"
       >
         <button
           type="button"
           tabIndex={-1}
           aria-hidden
-          className={`absolute inset-0 bg-black/65 backdrop-blur-[2px] transition-opacity duration-motion-slow ease-motion-standard motion-reduce:transition-none ${
+          className={`fixed inset-0 bg-black/65 backdrop-blur-[2px] transition-opacity duration-motion-slow ease-motion-standard motion-reduce:transition-none ${
             sheetOpen ? 'opacity-100' : 'opacity-0'
           }`}
           onClick={() => {
@@ -125,13 +129,21 @@ export default function AppDialogProvider({ children }) {
           role={active.kind === 'confirm' || active.kind === 'prompt' ? 'alertdialog' : 'dialog'}
           aria-modal="true"
           aria-labelledby="app-dialog-title"
-          className={`relative z-10 flex max-h-[min(90dvh,32rem)] w-full max-w-lg flex-col border border-slate-600/80 bg-[#121826] shadow-2xl shadow-black/50 ring-1 ring-white/5 transition-[transform,opacity] duration-motion-slow ease-motion-emphasized motion-reduce:transition-none max-sm:max-h-[min(85dvh,28rem)] max-sm:rounded-t-2xl max-sm:border-b-0 sm:rounded-2xl ${
-            sheetOpen
-              ? 'translate-y-0 opacity-100 sm:translate-y-0 sm:scale-100'
-              : 'translate-y-full opacity-100 sm:translate-y-3 sm:scale-[0.96] sm:opacity-0'
+          className={`relative z-10 my-auto flex max-h-[min(90dvh,32rem)] w-full max-w-lg flex-col border border-slate-600/80 bg-[#121826] shadow-2xl shadow-black/50 ring-1 ring-white/5 transition-[transform,opacity] duration-motion-slow ease-motion-emphasized motion-reduce:transition-none ${
+            sheetMode
+              ? `max-sm:max-h-[min(85dvh,28rem)] max-sm:rounded-t-2xl max-sm:border-b-0 sm:rounded-2xl ${
+                  sheetOpen
+                    ? 'translate-y-0 opacity-100 sm:translate-y-0 sm:scale-100'
+                    : 'translate-y-full opacity-100 sm:translate-y-3 sm:scale-[0.96] sm:opacity-0'
+                }`
+              : `rounded-2xl ${
+                  sheetOpen ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-2 scale-[0.97] opacity-0'
+                }`
           } motion-reduce:translate-y-0 motion-reduce:scale-100 motion-reduce:opacity-100`}
         >
-          <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-slate-600/80 sm:hidden" aria-hidden />
+          {sheetMode ? (
+            <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-slate-600/80 sm:hidden" aria-hidden />
+          ) : null}
 
           {active.kind === 'copy' ? (
             <CopySheetBody

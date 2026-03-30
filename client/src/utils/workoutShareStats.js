@@ -1,4 +1,5 @@
 import { normalizeSetType } from '../constants/setTypes.js';
+import { evaluateSetPr, mergeSetIntoBaseline } from './prBaseline.js';
 import { LBS_PER_KG } from './weightUnits.js';
 
 const CAT_LABEL = {
@@ -52,20 +53,28 @@ export function computeWorkoutShareStats(exercises, prBaselines, weightUnit) {
   for (let ei = 0; ei < (exercises || []).length; ei++) {
     const ex = exercises[ei];
     let ev = 0;
+    const base = prBaselines[ei];
+    let cum = {
+      maxWeight: base?.maxWeight ?? 0,
+      maxSetVolume: base?.maxSetVolume ?? 0,
+      repsByWeight: { ...(base?.repsByWeight || {}) },
+    };
     for (const s of ex.sets || []) {
       const st = normalizeSetType(s.setType);
       if (st === 'warmup') continue;
       if (s.completed) setCount += 1;
       ev += (Number(s.weight) || 0) * (Number(s.reps) || 0);
-      const base = prBaselines[ei];
-      const prevMax = base?.maxWeight ?? 0;
       const wNum = Number(s.weight) || 0;
-      if (st !== 'warmup' && s.completed && wNum > prevMax) {
+      const rNum = Math.floor(Number(s.reps) || 0);
+      if (s.completed && evaluateSetPr(cum, wNum, rNum)) {
         const name = (ex.name || 'Lift').trim() || 'Lift';
         if (!seenPr.has(name)) {
           seenPr.add(name);
           prLines.push(`🔥 New PR on ${name}`);
         }
+      }
+      if (s.completed) {
+        cum = mergeSetIntoBaseline(cum, wNum, rNum);
       }
     }
     volumeKg += ev;

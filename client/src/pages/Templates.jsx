@@ -80,31 +80,31 @@ export default function Templates() {
                   {t.items?.length || 0} exercises
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
                 <button
                   type="button"
                   onClick={() => startFromTemplate(t)}
-                  className="rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-medium text-white"
+                  className="min-h-12 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 sm:min-h-11 sm:px-5"
                 >
                   Start workout
                 </button>
                 <Link
                   to={appPath(`templates/${t._id}`)}
-                  className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-300"
+                  className="flex min-h-12 items-center justify-center rounded-xl border border-slate-600 bg-surface/50 px-4 py-3 text-center text-sm font-semibold text-slate-200 transition-colors hover:border-slate-500 hover:bg-surface-elevated/80 sm:min-h-11 sm:px-5"
                 >
                   Edit
                 </Link>
                 <button
                   type="button"
                   onClick={() => sharePlan(t._id)}
-                  className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-300"
+                  className="min-h-12 rounded-xl border border-slate-600 bg-surface/50 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors hover:border-slate-500 hover:bg-surface-elevated/80 sm:min-h-11 sm:px-5"
                 >
                   Share
                 </button>
                 <button
                   type="button"
                   onClick={() => remove(t._id)}
-                  className="rounded-lg px-3 py-1.5 text-xs text-red-400"
+                  className="min-h-12 rounded-xl border border-red-900/60 bg-red-950/20 px-4 py-3 text-sm font-semibold text-red-300 transition-colors hover:bg-red-950/35 sm:min-h-11 sm:px-5"
                 >
                   Delete
                 </button>

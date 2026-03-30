@@ -124,13 +124,47 @@ function formatDuration(sec) {
   return `${s}s`;
 }
 
+function bumpPriorLiftStats(map, eidStr, wv, rv) {
+  const vol = wv * rv;
+  let p = map.get(eidStr);
+  if (!p) {
+    p = { maxW: 0, maxVol: 0, repsByWeight: {} };
+    map.set(eidStr, p);
+  }
+  p.maxW = Math.max(p.maxW, wv);
+  p.maxVol = Math.max(p.maxVol, vol);
+  const key = String(wv);
+  p.repsByWeight[key] = Math.max(p.repsByWeight[key] || 0, rv);
+}
+
 /**
- * Session PRs: per exerciseId, max weight this session vs all prior completed sessions for same user.
+ * Session PRs per exerciseId: beats prior completed workouts on max weight, best-set volume, or reps at same weight.
  */
 export async function detectSessionPRs(workout) {
   const uid = workout.userId;
   const completedAt = workout.completedAt;
   if (!completedAt || !workout.exercises?.length) return [];
+
+  const priorWorkouts = await Workout.find({
+    userId: new mongoose.Types.ObjectId(uid),
+    completedAt: { $ne: null, $lt: new Date(completedAt) },
+  })
+    .select('exercises')
+    .lean();
+
+  const priorByEid = new Map();
+  for (const w of priorWorkouts) {
+    for (const ex of w.exercises || []) {
+      const eidStr = ex.exerciseId?.toString();
+      if (!eidStr) continue;
+      for (const s of ex.sets || []) {
+        if (!isCountingSet(s) || !s.completed) continue;
+        const wv = Number(s.weight) || 0;
+        const rv = Math.floor(Number(s.reps) || 0);
+        bumpPriorLiftStats(priorByEid, eidStr, wv, rv);
+      }
+    }
+  }
 
   const prs = [];
   const seenEid = new Set();
@@ -140,45 +174,50 @@ export async function detectSessionPRs(workout) {
     if (!eid || seenEid.has(String(eid))) continue;
     seenEid.add(String(eid));
 
-    const sessionSets = (ex.sets || []).filter(isCountingSet);
+    const sessionSets = (ex.sets || []).filter((s) => isCountingSet(s) && s.completed);
     if (!sessionSets.length) continue;
-    const sessionMax = Math.max(...sessionSets.map((s) => Number(s.weight) || 0));
-    if (sessionMax <= 0) continue;
 
-    const prior = await Workout.aggregate([
-      {
-        $match: {
-          userId: new mongoose.Types.ObjectId(uid),
-          completedAt: { $ne: null, $lt: new Date(completedAt) },
-        },
-      },
-      { $unwind: '$exercises' },
-      {
-        $match: {
-          'exercises.exerciseId': new mongoose.Types.ObjectId(eid),
-        },
-      },
-      { $unwind: '$exercises.sets' },
-      {
-        $match: {
-          $expr: {
-            $ne: [{ $ifNull: ['$exercises.sets.setType', 'normal'] }, 'warmup'],
-          },
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          maxW: { $max: { $ifNull: ['$exercises.sets.weight', 0] } },
-        },
-      },
-    ]);
-    const priorMax = prior[0]?.maxW ?? 0;
-    if (sessionMax > priorMax) {
-      const delta = Math.round(sessionMax - priorMax);
+    let sMaxW = 0;
+    let sMaxVol = 0;
+    const sRepsByW = {};
+    for (const s of sessionSets) {
+      const wv = Number(s.weight) || 0;
+      const rv = Math.floor(Number(s.reps) || 0);
+      const vol = wv * rv;
+      sMaxW = Math.max(sMaxW, wv);
+      sMaxVol = Math.max(sMaxVol, vol);
+      const key = String(wv);
+      sRepsByW[key] = Math.max(sRepsByW[key] || 0, rv);
+    }
+    if (sMaxW <= 0 && sMaxVol <= 0) continue;
+
+    const prior = priorByEid.get(String(eid)) || { maxW: 0, maxVol: 0, repsByWeight: {} };
+    let detail = null;
+
+    if (sMaxW > prior.maxW) {
+      detail =
+        prior.maxW > 0
+          ? `+${Math.round(sMaxW - prior.maxW)} kg max`
+          : 'New max weight';
+    } else if (sMaxVol > prior.maxVol) {
+      detail =
+        prior.maxVol > 0
+          ? `+${Math.round(sMaxVol - prior.maxVol)} kg best set`
+          : 'New best set volume';
+    } else {
+      for (const [k, r] of Object.entries(sRepsByW)) {
+        const prevR = prior.repsByWeight[k];
+        if (prevR != null && r > prevR) {
+          detail = `+${r - prevR} reps at ${k} kg`;
+          break;
+        }
+      }
+    }
+
+    if (detail) {
       prs.push({
         exerciseName: ex.name || 'Lift',
-        detail: priorMax > 0 ? `+${delta} kg` : 'First logged max',
+        detail,
       });
     }
   }
@@ -316,6 +355,8 @@ export async function fetchActivityFeed({
         completedAt: w.completedAt,
         exercises: exerciseSummaries(w, 5),
         totalVolume: totalVol,
+        /** Sum of (weight × reps) over counting sets, kg — same as totalVolume; explicit for clients. */
+        totalVolumeKg: totalVol,
         totalSets,
         volumeByExercise: byEx.slice(0, 8),
       },

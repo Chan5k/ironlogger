@@ -1,4 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  clearWorkoutDraft,
+  loadWorkoutDraft,
+  saveWorkoutDraft,
+  workoutDraftKey,
+} from '../utils/workoutDraftStorage.js';
+import {
+  evaluateSetPr,
+  mergeSetIntoBaseline,
+  mergeTwoBaselines,
+  sessionBaselineMapFromExercises,
+} from '../utils/prBaseline.js';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import api from '../api/client.js';
@@ -67,6 +79,7 @@ export default function WorkoutEdit() {
   const [library, setLibrary] = useState([]);
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
+  const [serverCompleted, setServerCompleted] = useState(false);
   const [pickerFor, setPickerFor] = useState(null);
   const [exercisePickerQuery, setExercisePickerQuery] = useState('');
   const exercisePickerInputRef = useRef(null);
@@ -97,6 +110,8 @@ export default function WorkoutEdit() {
   const [prCelebration, setPrCelebration] = useState(null);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [setPulse, setSetPulse] = useState(null);
+  /** Per-exercise (_local) rolling baseline for sets completed in this session (server baselines exclude current workout). */
+  const [sessionBaselineByLocal, setSessionBaselineByLocal] = useState({});
 
   const dismissPrCelebration = useCallback(() => setPrCelebration(null), []);
 
@@ -166,12 +181,55 @@ export default function WorkoutEdit() {
   }, [pickerFor]);
 
   useEffect(() => {
+    setSessionBaselineByLocal({});
+  }, [id, isNew]);
+
+  useEffect(() => {
     if (isNew) {
+      const key = workoutDraftKey(id, true);
+      const draft = loadWorkoutDraft(key);
+      const fromDraft =
+        draft &&
+        Array.isArray(draft.exercises) &&
+        draft.exercises.length > 0 &&
+        typeof draft.title === 'string';
+      if (fromDraft) {
+        setServerCompleted(false);
+        setTitle(draft.title);
+        setNotes(typeof draft.notes === 'string' ? draft.notes : '');
+        setSessionStartedLocal(
+          typeof draft.sessionStartedLocal === 'string' && draft.sessionStartedLocal
+            ? draft.sessionStartedLocal
+            : toDatetimeLocalValue(new Date())
+        );
+        setSessionEndedLocal(typeof draft.sessionEndedLocal === 'string' ? draft.sessionEndedLocal : '');
+        setDurHours(Number.isFinite(draft.durHours) ? draft.durHours : 0);
+        setDurMins(Number.isFinite(draft.durMins) ? draft.durMins : 0);
+        const restored = draft.exercises.map((e) => ({
+          ...e,
+          _local: e._local || crypto.randomUUID(),
+          exerciseId: e.exerciseId || null,
+          name: e.name || 'Exercise',
+          category: e.category || 'other',
+          sets: (e.sets || []).map((s) => ({
+            reps: s.reps ?? 0,
+            weight: s.weight ?? 0,
+            completed: !!s.completed,
+            setType: normalizeSetType(s.setType),
+            _id: s._id,
+          })),
+        }));
+        setSessionBaselineByLocal(sessionBaselineMapFromExercises(restored));
+        setExercises(restored);
+        setLoading(false);
+        return;
+      }
+      setServerCompleted(false);
       setSessionStartedLocal(toDatetimeLocalValue(new Date()));
       setSessionEndedLocal('');
       setDurHours(0);
       setDurMins(0);
-      setExercises([
+      const initial = [
         {
           _local: crypto.randomUUID(),
           exerciseId: null,
@@ -179,7 +237,10 @@ export default function WorkoutEdit() {
           category: 'other',
           sets: [emptySet('normal'), emptySet('normal'), emptySet('normal')],
         },
-      ]);
+      ];
+      setSessionBaselineByLocal(sessionBaselineMapFromExercises(initial));
+      setExercises(initial);
+      setLoading(false);
       return;
     }
     let alive = true;
@@ -188,26 +249,76 @@ export default function WorkoutEdit() {
         const { data } = await api.get(`/workouts/${id}`);
         if (!alive) return;
         const w = data.workout;
-        setTitle(w.title);
-        setNotes(w.notes || '');
-        setSessionStartedLocal(toDatetimeLocalValue(w.startedAt));
+        const completed = !!w.completedAt;
+        setServerCompleted(completed);
+        const key = workoutDraftKey(id, false);
+        if (completed) {
+          clearWorkoutDraft(key);
+        }
+        const draft = !completed ? loadWorkoutDraft(key) : null;
+        const useDraft =
+          draft &&
+          Array.isArray(draft.exercises) &&
+          draft.exercises.length > 0 &&
+          typeof draft.title === 'string';
+
+        setTitle(useDraft ? draft.title : w.title);
+        setNotes(useDraft && typeof draft.notes === 'string' ? draft.notes : w.notes || '');
+        setSessionStartedLocal(
+          useDraft && typeof draft.sessionStartedLocal === 'string' && draft.sessionStartedLocal
+            ? draft.sessionStartedLocal
+            : toDatetimeLocalValue(w.startedAt)
+        );
         const endL = w.completedAt ? toDatetimeLocalValue(w.completedAt) : '';
-        setSessionEndedLocal(endL);
-        if (endL) {
-          const total = diffMinutesFromLocal(toDatetimeLocalValue(w.startedAt), endL);
+        const draftEnd =
+          useDraft && typeof draft.sessionEndedLocal === 'string' ? draft.sessionEndedLocal : '';
+        setSessionEndedLocal(useDraft && !w.completedAt ? draftEnd : endL);
+        const effectiveEnd = useDraft && !w.completedAt ? draftEnd : endL;
+        if (effectiveEnd) {
+          const startForDur = useDraft && !w.completedAt
+            ? typeof draft.sessionStartedLocal === 'string' && draft.sessionStartedLocal
+              ? draft.sessionStartedLocal
+              : toDatetimeLocalValue(w.startedAt)
+            : toDatetimeLocalValue(w.startedAt);
+          const total = diffMinutesFromLocal(startForDur, effectiveEnd);
           if (total != null) {
             setDurHours(Math.floor(total / 60));
             setDurMins(total % 60);
+          } else if (useDraft && Number.isFinite(draft.durHours) && Number.isFinite(draft.durMins)) {
+            setDurHours(draft.durHours);
+            setDurMins(draft.durMins);
           } else {
             setDurHours(0);
             setDurMins(0);
           }
         } else {
-          setDurHours(0);
-          setDurMins(0);
+          if (useDraft && Number.isFinite(draft.durHours) && Number.isFinite(draft.durMins)) {
+            setDurHours(draft.durHours);
+            setDurMins(draft.durMins);
+          } else {
+            setDurHours(0);
+            setDurMins(0);
+          }
         }
-        setExercises(
-          (w.exercises || []).map((e) => ({
+        if (useDraft) {
+          const restored = draft.exercises.map((e) => ({
+            ...e,
+            _local: e._local || crypto.randomUUID(),
+            exerciseId: e.exerciseId || null,
+            name: e.name || 'Exercise',
+            category: e.category || 'other',
+            sets: (e.sets || []).map((s) => ({
+              reps: s.reps ?? 0,
+              weight: s.weight ?? 0,
+              completed: !!s.completed,
+              setType: normalizeSetType(s.setType),
+              _id: s._id,
+            })),
+          }));
+          setSessionBaselineByLocal(sessionBaselineMapFromExercises(restored));
+          setExercises(restored);
+        } else {
+          const fromServer = (w.exercises || []).map((e) => ({
             ...e,
             _local: e._id || crypto.randomUUID(),
             exerciseId: e.exerciseId || null,
@@ -218,8 +329,10 @@ export default function WorkoutEdit() {
               setType: normalizeSetType(s.setType),
               _id: s._id,
             })),
-          }))
-        );
+          }));
+          setSessionBaselineByLocal(sessionBaselineMapFromExercises(fromServer));
+          setExercises(fromServer);
+        }
       } catch {
         navigate(appPath('workouts'), { replace: true });
       } finally {
@@ -230,6 +343,35 @@ export default function WorkoutEdit() {
       alive = false;
     };
   }, [id, isNew, navigate]);
+
+  useEffect(() => {
+    if (loading || serverCompleted) return;
+    const key = workoutDraftKey(id, isNew);
+    const t = window.setTimeout(() => {
+      saveWorkoutDraft(key, {
+        title,
+        notes,
+        sessionStartedLocal,
+        sessionEndedLocal,
+        durHours,
+        durMins,
+        exercises,
+      });
+    }, 400);
+    return () => clearTimeout(t);
+  }, [
+    loading,
+    serverCompleted,
+    isNew,
+    id,
+    title,
+    notes,
+    sessionStartedLocal,
+    sessionEndedLocal,
+    durHours,
+    durMins,
+    exercises,
+  ]);
 
   const weightUnit = useWeightUnit();
 
@@ -407,17 +549,29 @@ export default function WorkoutEdit() {
       if (!ex || !s) return;
       const st = normalizeSetType(s.setType);
       if (checked) {
-        const prevMax = prBaselines[exIdx]?.maxWeight ?? 0;
-        const wNum = Number(s.weight) || 0;
-        if (st !== 'warmup' && wNum > prevMax) {
-          window.setTimeout(() => playPrFanfare(), 200);
-          setPrCelebration({
-            ts: Date.now(),
-            exerciseName: ex.name?.trim() || 'Lift',
-            exerciseCategory: ex.category || 'other',
-            weight: wNum,
-            weightUnit,
-          });
+        if (st !== 'warmup') {
+          const wNum = Number(s.weight) || 0;
+          const rNum = Math.floor(Number(s.reps) || 0);
+          const serverB = prBaselines[exIdx];
+          const sessionB = sessionBaselineByLocal[ex._local];
+          const effective = mergeTwoBaselines(serverB, sessionB);
+          const pr = evaluateSetPr(effective, wNum, rNum);
+          if (pr) {
+            window.setTimeout(() => playPrFanfare(), 200);
+            setPrCelebration({
+              ts: Date.now(),
+              exerciseName: ex.name?.trim() || 'Lift',
+              exerciseCategory: ex.category || 'other',
+              weight: wNum,
+              reps: rNum,
+              weightUnit,
+              headline: pr.headline,
+            });
+          }
+          setSessionBaselineByLocal((prev) => ({
+            ...prev,
+            [ex._local]: mergeSetIntoBaseline(prev[ex._local], wNum, rNum),
+          }));
         }
         beginRestAfterSet();
       }
@@ -425,7 +579,7 @@ export default function WorkoutEdit() {
       setSetPulse({ exIdx, si: setIdx });
       window.setTimeout(() => setSetPulse(null), 450);
     },
-    [exercises, prBaselines, weightUnit, sessionInProgress]
+    [exercises, prBaselines, sessionBaselineByLocal, weightUnit, sessionInProgress]
   );
 
   function applyRestPreset(sec) {
@@ -491,6 +645,7 @@ export default function WorkoutEdit() {
         };
         try {
           const { data } = await api.post('/workouts', body);
+          clearWorkoutDraft(workoutDraftKey('new', true));
           navigate(appPath(`workouts/${data.workout._id}`), { replace: true });
         } catch (e) {
           if (isOfflineQueueableError(e) && enqueueOfflineRequest({ method: 'POST', url: '/workouts', data: body })) {
@@ -511,6 +666,7 @@ export default function WorkoutEdit() {
         };
         try {
           await api.put(`/workouts/${id}`, body);
+          clearWorkoutDraft(workoutDraftKey(id, false));
         } catch (e) {
           if (isOfflineQueueableError(e) && enqueueOfflineRequest({ method: 'PUT', url: `/workouts/${id}`, data: body })) {
             await appAlert('Offline: changes queued. They will sync automatically when you are online, or tap Sync in the header.');
@@ -530,8 +686,10 @@ export default function WorkoutEdit() {
       const payload = { completedAt: done ? new Date().toISOString() : null };
       try {
         await api.put(`/workouts/${id}`, payload);
+        if (done) clearWorkoutDraft(workoutDraftKey(id, false));
         const { data } = await api.get(`/workouts/${id}`);
         const w = data.workout;
+        setServerCompleted(!!w.completedAt);
         const startL = toDatetimeLocalValue(w.startedAt);
         const endL = w.completedAt ? toDatetimeLocalValue(w.completedAt) : '';
         setSessionStartedLocal(startL);
@@ -549,6 +707,8 @@ export default function WorkoutEdit() {
       } catch (e) {
         if (isOfflineQueueableError(e) && enqueueOfflineRequest({ method: 'PUT', url: `/workouts/${id}`, data: payload })) {
           if (done) {
+            clearWorkoutDraft(workoutDraftKey(id, false));
+            setServerCompleted(true);
             const endL = toDatetimeLocalValue(new Date());
             setSessionEndedLocal(endL);
             const startL = sessionStartedLocal;
@@ -558,6 +718,7 @@ export default function WorkoutEdit() {
               setDurMins(total % 60);
             }
           } else {
+            setServerCompleted(false);
             setSessionEndedLocal('');
             setDurHours(0);
             setDurMins(0);
@@ -591,6 +752,7 @@ export default function WorkoutEdit() {
     if (!(await appConfirm('Delete this workout permanently?'))) return;
     try {
       await api.delete(`/workouts/${id}`);
+      clearWorkoutDraft(workoutDraftKey(id, false));
       navigate(appPath('workouts'));
     } catch (e) {
       if (isOfflineQueueableError(e) && enqueueOfflineRequest({ method: 'DELETE', url: `/workouts/${id}`, data: null })) {
@@ -618,7 +780,10 @@ export default function WorkoutEdit() {
   return (
     <div className={`min-w-0 space-y-6 ${restRunning ? 'pb-32' : 'pb-8'}`}>
       <div className="flex flex-wrap items-center gap-2">
-        <Link to={appPath('workouts')} className="text-sm text-slate-500 hover:text-white">
+        <Link
+          to={appPath('workouts')}
+          className="-ml-2 inline-flex min-h-11 min-w-11 items-center gap-1 rounded-xl px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-white active:bg-slate-800"
+        >
           ← Back
         </Link>
       </div>
@@ -1096,7 +1261,9 @@ export default function WorkoutEdit() {
         exerciseName={prCelebration?.exerciseName}
         exerciseCategory={prCelebration?.exerciseCategory}
         weight={prCelebration?.weight}
+        reps={prCelebration?.reps}
         weightUnit={prCelebration?.weightUnit}
+        headline={prCelebration?.headline}
         onDismiss={dismissPrCelebration}
       />
 

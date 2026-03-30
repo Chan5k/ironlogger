@@ -140,7 +140,10 @@ export default function PublicProfile() {
   return (
     <div className="min-h-screen bg-surface px-4 py-10 text-white">
       <div className="mx-auto max-w-md space-y-6">
-        <Link to="/" className="text-sm text-slate-400 hover:text-white">
+        <Link
+          to="/"
+          className="-ml-2 inline-flex min-h-11 min-w-11 items-center rounded-xl px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-white"
+        >
           ← IronLog home
         </Link>
 

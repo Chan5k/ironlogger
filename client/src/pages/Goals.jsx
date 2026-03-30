@@ -146,7 +146,10 @@ export default function Goals() {
             Strength, weekly frequency, and rolling 7-day volume — progress updates from your logs.
           </p>
         </div>
-        <Link to={appPath()} className="text-sm text-slate-500 hover:text-white">
+        <Link
+          to={appPath()}
+          className="-ml-2 inline-flex min-h-11 min-w-11 items-center gap-1 rounded-xl px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-white active:bg-slate-800"
+        >
           ← Home
         </Link>
       </div>

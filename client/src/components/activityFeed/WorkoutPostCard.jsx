@@ -76,7 +76,7 @@ export default function WorkoutPostCard({ post, style }) {
           <span>
             <span className="text-slate-600">Volume </span>
             <span className="font-mono tabular-nums text-slate-300">
-              {workout.totalVolume.toLocaleString()} kg×reps
+              {(workout.totalVolumeKg ?? workout.totalVolume).toLocaleString()} kg
             </span>
           </span>
           <span>

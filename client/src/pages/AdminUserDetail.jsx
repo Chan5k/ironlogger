@@ -233,7 +233,10 @@ export default function AdminUserDetail() {
     return (
       <div className="space-y-4">
         <p className="text-red-400">{err || 'User not found'}</p>
-        <Link to={appPath('admin/users')} className="text-accent-muted hover:underline">
+        <Link
+          to={appPath('admin/users')}
+          className="-ml-2 inline-flex min-h-11 min-w-11 items-center rounded-xl px-3 py-2 text-accent-muted transition-colors hover:bg-slate-800/60 hover:underline"
+        >
           ← Back to users
         </Link>
       </div>
@@ -247,7 +250,10 @@ export default function AdminUserDetail() {
   return (
     <div className="space-y-6">
       <div>
-        <Link to={appPath('admin/users')} className="text-sm text-accent-muted hover:underline">
+        <Link
+          to={appPath('admin/users')}
+          className="-ml-2 inline-flex min-h-11 min-w-11 items-center rounded-xl px-3 py-2 text-sm text-accent-muted transition-colors hover:bg-slate-800/60 hover:underline"
+        >
           ← All users
         </Link>
         <h1 className="mt-2 text-xl font-bold text-white">{user.name || '—'}</h1>
