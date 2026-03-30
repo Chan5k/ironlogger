@@ -42,7 +42,9 @@ const SPARKS = [
 const DISMISS_MS = 5200;
 
 /**
- * Centered full-viewport celebration when user hits a PR (portal — avoids scroll offset from nested layout).
+ * Viewport-centered celebration portal when user hits a PR.
+ * Uses position:fixed + inset-0 on the overlay AND margin:auto on the card
+ * so it's always dead-center regardless of scroll position.
  */
 export default function PrCelebrationOverlay({
   open,
@@ -56,17 +58,20 @@ export default function PrCelebrationOverlay({
 }) {
   useEffect(() => {
     if (!open) return undefined;
-    const id = window.setTimeout(() => {
-      onDismiss();
-    }, DISMISS_MS);
-    return () => window.clearTimeout(id);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const id = window.setTimeout(() => onDismiss(), DISMISS_MS);
+    return () => {
+      document.body.style.overflow = prev;
+      window.clearTimeout(id);
+    };
   }, [open, onDismiss]);
 
   if (!open) return null;
 
   const node = (
     <div
-      className="fixed inset-0 z-[500] flex items-center justify-center overflow-y-auto overflow-x-hidden p-4 sm:p-6"
+      className="fixed inset-0 z-[500] flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="pr-celebration-title"
@@ -76,21 +81,21 @@ export default function PrCelebrationOverlay({
       }}
     >
       <div
-        className="animate-pr-backdrop pointer-events-none fixed inset-0 bg-black/70 backdrop-blur-md"
+        className="animate-pr-backdrop pointer-events-none fixed inset-0 bg-surface/85 backdrop-blur-lg"
         aria-hidden
       />
 
-      <div className="relative z-10 my-auto flex w-full max-w-sm flex-col items-center">
+      <div className="relative z-10 flex w-full max-w-sm flex-col items-center">
         {SPARKS.map((p, i) => (
           <span
             key={i}
-            className="pointer-events-none absolute h-3 w-3 animate-pr-spark rounded-full bg-accent-muted/90 shadow-[0_0_14px_rgba(59,130,246,0.85)]"
+            className="pointer-events-none absolute h-3 w-3 animate-pr-spark rounded-full bg-accent-muted shadow-[0_0_14px_rgba(37,99,235,0.7)]"
             style={{ left: p.left, top: p.top, animationDelay: p.delay }}
           />
         ))}
 
         <div
-          className="animate-pr-card-in w-full cursor-default rounded-3xl border border-blue-500/35 bg-gradient-to-br from-surface-card via-[#1a2332] to-surface p-8 text-center shadow-[0_0_36px_rgba(37,99,235,0.18),0_25px_50px_-12px_rgba(0,0,0,0.55)] ring-1 ring-blue-500/25 [animation-delay:140ms]"
+          className="animate-pr-card-in w-full cursor-default rounded-3xl border border-slate-700/80 bg-surface-card p-8 text-center shadow-[0_0_60px_rgba(37,99,235,0.12),0_25px_50px_-12px_rgba(0,0,0,0.5)] ring-1 ring-slate-600/40 [animation-delay:140ms]"
           onClick={(e) => e.stopPropagation()}
         >
           <p className="animate-pr-reveal-line mb-1 text-xs font-semibold uppercase tracking-[0.25em] text-accent-muted [animation-delay:420ms]">
@@ -103,7 +108,7 @@ export default function PrCelebrationOverlay({
             New PR!
           </h2>
           <div className="animate-pr-reveal-line mb-1 flex flex-col items-center gap-3 [animation-delay:700ms]">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/15 ring-1 ring-accent/35">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/15 ring-1 ring-accent/30">
               <ExerciseIcon
                 name={exerciseName || 'Lift'}
                 category={exerciseCategory}
@@ -114,11 +119,11 @@ export default function PrCelebrationOverlay({
             <p className="text-lg font-semibold text-white">{exerciseName || 'Lift'}</p>
           </div>
           {headline ? (
-            <p className="animate-pr-reveal-line mx-auto max-w-[280px] text-sm font-medium leading-snug text-slate-200 [animation-delay:760ms]">
+            <p className="animate-pr-reveal-line mx-auto max-w-[280px] text-sm font-medium leading-snug text-slate-300 [animation-delay:760ms]">
               {headline}
             </p>
           ) : null}
-          <p className="animate-pr-reveal-line mt-3 font-mono text-xl font-bold tabular-nums text-accent-muted [animation-delay:820ms]">
+          <p className="animate-pr-reveal-line mt-3 font-mono text-xl font-bold tabular-nums text-white [animation-delay:820ms]">
             {weight} {weightUnit}
             {typeof reps === 'number' && reps > 0 ? (
               <span className="text-slate-400"> · {reps} reps</span>

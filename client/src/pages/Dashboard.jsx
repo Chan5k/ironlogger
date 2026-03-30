@@ -24,6 +24,7 @@ import {
   Weight,
 } from 'lucide-react';
 import api from '../api/client.js';
+import NewWorkoutLink from '../components/NewWorkoutLink.jsx';
 import { appPath } from '../constants/routes.js';
 import { useWeightUnit } from '../hooks/useWeightUnit.js';
 import { LBS_PER_KG } from '../utils/weightUnits.js';
@@ -432,12 +433,9 @@ export default function Dashboard() {
                   Ideas: {intel.suggestion.exercises.join(' · ')}
                 </p>
               ) : null}
-              <Link
-                to={appPath('workouts/new')}
-                className="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-blue-600/90 px-4 text-sm font-semibold text-white transition-colors duration-motion ease-motion-standard hover:bg-blue-500"
-              >
+              <NewWorkoutLink className="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-blue-600/90 px-4 text-sm font-semibold text-white transition-colors duration-motion ease-motion-standard hover:bg-blue-500">
                 Start workout
-              </Link>
+              </NewWorkoutLink>
             </section>
           ) : null}
         </div>
@@ -607,12 +605,9 @@ export default function Dashboard() {
             </p>
           )}
           <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-2">
-            <Link
-              to={appPath('workouts/new')}
-              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-950/30 transition-colors duration-motion ease-motion-standard hover:bg-blue-500 sm:min-h-11 sm:w-auto sm:min-w-[9rem] sm:py-0"
-            >
+            <NewWorkoutLink className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-950/30 transition-colors duration-motion ease-motion-standard hover:bg-blue-500 sm:min-h-11 sm:w-auto sm:min-w-[9rem] sm:py-0">
               New workout
-            </Link>
+            </NewWorkoutLink>
             <Link
               to={appPath('templates')}
               className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-lg border border-slate-600/70 bg-transparent px-4 py-3 text-sm font-medium text-slate-300 transition-colors duration-motion ease-motion-standard hover:border-slate-500 hover:bg-slate-800/40 sm:min-h-11 sm:w-auto sm:py-0"

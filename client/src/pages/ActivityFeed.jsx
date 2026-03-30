@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/client.js';
+import NewWorkoutLink from '../components/NewWorkoutLink.jsx';
 import { appPath } from '../constants/routes.js';
 import FeedTabs from '../components/activityFeed/FeedTabs.jsx';
 import WorkoutPostCard from '../components/activityFeed/WorkoutPostCard.jsx';
@@ -125,12 +126,9 @@ export default function ActivityFeedPage() {
             <option value="latest">Latest</option>
             <option value="top">Top</option>
           </select>
-          <Link
-            to={appPath('workouts/new')}
-            className="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white shadow-lg shadow-blue-950/25 transition-colors duration-motion ease-motion-standard hover:bg-blue-500"
-          >
+          <NewWorkoutLink className="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white shadow-lg shadow-blue-950/25 transition-colors duration-motion ease-motion-standard hover:bg-blue-500">
             Start a workout
-          </Link>
+          </NewWorkoutLink>
         </div>
       </div>
 

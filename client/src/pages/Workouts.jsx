@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Share2, Trash2 } from 'lucide-react';
 import api from '../api/client.js';
+import NewWorkoutLink from '../components/NewWorkoutLink.jsx';
 import { appPath } from '../constants/routes.js';
 import { sharePageUrl } from '../utils/shareLink.js';
 import { offerShareLink } from '../utils/offerShareLink.js';
@@ -62,12 +63,9 @@ export default function Workouts() {
           <h1 className="text-xl font-bold text-white">Workouts</h1>
           <p className="text-sm text-slate-400">{total} total</p>
         </div>
-        <Link
-          to={appPath('workouts/new')}
-          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white touch-manipulation transition-opacity duration-motion ease-motion-standard hover:opacity-90 sm:min-h-0 sm:py-2"
-        >
+        <NewWorkoutLink className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white touch-manipulation transition-opacity duration-motion ease-motion-standard hover:opacity-90 sm:min-h-0 sm:py-2">
           + New
-        </Link>
+        </NewWorkoutLink>
       </div>
 
       {loading ? (

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   clearWorkoutDraft,
   loadWorkoutDraft,
+  newUnsavedWorkoutDraftKey,
+  resetNewWorkoutDraftSession,
   saveWorkoutDraft,
   workoutDraftKey,
 } from '../utils/workoutDraftStorage.js';
@@ -110,6 +112,7 @@ export default function WorkoutEdit() {
   const [prCelebration, setPrCelebration] = useState(null);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [setPulse, setSetPulse] = useState(null);
+  const [newSetKey, setNewSetKey] = useState(null);
   /** Per-exercise (_local) rolling baseline for sets completed in this session (server baselines exclude current workout). */
   const [sessionBaselineByLocal, setSessionBaselineByLocal] = useState({});
 
@@ -186,7 +189,7 @@ export default function WorkoutEdit() {
 
   useEffect(() => {
     if (isNew) {
-      const key = workoutDraftKey(id, true);
+      const key = newUnsavedWorkoutDraftKey();
       const draft = loadWorkoutDraft(key);
       const fromDraft =
         draft &&
@@ -346,7 +349,7 @@ export default function WorkoutEdit() {
 
   useEffect(() => {
     if (loading || serverCompleted) return;
-    const key = workoutDraftKey(id, isNew);
+    const key = isNew ? newUnsavedWorkoutDraftKey() : workoutDraftKey(id, false);
     const t = window.setTimeout(() => {
       saveWorkoutDraft(key, {
         title,
@@ -408,7 +411,7 @@ export default function WorkoutEdit() {
       workoutKind: shareKind,
       durationLabel,
       displayVolume: shareStats.displayVolume,
-      volumeUnitLabel: `${weightUnit}×reps`,
+      volumeUnitLabel: 'kg',
       setCount: shareStats.setCount,
       prLines: shareStats.prLines,
       topExercises: shareStats.topExercises,
@@ -516,10 +519,13 @@ export default function WorkoutEdit() {
   function addSet(exIdx) {
     setExercises((prev) => {
       const next = [...prev];
+      const newIdx = next[exIdx].sets.length;
       next[exIdx] = {
         ...next[exIdx],
         sets: [...next[exIdx].sets, emptySet('normal')],
       };
+      setNewSetKey(`${next[exIdx]._local}-${newIdx}`);
+      window.setTimeout(() => setNewSetKey(null), 300);
       return next;
     });
   }
@@ -527,10 +533,13 @@ export default function WorkoutEdit() {
   function addWarmupSet(exIdx) {
     setExercises((prev) => {
       const next = [...prev];
+      const newIdx = next[exIdx].sets.length;
       next[exIdx] = {
         ...next[exIdx],
         sets: [...next[exIdx].sets, emptySet('warmup')],
       };
+      setNewSetKey(`${next[exIdx]._local}-${newIdx}`);
+      window.setTimeout(() => setNewSetKey(null), 300);
       return next;
     });
   }
@@ -645,7 +654,8 @@ export default function WorkoutEdit() {
         };
         try {
           const { data } = await api.post('/workouts', body);
-          clearWorkoutDraft(workoutDraftKey('new', true));
+          clearWorkoutDraft(newUnsavedWorkoutDraftKey());
+          resetNewWorkoutDraftSession();
           navigate(appPath(`workouts/${data.workout._id}`), { replace: true });
         } catch (e) {
           if (isOfflineQueueableError(e) && enqueueOfflineRequest({ method: 'POST', url: '/workouts', data: body })) {
@@ -976,7 +986,7 @@ export default function WorkoutEdit() {
             <div className="rounded-xl border border-slate-800 bg-surface/80 px-3 py-3">
               <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500">Volume</p>
               <p className="mt-1 font-mono text-sm text-white">
-                {shareStats.displayVolume.toLocaleString()} {weightUnit}×reps
+                {shareStats.displayVolume.toLocaleString()} kg
               </p>
             </div>
             <div className="rounded-xl border border-slate-800 bg-surface/80 px-3 py-3">
@@ -1025,14 +1035,14 @@ export default function WorkoutEdit() {
               <button
                 type="button"
                 onClick={() => setPickerFor(exIdx)}
-                className="rounded-lg border border-slate-600 px-3 py-2 text-xs text-slate-300"
+                className="min-h-11 rounded-xl border border-slate-600 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:border-slate-500 hover:bg-surface-elevated/60 active:bg-surface-elevated"
               >
                 From library
               </button>
               <button
                 type="button"
                 onClick={() => removeExercise(exIdx)}
-                className="text-xs text-red-400"
+                className="min-h-11 rounded-xl border border-red-900/50 bg-red-950/15 px-4 py-2.5 text-sm font-medium text-red-300 transition-colors hover:bg-red-950/30 active:bg-red-950/40"
               >
                 Remove
               </button>
@@ -1053,8 +1063,12 @@ export default function WorkoutEdit() {
                 const base = prBaselines[exIdx];
                 const prevMax = base?.maxWeight ?? 0;
                 const wNum = Number(s.weight) || 0;
-                const isWeightPr =
-                  st !== 'warmup' && !!s.completed && wNum > prevMax;
+                const rNum = Math.floor(Number(s.reps) || 0);
+                const sessionB = sessionBaselineByLocal[ex._local];
+                const effectiveB = mergeTwoBaselines(base, sessionB);
+                const prResult = st !== 'warmup' && !!s.completed
+                  ? evaluateSetPr(effectiveB, wNum, rNum)
+                  : null;
                 const pulsing =
                   setPulse && setPulse.exIdx === exIdx && setPulse.si === si;
                 const rowBg =
@@ -1073,7 +1087,9 @@ export default function WorkoutEdit() {
                       s.completed
                         ? 'border-emerald-500/25'
                         : 'border-slate-800/80 hover:border-slate-700'
-                    } ${pulsing ? 'ring-2 ring-blue-500/45' : ''}`}
+                    } ${pulsing ? 'ring-2 ring-blue-500/45' : ''} ${
+                      newSetKey === `${ex._local}-${si}` ? 'animate-set-slide-in' : ''
+                    }`}
                     onClick={(e) => {
                       if (e.target.closest('input, select, button, textarea, [data-no-row-toggle]')) return;
                       toggleSetComplete(exIdx, si, !s.completed);
@@ -1131,8 +1147,8 @@ export default function WorkoutEdit() {
                       className="flex h-11 min-w-[2.5rem] flex-1 items-center justify-center sm:w-14 sm:flex-none"
                       role="cell"
                     >
-                      {isWeightPr ? (
-                        <span className="inline-flex items-center rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+                      {prResult ? (
+                        <span className="inline-flex items-center rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-muted">
                           PR
                         </span>
                       ) : st !== 'warmup' && s.completed && prevMax > 0 ? (
@@ -1181,18 +1197,18 @@ export default function WorkoutEdit() {
                 );
               })}
             </div>
-            <div className="mt-2 flex flex-wrap gap-3">
+            <div className="mt-3 grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => addSet(exIdx)}
-                className="text-xs text-accent-muted"
+                className="min-h-11 rounded-xl border border-accent/40 bg-accent/10 px-4 py-2.5 text-sm font-medium text-accent-muted transition-colors hover:bg-accent/20 active:bg-accent/25"
               >
                 + Add set
               </button>
               <button
                 type="button"
                 onClick={() => addWarmupSet(exIdx)}
-                className="text-xs text-slate-500 hover:text-slate-300"
+                className="min-h-11 rounded-xl border border-slate-700 bg-slate-800/40 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/70 active:bg-slate-800"
               >
                 + Warm-up set
               </button>
