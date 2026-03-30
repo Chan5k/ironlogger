@@ -149,7 +149,7 @@ export default function WorkoutEdit() {
     const ro = new ResizeObserver(report);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [restRunning, discardConfirmOpen]);
+  }, [restRunning]);
 
   useEffect(() => {
     const targets = exercises.map((e) => ({
@@ -207,13 +207,14 @@ export default function WorkoutEdit() {
   }, [pickerFor]);
 
   useEffect(() => {
-    if (pickerFor === null) return undefined;
+    const locked = pickerFor !== null || discardConfirmOpen;
+    if (!locked) return undefined;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = prev;
     };
-  }, [pickerFor]);
+  }, [pickerFor, discardConfirmOpen]);
 
   useEffect(() => {
     setSessionBaselineByLocal({});
@@ -849,11 +850,7 @@ export default function WorkoutEdit() {
             type="button"
             onClick={() => setDiscardConfirmOpen(true)}
             disabled={saving}
-            className={`rounded-xl border px-6 py-3 text-sm font-medium transition-colors disabled:opacity-50 ${
-              discardConfirmOpen
-                ? 'border-red-500/70 bg-red-950/40 text-red-200'
-                : 'border-red-900/80 text-red-400 hover:border-red-700 hover:bg-red-950/25'
-            }`}
+            className="rounded-xl border border-red-900/80 px-6 py-3 text-sm font-medium text-red-400 transition-colors hover:border-red-700 hover:bg-red-950/25 disabled:opacity-50"
           >
             Discard
           </button>
@@ -894,40 +891,6 @@ export default function WorkoutEdit() {
           </>
         ) : null}
       </div>
-      {discardConfirmOpen ? (
-        <div
-          className="motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none mt-3 origin-top animate-ui-modal-in rounded-xl border border-red-900/60 bg-red-950/40 p-4 shadow-lg ring-1 ring-red-500/15"
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="workout-discard-title"
-          aria-describedby="workout-discard-desc"
-        >
-          <p id="workout-discard-title" className="text-sm font-semibold text-red-100">
-            Discard this workout?
-          </p>
-          <p id="workout-discard-desc" className="mt-1 text-sm text-red-200/85">
-            {isNew
-              ? 'Your draft will be removed. This cannot be undone.'
-              : 'Unsaved changes will be lost. The saved workout on the server stays as it was until you save again.'}
-          </p>
-          <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
-            <button
-              type="button"
-              onClick={() => setDiscardConfirmOpen(false)}
-              className="rounded-xl border border-slate-600 px-4 py-2.5 text-sm text-slate-200 transition-colors hover:bg-slate-800/80"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={performDiscard}
-              className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-500"
-            >
-              Yes, discard
-            </button>
-          </div>
-        </div>
-      ) : null}
     </>
   );
 
@@ -1422,6 +1385,56 @@ export default function WorkoutEdit() {
         onClose={() => setShareModalOpen(false)}
         cardOptions={shareCardOptions}
       />
+
+      {discardConfirmOpen
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[310] flex min-h-[100dvh] items-center justify-center overflow-y-auto overflow-x-hidden p-4"
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="workout-discard-title"
+              aria-describedby="workout-discard-desc"
+            >
+              <button
+                type="button"
+                tabIndex={-1}
+                aria-label="Close discard dialog"
+                className="animate-ui-backdrop-in fixed inset-0 bg-black/65 backdrop-blur-[2px] motion-reduce:animate-none motion-reduce:opacity-100"
+                onClick={() => setDiscardConfirmOpen(false)}
+              />
+              <div
+                className="animate-ui-modal-in relative z-10 my-auto w-full max-w-sm rounded-2xl border border-red-900/55 bg-red-950/45 p-5 shadow-2xl shadow-black/50 ring-1 ring-red-500/20 backdrop-blur-sm motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <p id="workout-discard-title" className="text-base font-semibold text-red-100">
+                  Discard this workout?
+                </p>
+                <p id="workout-discard-desc" className="mt-2 text-sm leading-relaxed text-red-200/90">
+                  {isNew
+                    ? 'Your draft will be removed. This cannot be undone.'
+                    : 'Unsaved changes will be lost. The saved workout on the server stays as it was until you save again.'}
+                </p>
+                <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setDiscardConfirmOpen(false)}
+                    className="rounded-xl border border-slate-600 bg-surface-card/80 px-4 py-2.5 text-sm text-slate-200 transition-colors hover:bg-slate-800/90"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={performDiscard}
+                    className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-500"
+                  >
+                    Yes, discard
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
 
       {pickerFor !== null
         ? createPortal(
