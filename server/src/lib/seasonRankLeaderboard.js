@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import {
   currentSeasonIdUTC,
+  getRankLadderSteps,
   rankFromSeasonPoints,
   seasonBoundsUTC,
   seasonDisplayLabel,
@@ -57,6 +58,13 @@ export async function buildSeasonRankLeaderboard({ scope, page, limit, viewerId 
     };
   });
 
+  const viewerUser = await User.findById(viewerId).select('ladderSeasonId ladderSeasonPoints').lean();
+  let viewerSeasonPoints = 0;
+  if (viewerUser && viewerUser.ladderSeasonId === seasonId) {
+    viewerSeasonPoints = Math.max(0, Number(viewerUser.ladderSeasonPoints) || 0);
+  }
+  const vr = rankFromSeasonPoints(viewerSeasonPoints);
+
   return {
     entries,
     totalUsers: result.totalUsers,
@@ -68,5 +76,15 @@ export async function buildSeasonRankLeaderboard({ scope, page, limit, viewerId 
     seasonStartsAt: bounds?.start?.toISOString() ?? null,
     seasonEndsAt: bounds?.end?.toISOString() ?? null,
     metricNote: 'Ranked by seasonal ladder points (UTC month). +15 per workout, up to +25 volume bonus, +5 first workout of your day.',
+    ladder: getRankLadderSteps(),
+    viewerLadder: {
+      seasonPoints: viewerSeasonPoints,
+      rankIndex: vr.index,
+      rankLabel: vr.label,
+      rankIconId: vr.iconId,
+      pointsToNextRank: vr.isMaxRank ? 0 : vr.pointsToNext,
+      nextRankLabel: vr.nextLabel,
+      isMaxRank: vr.isMaxRank,
+    },
   };
 }

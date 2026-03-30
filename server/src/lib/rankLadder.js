@@ -66,6 +66,15 @@ export const RANK_LADDER = [
   { iconId: 'ultimate-champion-3', tier: 'Ultimate Champion', sub: 3, minPoints: 1880 },
 ];
 
+/** Static steps for clients (full ladder, lowest index = entry rank). */
+export function getRankLadderSteps() {
+  return RANK_LADDER.map((step, index) => {
+    const label =
+      step.tier === 'Ultimate Champion' ? `Ultimate Champion ${step.sub}` : `${step.tier} ${step.sub}`;
+    return { index, iconId: step.iconId, label, minPoints: step.minPoints };
+  });
+}
+
 const TOP_INDEX = RANK_LADDER.length - 1;
 
 export function rankFromSeasonPoints(points) {

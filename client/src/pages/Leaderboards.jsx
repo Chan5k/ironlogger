@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import api from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { RankIcon } from '../components/ranks/RankIcon.jsx';
@@ -80,7 +80,9 @@ function SeasonRankGuide() {
           <p>
             Your <strong className="font-medium text-slate-300">rank</strong> (Wood → Ultimate Champion, levels 1–3 with 3
             highest in each tier) depends only on your <strong className="font-medium text-slate-300">season points</strong>.
-            Earn more points this month to move up. The card above shows how many points you need for the next rank.
+            Earn more points this month to move up. The card above shows how many points you need for the next rank; the{' '}
+            <strong className="font-medium text-slate-300">rank ladder</strong> lists every tier and highlights where you
+            stand.
           </p>
           <p className="text-xs text-slate-500">
             Tiers: Wood, Iron, Silver, Gold, Platinum, Emerald, Diamond, Master, Ultimate Champion — each has ranks 1, 2, and 3.
@@ -88,6 +90,78 @@ function SeasonRankGuide() {
         </section>
       </div>
     </details>
+  );
+}
+
+function SeasonLadderPanel({ ladder, viewerRankIndex, viewerSeasonPoints, viewerRankLabel }) {
+  const youRowRef = useRef(null);
+  const scrollKeyRef = useRef(null);
+  const stepsDesc = useMemo(() => [...ladder].reverse(), [ladder]);
+
+  useEffect(() => {
+    const key = `${viewerRankIndex}:${ladder.length}`;
+    if (scrollKeyRef.current === key) return;
+    scrollKeyRef.current = key;
+    const id = requestAnimationFrame(() => {
+      youRowRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [viewerRankIndex, ladder.length]);
+
+  if (!ladder?.length) return null;
+
+  return (
+    <section
+      className="overflow-hidden rounded-xl border border-slate-800/90 bg-[#121826]/95 ring-1 ring-slate-800/50"
+      aria-label="Season rank ladder"
+    >
+      <div className="border-b border-slate-800/80 px-4 py-3">
+        <h2 className="text-sm font-semibold text-white">Rank ladder</h2>
+        <p className="mt-1 text-xs text-slate-500">
+          Highest ranks at the top. Season points (this UTC month) must reach at least the threshold to unlock each rank.
+        </p>
+        {viewerRankLabel != null ? (
+          <p className="mt-2 text-xs text-slate-400">
+            <span className="font-medium text-slate-300">Your placement:</span>{' '}
+            {viewerRankLabel}
+            <span className="text-slate-600"> · </span>
+            {(Number(viewerSeasonPoints) || 0).toLocaleString()} pts this season
+          </p>
+        ) : null}
+      </div>
+      <div className="max-h-[min(22rem,55vh)] overflow-y-auto overscroll-contain">
+        <ul className="divide-y divide-slate-800/60">
+          {stepsDesc.map((step) => {
+            const isYou = step.index === viewerRankIndex;
+            return (
+              <li
+                key={step.index}
+                ref={isYou ? youRowRef : null}
+                aria-current={isYou ? 'step' : undefined}
+                className={`flex items-center gap-3 px-4 py-2.5 transition-colors duration-motion ease-motion-standard ${
+                  isYou ? 'bg-blue-600/15 ring-1 ring-inset ring-blue-500/25' : 'bg-transparent'
+                }`}
+              >
+                <RankIcon iconId={step.iconId} className="h-8 w-8 shrink-0" title={step.label} />
+                <div className="min-w-0 flex-1">
+                  <p className={`text-sm font-medium ${isYou ? 'text-white' : 'text-slate-200'}`}>
+                    {step.label}
+                    {isYou ? (
+                      <span className="ml-2 rounded-md bg-blue-600/25 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-300">
+                        You
+                      </span>
+                    ) : null}
+                  </p>
+                </div>
+                <p className="shrink-0 text-xs tabular-nums text-slate-500">
+                  ≥ {step.minPoints.toLocaleString()} pts
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </section>
   );
 }
 
@@ -140,6 +214,20 @@ export default function Leaderboards() {
   const metricMeta = METRICS.find((m) => m.id === metric);
   const sr = user?.seasonRank;
   const isSeason = metric === 'seasonRank';
+  const vl = isSeason && data?.ladder?.length ? data.viewerLadder : undefined;
+  const seasonCard =
+    isSeason && (sr?.rankLabel || vl?.rankLabel)
+      ? {
+          rankLabel: vl?.rankLabel ?? sr?.rankLabel,
+          rankIconId: vl?.rankIconId ?? sr?.rankIconId,
+          seasonLabel: data?.seasonLabel ?? sr?.seasonLabel,
+          seasonPoints: vl?.seasonPoints ?? sr?.seasonPoints,
+          seasonEndsAt: data?.seasonEndsAt ?? sr?.seasonEndsAt,
+          pointsToNextRank: vl?.pointsToNextRank ?? sr?.pointsToNextRank,
+          nextRankLabel: vl?.nextRankLabel ?? sr?.nextRankLabel,
+          isMaxRank: vl?.isMaxRank ?? sr?.isMaxRank,
+        }
+      : null;
 
   return (
     <div className="space-y-6">
@@ -171,30 +259,39 @@ export default function Leaderboards() {
 
       {isSeason ? <SeasonRankGuide /> : null}
 
-      {isSeason && sr?.rankLabel ? (
+      {seasonCard ? (
         <div className="rounded-xl border border-slate-800/90 bg-[#121826]/95 px-4 py-4">
           <div className="flex flex-wrap items-center gap-4">
-            <RankIcon iconId={sr.rankIconId} className="h-12 w-12" title={sr.rankLabel} />
+            <RankIcon iconId={seasonCard.rankIconId} className="h-12 w-12" title={seasonCard.rankLabel} />
             <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Your season</p>
-              <p className="text-sm font-medium text-white">{sr.seasonLabel ?? ''}</p>
+              <p className="text-sm font-medium text-white">{seasonCard.seasonLabel ?? ''}</p>
               <p className="mt-0.5 text-sm text-slate-400">
-                <span className="text-slate-200">{sr.rankLabel}</span>
+                <span className="text-slate-200">{seasonCard.rankLabel}</span>
                 <span className="mx-1.5 text-slate-600">·</span>
-                {(Number(sr.seasonPoints) || 0).toLocaleString()} pts
-                {!sr.isMaxRank && sr.nextRankLabel ? (
+                {(Number(seasonCard.seasonPoints) || 0).toLocaleString()} pts
+                {!seasonCard.isMaxRank && seasonCard.nextRankLabel ? (
                   <span className="text-slate-500">
                     {' '}
-                    · {sr.pointsToNextRank} to {sr.nextRankLabel}
+                    · {seasonCard.pointsToNextRank} to {seasonCard.nextRankLabel}
                   </span>
                 ) : null}
               </p>
-              {sr.seasonEndsAt ? (
-                <p className="mt-1 text-xs text-slate-600">Resets {formatSeasonEnd(sr.seasonEndsAt)} (UTC)</p>
+              {seasonCard.seasonEndsAt ? (
+                <p className="mt-1 text-xs text-slate-600">Resets {formatSeasonEnd(seasonCard.seasonEndsAt)} (UTC)</p>
               ) : null}
             </div>
           </div>
         </div>
+      ) : null}
+
+      {isSeason && !loading && !err && data?.ladder?.length ? (
+        <SeasonLadderPanel
+          ladder={data.ladder}
+          viewerRankIndex={data.viewerLadder?.rankIndex ?? sr?.rankIndex ?? 0}
+          viewerSeasonPoints={data.viewerLadder?.seasonPoints ?? sr?.seasonPoints ?? 0}
+          viewerRankLabel={data.viewerLadder?.rankLabel ?? sr?.rankLabel ?? null}
+        />
       ) : null}
 
       <div className="flex flex-wrap gap-2">
