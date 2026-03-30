@@ -80,6 +80,10 @@ export default {
           '0%': { opacity: '0', transform: 'translateY(-8px) scaleY(0.92)', maxHeight: '0px' },
           '100%': { opacity: '1', transform: 'translateY(0) scaleY(1)', maxHeight: '100px' },
         },
+        landingGlowPulse: {
+          '0%, 100%': { opacity: '0.35' },
+          '50%': { opacity: '0.65' },
+        },
       },
       animation: {
         'ui-page-in': 'uiPageIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both',
@@ -92,6 +96,7 @@ export default {
         'pr-spark': 'prSpark 1s ease-out forwards',
         'sign-out-icon': 'signOutIcon 0.45s cubic-bezier(0.34, 1.3, 0.64, 1) both',
         'set-slide-in': 'setSlideIn 250ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        'landing-glow': 'landingGlowPulse 6s ease-in-out infinite',
       },
     },
   },
