@@ -1019,33 +1019,37 @@ export default function WorkoutEdit() {
             key={ex._local}
             className="rounded-2xl border border-slate-800 bg-surface-card p-4"
           >
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <ExerciseIcon name={ex.name} category={ex.category} boxed className="h-5 w-5 text-slate-300" />
-              <input
-                value={ex.name}
-                onChange={(e) =>
-                  setExercises((prev) => {
-                    const n = [...prev];
-                    n[exIdx] = { ...n[exIdx], name: e.target.value };
-                    return n;
-                  })
-                }
-                className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-surface px-3 py-2 text-sm font-medium text-white"
-              />
-              <button
-                type="button"
-                onClick={() => setPickerFor(exIdx)}
-                className="min-h-11 rounded-xl border border-slate-600 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:border-slate-500 hover:bg-surface-elevated/60 active:bg-surface-elevated"
-              >
-                From library
-              </button>
-              <button
-                type="button"
-                onClick={() => removeExercise(exIdx)}
-                className="min-h-11 rounded-xl border border-red-900/50 bg-red-950/15 px-4 py-2.5 text-sm font-medium text-red-300 transition-colors hover:bg-red-950/30 active:bg-red-950/40"
-              >
-                Remove
-              </button>
+            <div className="mb-3 flex flex-col gap-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <ExerciseIcon name={ex.name} category={ex.category} boxed className="h-5 w-5 shrink-0 text-slate-300" />
+                <input
+                  value={ex.name}
+                  onChange={(e) =>
+                    setExercises((prev) => {
+                      const n = [...prev];
+                      n[exIdx] = { ...n[exIdx], name: e.target.value };
+                      return n;
+                    })
+                  }
+                  className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-surface px-3 py-2 text-sm font-medium text-white"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setPickerFor(exIdx)}
+                  className="min-h-11 w-full rounded-xl border border-slate-600 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:border-slate-500 hover:bg-surface-elevated/60 active:bg-surface-elevated sm:w-auto sm:min-w-[9.5rem]"
+                >
+                  From library
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeExercise(exIdx)}
+                  className="min-h-11 w-full rounded-xl border border-red-900/50 bg-red-950/15 px-4 py-2.5 text-sm font-medium text-red-300 transition-colors hover:bg-red-950/30 active:bg-red-950/40 sm:w-auto sm:min-w-[9.5rem]"
+                >
+                  Remove
+                </button>
+              </div>
             </div>
             <p className="mb-2 text-xs text-slate-500">{ex.category}</p>
             <div className="space-y-2" role="table" aria-label={`Sets for ${ex.name || 'exercise'}`}>

@@ -73,3 +73,41 @@ export function clearWorkoutDraft(key) {
     /* ignore */
   }
 }
+
+/** True if this looks like real work, not the default empty template. */
+function isMeaningfulNewWorkoutDraft(draft) {
+  if (!draft || typeof draft !== 'object') return false;
+  if (!Array.isArray(draft.exercises) || draft.exercises.length === 0) return false;
+  const notes = String(draft.notes || '').trim();
+  if (notes.length > 0) return true;
+  const title = String(draft.title || '').trim();
+  if (title && title !== 'Workout') return true;
+  if (draft.exercises.length > 1) return true;
+  for (const e of draft.exercises) {
+    const name = String(e?.name || '').trim();
+    if (name && name !== 'Exercise') return true;
+    if (e?.exerciseId) return true;
+    for (const s of e?.sets || []) {
+      if (s?.completed) return true;
+      if (Number(s?.weight) > 0) return true;
+      const r = Math.floor(Number(s?.reps) || 0);
+      if (r > 0 && r !== 10) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * If the current tab has an unsaved new-workout draft with real edits, return a short preview for UI.
+ * (Unsaved workouts are not on the server, so they never appear in GET /workouts.)
+ */
+export function getResumeableNewWorkoutDraftPreview() {
+  const key = newUnsavedWorkoutDraftKey();
+  const draft = loadWorkoutDraft(key);
+  if (!isMeaningfulNewWorkoutDraft(draft)) return null;
+  return {
+    title: typeof draft.title === 'string' && draft.title.trim() ? draft.title.trim() : 'Workout',
+    exerciseCount: draft.exercises.length,
+    updatedAt: draft.updatedAt || null,
+  };
+}

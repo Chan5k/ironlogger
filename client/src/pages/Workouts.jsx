@@ -89,6 +89,10 @@ export default function Workouts() {
                     now: liveNow,
                   })}
                 </p>
+                <p className="mt-0.5 font-mono text-xs text-slate-300 tabular-nums">
+                  Volume{' '}
+                  {(w.totalVolumeKg ?? 0).toLocaleString()} kg
+                </p>
                 {w.completedAt ? (
                   <span className="mt-1 inline-block text-xs text-emerald-500">Done</span>
                 ) : (

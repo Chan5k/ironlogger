@@ -14,6 +14,7 @@ import {
   countTrainingDaysInRollingWindow,
   dateKeyInTimeZone,
 } from '../lib/trainingStreak.js';
+import { totalVolumeKgNonWarmup } from '../lib/workoutVolume.js';
 
 /** Longest run of consecutive calendar days present in `set` (YYYY-MM-DD keys). */
 function bestStreakFromDaySet(trainingDays) {
@@ -92,10 +93,14 @@ router.get(
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     const limit = Number(req.query.limit) || 20;
     const skip = Number(req.query.skip) || 0;
-    const [workouts, total] = await Promise.all([
+    const [rows, total] = await Promise.all([
       Workout.find({ userId: req.user.id }).sort({ startedAt: -1 }).skip(skip).limit(limit).lean(),
       Workout.countDocuments({ userId: req.user.id }),
     ]);
+    const workouts = rows.map((w) => ({
+      ...w,
+      totalVolumeKg: totalVolumeKgNonWarmup(w),
+    }));
     res.json({ workouts, total });
   }
 );

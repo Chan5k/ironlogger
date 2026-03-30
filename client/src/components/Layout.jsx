@@ -28,6 +28,7 @@ import {
   OFFLINE_QUEUE_EVENT,
 } from '../utils/offlineQueue.js';
 import { appAlert } from '../lib/appDialogApi.js';
+import ResumeNewWorkoutCallout from './ResumeNewWorkoutCallout.jsx';
 
 /** Lucide defaults to outline strokes; keep nav glyphs uniform at 20px. */
 const NAV_ICON_STROKE = 1.75;
@@ -438,6 +439,9 @@ export default function Layout() {
       ) : null}
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-8 md:py-8">
+        {/\/workouts\/new\/?$/.test(location.pathname) ? null : (
+          <ResumeNewWorkoutCallout className="mb-4 md:mb-6" />
+        )}
         <div
           key={location.pathname}
           className="motion-reduce:animate-none animate-ui-page-in"

@@ -71,7 +71,8 @@ export default function PrCelebrationOverlay({
 
   const node = (
     <div
-      className="fixed inset-0 z-[500] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[10050] flex min-h-[100dvh] items-center justify-center p-4"
+      style={{ top: 0, left: 0, right: 0, bottom: 0 }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="pr-celebration-title"
@@ -81,7 +82,8 @@ export default function PrCelebrationOverlay({
       }}
     >
       <div
-        className="animate-pr-backdrop pointer-events-none fixed inset-0 bg-surface/85 backdrop-blur-lg"
+        className="animate-pr-backdrop pointer-events-none fixed inset-0 z-0 bg-surface/85 backdrop-blur-lg"
+        style={{ top: 0, left: 0, right: 0, bottom: 0 }}
         aria-hidden
       />
 
