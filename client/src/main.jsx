@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, useLocation } from 'react-router-dom';
+// Vite + React SPA: use `/react`. `@vercel/speed-insights/next` depends on `next/navigation` and is only for Next.js.
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { registerSW } from 'virtual:pwa-register';
 import { AuthProvider } from './context/AuthContext.jsx';
