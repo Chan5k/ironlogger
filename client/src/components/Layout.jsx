@@ -14,6 +14,7 @@ import {
   Trophy,
   Rss,
   Target,
+  Utensils,
   Users,
   X,
 } from 'lucide-react';
@@ -59,6 +60,7 @@ const IconFollowing = makeNavIcon(Users);
 const IconLeaderboards = makeNavIcon(Trophy);
 const IconFeed = makeNavIcon(Rss);
 const IconGoals = makeNavIcon(Target);
+const IconNutrition = makeNavIcon(Utensils);
 const IconSettings = makeNavIcon(Settings);
 const IconAdmin = makeNavIcon(Shield);
 
@@ -159,6 +161,7 @@ function buildNavSections(isStaff) {
         { to: appPath('progress'), label: 'Progress', Icon: IconProgress },
         { to: appPath('statistics'), label: 'Statistics', Icon: IconStatistics },
         { to: appPath('goals'), label: 'Goals', Icon: IconGoals },
+        { to: appPath('nutrition'), label: 'Nutrition', Icon: IconNutrition },
       ],
     },
     {
