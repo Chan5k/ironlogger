@@ -52,6 +52,8 @@ import {
 } from '../utils/workoutShareStats.js';
 import WorkoutShareModal from '../components/WorkoutShareModal.jsx';
 import ExerciseIcon from '../components/ExerciseIcon.jsx';
+import AiWorkoutReview from '../components/AiWorkoutReview.jsx';
+import PostWorkoutRecapModal from '../components/PostWorkoutRecapModal.jsx';
 
 const emptySet = (type = 'normal') => ({
   reps: 10,
@@ -119,6 +121,7 @@ export default function WorkoutEdit() {
   const [restBarHeight, setRestBarHeight] = useState(0);
   const [pinnedActionsHeight, setPinnedActionsHeight] = useState(0);
   const [discardConfirmOpen, setDiscardConfirmOpen] = useState(false);
+  const [postWorkoutRecapOpen, setPostWorkoutRecapOpen] = useState(false);
   const workoutActionsRef = useRef(null);
 
   const dismissPrCelebration = useCallback(() => setPrCelebration(null), []);
@@ -747,6 +750,11 @@ export default function WorkoutEdit() {
           setDurHours(0);
           setDurMins(0);
         }
+        if (done) {
+          setPostWorkoutRecapOpen(true);
+        } else {
+          setPostWorkoutRecapOpen(false);
+        }
       } catch (e) {
         if (isOfflineQueueableError(e) && enqueueOfflineRequest({ method: 'PUT', url: `/workouts/${id}`, data: payload })) {
           if (done) {
@@ -1119,6 +1127,8 @@ export default function WorkoutEdit() {
           ) : null}
         </section>
       ) : null}
+
+      {!isNew && serverCompleted && id ? <AiWorkoutReview workoutId={id} /> : null}
 
       <div className="space-y-4">
         {exercises.map((ex, exIdx) => (
@@ -1532,6 +1542,14 @@ export default function WorkoutEdit() {
             document.body
           )
         : null}
+
+      {!isNew && id ? (
+        <PostWorkoutRecapModal
+          open={postWorkoutRecapOpen}
+          workoutId={id}
+          onClose={() => setPostWorkoutRecapOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }

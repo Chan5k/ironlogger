@@ -89,6 +89,19 @@ export default {
           '0%, 100%': { opacity: '0.35' },
           '50%': { opacity: '0.65' },
         },
+        aiStaggerIn: {
+          '0%': { opacity: '0', transform: 'translateY(6px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        aiBtnPop: {
+          '0%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(0.95)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        aiSpinnerPulse: {
+          '0%, 100%': { opacity: '0.6', transform: 'scale(1)' },
+          '50%': { opacity: '1', transform: 'scale(1.08)' },
+        },
       },
       animation: {
         'ui-page-in': 'uiPageIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both',
@@ -104,6 +117,9 @@ export default {
         'sign-out-icon': 'signOutIcon 0.45s cubic-bezier(0.34, 1.3, 0.64, 1) both',
         'set-slide-in': 'setSlideIn 250ms cubic-bezier(0.22, 1, 0.36, 1) both',
         'landing-glow': 'landingGlowPulse 6s ease-in-out infinite',
+        'ai-stagger-in': 'aiStaggerIn 350ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        'ai-btn-pop': 'aiBtnPop 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+        'ai-spinner-pulse': 'aiSpinnerPulse 1.8s ease-in-out infinite',
       },
     },
   },
