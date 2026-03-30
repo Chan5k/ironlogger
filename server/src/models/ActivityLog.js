@@ -7,7 +7,11 @@ const activityLogSchema = new mongoose.Schema(
     steps: { type: Number, default: 0, min: 0 },
     activeCalories: { type: Number, default: 0, min: 0 },
     exerciseMinutes: { type: Number, default: 0, min: 0 },
-    source: { type: String, enum: ['manual', 'healthkit_placeholder'], default: 'manual' },
+    source: {
+      type: String,
+      enum: ['manual', 'healthkit_placeholder', 'apple_shortcut'],
+      default: 'manual',
+    },
     note: { type: String, default: '' },
   },
   { timestamps: true }

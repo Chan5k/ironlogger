@@ -567,7 +567,8 @@ export default function Settings() {
         <p className="mb-4 text-sm text-slate-400">
           Browser notifications when this app is open (or in background on supported devices). Add
           IronLogger to your Home Screen on iPhone for better background behavior. Apple does not
-          expose HealthKit to Safari; see Activity for manual logging.
+          expose HealthKit to Safari. On the Activity page you can log manually or use an iOS Shortcut to
+          post steps from Apple Health.
         </p>
 
         <button

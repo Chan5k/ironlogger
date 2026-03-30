@@ -29,10 +29,14 @@ const userSchema = new mongoose.Schema(
         createdAt: { type: Date, default: Date.now },
       },
     ],
+    /** SHA-256 hex of personal activity import token (iOS Shortcuts → Apple Health). Not selected by default. */
+    activitySyncTokenHash: { type: String, default: null, select: false },
+    activitySyncTokenCreatedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
 
 userSchema.index({ publicProfileSlug: 1 }, { unique: true, sparse: true });
+userSchema.index({ activitySyncTokenHash: 1 }, { sparse: true });
 
 export default mongoose.model('User', userSchema);
