@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Copy,
+  Library,
   Pencil,
   Plus,
   ScanBarcode,
@@ -57,6 +58,38 @@ const MEAL_LABEL = {
 
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'];
 
+const EMPTY_LIBRARY_FORM = {
+  name: '',
+  brand: '',
+  barcode: '',
+  caloriesPer100g: '',
+  proteinPer100g: '',
+  carbsPer100g: '',
+  fatsPer100g: '',
+  fiberPer100g: '',
+  sugarPer100g: '',
+  servingLabel: '',
+  servingGrams: '',
+};
+
+function pickRowToLibraryForm(row, barcodeExtra = '') {
+  const ext = row?.externalId != null ? String(row.externalId) : '';
+  const barcodeFromExt = /^\d{8,14}$/.test(ext) ? ext : '';
+  return {
+    name: row?.name || '',
+    brand: row?.brand || '',
+    barcode: String(barcodeExtra || row?.barcode || barcodeFromExt || ''),
+    caloriesPer100g: row?.caloriesPer100g != null ? String(row.caloriesPer100g) : '',
+    proteinPer100g: row?.proteinPer100g != null ? String(row.proteinPer100g) : '',
+    carbsPer100g: row?.carbsPer100g != null ? String(row.carbsPer100g) : '',
+    fatsPer100g: row?.fatsPer100g != null ? String(row.fatsPer100g) : '',
+    fiberPer100g: row?.fiberPer100g != null ? String(row.fiberPer100g) : '',
+    sugarPer100g: row?.sugarPer100g != null ? String(row.sugarPer100g) : '',
+    servingLabel: row?.servingLabel != null ? String(row.servingLabel) : '',
+    servingGrams: row?.servingGrams != null ? String(row.servingGrams) : '',
+  };
+}
+
 function groupFoods(foods) {
   const m = { breakfast: [], lunch: [], dinner: [], snack: [], other: [] };
   for (const f of foods || []) {
@@ -89,18 +122,18 @@ function Sheet({ open, title, onClose, children }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[200] flex flex-col justify-end md:justify-center md:p-4"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6"
       role="dialog"
       aria-modal
       aria-labelledby="nutrition-sheet-title"
     >
       <button
         type="button"
-        className="absolute inset-0 bg-black/65 motion-reduce:animate-none animate-ui-backdrop-in"
+        className="absolute inset-0 bg-black/70 motion-reduce:animate-none motion-reduce:opacity-100 animate-ui-backdrop-in"
         aria-label="Close"
         onClick={onClose}
       />
-      <div className="relative z-10 mx-auto flex max-h-[min(92dvh,720px)] w-full max-w-lg flex-col rounded-t-2xl border border-slate-800 bg-[#0f141d] shadow-2xl motion-reduce:animate-none animate-ui-modal-in md:rounded-2xl md:shadow-2xl safe-pb">
+      <div className="relative z-10 flex max-h-[min(88dvh,680px)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-800 bg-[#0f141d] shadow-2xl motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none animate-ui-nutrition-modal-in safe-pb">
         <div className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-800/90 px-4 py-3">
           <h2 id="nutrition-sheet-title" className="min-w-0 truncate text-lg font-semibold text-white">
             {title}
@@ -201,6 +234,12 @@ export default function Nutrition() {
   const [notFoundBarcode, setNotFoundBarcode] = useState('');
   const barcodeLookupSeqRef = useRef(0);
 
+  const [libraryForm, setLibraryForm] = useState(() => ({ ...EMPTY_LIBRARY_FORM }));
+  const [editingLibraryId, setEditingLibraryId] = useState(null);
+  const [myLibraryList, setMyLibraryList] = useState([]);
+  const [libraryLoading, setLibraryLoading] = useState(false);
+  const [savingLibrary, setSavingLibrary] = useState(false);
+
   const loadLog = useCallback(async () => {
     setLoadErr('');
     try {
@@ -238,6 +277,23 @@ export default function Nutrition() {
   useEffect(() => {
     loadHistory();
   }, [loadHistory]);
+
+  const loadMyLibrary = useCallback(async () => {
+    setLibraryLoading(true);
+    try {
+      const { data } = await api.get('/nutrition/my-foods', { params: { limit: 60 } });
+      setMyLibraryList(Array.isArray(data.foods) ? data.foods : []);
+    } catch {
+      setMyLibraryList([]);
+    } finally {
+      setLibraryLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (sheet !== 'myLibrary') return;
+    loadMyLibrary();
+  }, [sheet, loadMyLibrary]);
 
   useEffect(() => {
     if (sheet !== 'search') return;
@@ -376,6 +432,99 @@ export default function Nutrition() {
     },
     [openLogFromSearch]
   );
+
+  async function submitLibraryFood() {
+    if (savingLibrary) return;
+    const name = libraryForm.name.trim();
+    if (!name) {
+      await appAlert('Enter a food name.');
+      return;
+    }
+    const parseOpt = (s) => {
+      const t = String(s ?? '').trim();
+      if (t === '') return null;
+      const n = Number(t);
+      return Number.isFinite(n) && n >= 0 ? n : NaN;
+    };
+    const kcal = parseOpt(libraryForm.caloriesPer100g);
+    const p = parseOpt(libraryForm.proteinPer100g);
+    const c = parseOpt(libraryForm.carbsPer100g);
+    const f = parseOpt(libraryForm.fatsPer100g);
+    const fi = parseOpt(libraryForm.fiberPer100g);
+    const su = parseOpt(libraryForm.sugarPer100g);
+    const sgRaw = libraryForm.servingGrams.trim();
+    const sg = sgRaw === '' ? null : Number(sgRaw);
+    if ([kcal, p, c, f].some((x) => x != null && Number.isNaN(x))) {
+      await appAlert('Check per-100g numbers (non-negative).');
+      return;
+    }
+    if (sg != null && (!Number.isFinite(sg) || sg <= 0)) {
+      await appAlert('Serving grams must be a positive number, or leave empty.');
+      return;
+    }
+    if (fi != null && Number.isNaN(fi)) {
+      await appAlert('Fiber must be a non-negative number or empty.');
+      return;
+    }
+    if (su != null && Number.isNaN(su)) {
+      await appAlert('Sugar must be a non-negative number or empty.');
+      return;
+    }
+
+    const payload = {
+      name,
+      brand: libraryForm.brand.trim(),
+      barcode: libraryForm.barcode.trim() || null,
+      caloriesPer100g: kcal,
+      proteinPer100g: p,
+      carbsPer100g: c,
+      fatsPer100g: f,
+      fiberPer100g: fi,
+      sugarPer100g: su,
+      servingLabel: libraryForm.servingLabel.trim() || null,
+      servingGrams: sg,
+    };
+
+    setSavingLibrary(true);
+    try {
+      if (editingLibraryId) {
+        await api.put(`/nutrition/my-foods/${editingLibraryId}`, payload);
+      } else {
+        await api.post('/nutrition/my-foods', payload);
+      }
+      await loadMyLibrary();
+      setEditingLibraryId(null);
+      setLibraryForm({ ...EMPTY_LIBRARY_FORM });
+      await appAlert('Saved to your foods. It appears in search and barcode lookup.');
+    } catch (e) {
+      await appAlert(e.response?.data?.error || 'Could not save.');
+    } finally {
+      setSavingLibrary(false);
+    }
+  }
+
+  async function deleteLibraryFood(row) {
+    if (!row?.externalId?.startsWith('uf_')) return;
+    const id = row.externalId.slice(3);
+    if (!(await appConfirm('Remove this food from your saved list?'))) return;
+    try {
+      await api.delete(`/nutrition/my-foods/${id}`);
+      await loadMyLibrary();
+      if (editingLibraryId === id) {
+        setEditingLibraryId(null);
+        setLibraryForm({ ...EMPTY_LIBRARY_FORM });
+      }
+    } catch (e) {
+      await appAlert(e.response?.data?.error || 'Could not delete.');
+    }
+  }
+
+  function openEditLibraryRow(row) {
+    if (!row?.externalId?.startsWith('uf_')) return;
+    const id = row.externalId.slice(3);
+    setEditingLibraryId(id);
+    setLibraryForm(pickRowToLibraryForm(row));
+  }
 
   function openManualFromSuggestion(s) {
     setManual((m) => ({
@@ -643,10 +792,10 @@ export default function Nutrition() {
       <div>
         <h1 className="text-xl font-bold text-white">Nutrition</h1>
         <p className="mt-1 text-[15px] leading-relaxed text-slate-400">
-          Log calories and macros by day. Search uses IronLogger&apos;s built-in Romanian food reference
-          (traditional dishes, staples, dairy, bakery — typical values). Scan a barcode for packaged
-          supermarket products (Open Food Facts — works best on HTTPS). Add manually when something is not
-          listed or the scan misses.
+          Log calories and macros by day. Search blends the Romanian reference with foods you save under
+          <strong className="font-medium text-slate-200"> My foods </strong>
+          (per 100 g, optional barcode). Scan barcodes via live camera or a single photo — no need to hold
+          still while decoding a snapshot. Open Food Facts fills many packs; your library covers the rest.
         </p>
       </div>
 
@@ -714,6 +863,18 @@ export default function Nutrition() {
           >
             <ScanBarcode className="h-4 w-4 shrink-0" />
             Scan barcode
+          </button>
+          <button
+            type="button"
+            className={`${BTN_GHOST} w-full gap-2 sm:w-auto`}
+            onClick={() => {
+              setEditingLibraryId(null);
+              setLibraryForm({ ...EMPTY_LIBRARY_FORM });
+              setSheet('myLibrary');
+            }}
+          >
+            <Library className="h-4 w-4 shrink-0" />
+            My foods
           </button>
           <button
             type="button"
@@ -1061,7 +1222,14 @@ export default function Nutrition() {
                 className="min-h-[52px] w-full touch-manipulation rounded-lg border border-slate-800 bg-surface/50 px-3 py-3 text-left hover:bg-slate-800/60"
                 onClick={() => openLogFromSearch(r)}
               >
-                <p className="font-medium text-white">{r.name}</p>
+                <p className="flex flex-wrap items-center gap-2 font-medium text-white">
+                  <span>{r.name}</span>
+                  {r.source === 'user_library' ? (
+                    <span className="rounded bg-violet-900/45 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-200">
+                      My food
+                    </span>
+                  ) : null}
+                </p>
                 {r.brand ? <p className="text-xs text-slate-500">{r.brand}</p> : null}
                 <p className="mt-1 text-xs text-slate-400">
                   {r.caloriesPer100g != null ? `${roundCal(r.caloriesPer100g)} kcal / 100g` : 'no kcal/100g'}
@@ -1071,6 +1239,18 @@ export default function Nutrition() {
             </li>
           ))}
         </ul>
+        <button
+          type="button"
+          className={`${BTN_GHOST} mt-4 w-full text-sm`}
+          onClick={() => {
+            setEditingLibraryId(null);
+            setLibraryForm({ ...EMPTY_LIBRARY_FORM });
+            setSheet('myLibrary');
+          }}
+        >
+          <Library className="mr-2 inline h-4 w-4 align-text-bottom" />
+          Manage my foods (save per 100 g)
+        </button>
       </Sheet>
 
       <Sheet
@@ -1081,7 +1261,7 @@ export default function Nutrition() {
           setSheet(null);
         }}
       >
-        <p className="text-sm text-slate-400">Fetching nutrition from Open Food Facts…</p>
+        <p className="text-sm text-slate-400">Checking Open Food Facts and your saved foods…</p>
       </Sheet>
 
       <Sheet
@@ -1094,8 +1274,9 @@ export default function Nutrition() {
       >
         <div className="space-y-4">
           <p className="text-sm text-slate-300">
-            No match for this barcode in Open Food Facts. Coverage is incomplete — especially for some local
-            packs. Add the food manually or try text search (Romanian reference).
+            No match online or in your saved foods. Coverage is incomplete for some local packs — add details to
+            <strong className="font-medium text-white"> My foods </strong>
+            (per 100 g) so the next scan finds it, or use manual entry / text search.
           </p>
           {notFoundBarcode ? (
             <div className="rounded-lg border border-slate-700 bg-slate-900/50 px-3 py-2">
@@ -1119,9 +1300,24 @@ export default function Nutrition() {
             >
               Copy barcode
             </button>
+            {notFoundBarcode ? (
+              <button
+                type="button"
+                className={`${BTN_PRIMARY} w-full`}
+                onClick={() => {
+                  const b = notFoundBarcode;
+                  setNotFoundBarcode('');
+                  setLibraryForm({ ...EMPTY_LIBRARY_FORM, barcode: b });
+                  setEditingLibraryId(null);
+                  setSheet('myLibrary');
+                }}
+              >
+                Save barcode to my foods
+              </button>
+            ) : null}
             <button
               type="button"
-              className={`${BTN_PRIMARY} w-full`}
+              className={`${notFoundBarcode ? BTN_GHOST : BTN_PRIMARY} w-full`}
               onClick={() => {
                 const b = notFoundBarcode;
                 setSheet(null);
@@ -1154,6 +1350,191 @@ export default function Nutrition() {
       </Sheet>
 
       <Sheet
+        open={sheet === 'myLibrary'}
+        title="My foods"
+        onClose={() => {
+          setSheet(null);
+          setEditingLibraryId(null);
+        }}
+      >
+        <p className="text-xs leading-relaxed text-slate-400">
+          Store foods with nutrition per 100 g. They show in search when the name or brand matches, and your
+          barcode is checked if Open Food Facts has no product.
+        </p>
+        {libraryLoading ? (
+          <p className="mt-3 text-sm text-slate-400">Loading your list…</p>
+        ) : myLibraryList.length === 0 ? (
+          <p className="mt-3 text-sm text-slate-500">No saved foods yet. Fill the form below.</p>
+        ) : (
+          <ul className="mt-3 max-h-[min(36vh,320px)] space-y-2 overflow-y-auto overscroll-contain pr-1">
+            {myLibraryList.map((row) => (
+              <li
+                key={row.externalId}
+                className="flex items-stretch gap-2 rounded-lg border border-slate-800 bg-surface/40 p-2"
+              >
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 touch-manipulation text-left"
+                  onClick={() => openEditLibraryRow(row)}
+                >
+                  <p className="font-medium text-white">{row.name}</p>
+                  {row.brand ? <p className="text-xs text-slate-500">{row.brand}</p> : null}
+                  {row.barcode ? (
+                    <p className="font-mono text-xs text-slate-500">Barcode {row.barcode}</p>
+                  ) : null}
+                </button>
+                <button
+                  type="button"
+                  className="min-h-[44px] min-w-[44px] shrink-0 touch-manipulation rounded-lg border border-slate-700 p-2 text-red-300 hover:bg-red-950/30"
+                  aria-label="Delete"
+                  onClick={() => deleteLibraryFood(row)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="mt-4 space-y-3 border-t border-slate-800 pt-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            {editingLibraryId ? 'Edit entry' : 'Add entry'}
+          </p>
+          <label className="block text-xs text-slate-400">
+            Name
+            <input
+              className={`${FIELD} mt-1`}
+              value={libraryForm.name}
+              onChange={(e) => setLibraryForm((s) => ({ ...s, name: e.target.value }))}
+              placeholder="Product name"
+              autoComplete="off"
+            />
+          </label>
+          <label className="block text-xs text-slate-400">
+            Brand (optional)
+            <input
+              className={`${FIELD} mt-1`}
+              value={libraryForm.brand}
+              onChange={(e) => setLibraryForm((s) => ({ ...s, brand: e.target.value }))}
+              autoComplete="off"
+            />
+          </label>
+          <label className="block text-xs text-slate-400">
+            Barcode (optional, digits)
+            <input
+              className={`${FIELD} mt-1 font-mono`}
+              inputMode="numeric"
+              value={libraryForm.barcode}
+              onChange={(e) => setLibraryForm((s) => ({ ...s, barcode: e.target.value }))}
+              placeholder="EAN-13 / UPC"
+              autoComplete="off"
+            />
+          </label>
+          <p className="text-xs text-slate-500">Per 100 g (or 100 ml). Leave blank if unknown.</p>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="text-xs text-slate-400">
+              kcal / 100g
+              <input
+                className={`${FIELD} mt-1`}
+                inputMode="decimal"
+                value={libraryForm.caloriesPer100g}
+                onChange={(e) => setLibraryForm((s) => ({ ...s, caloriesPer100g: e.target.value }))}
+              />
+            </label>
+            <label className="text-xs text-slate-400">
+              Protein g
+              <input
+                className={`${FIELD} mt-1`}
+                inputMode="decimal"
+                value={libraryForm.proteinPer100g}
+                onChange={(e) => setLibraryForm((s) => ({ ...s, proteinPer100g: e.target.value }))}
+              />
+            </label>
+            <label className="text-xs text-slate-400">
+              Carbs g
+              <input
+                className={`${FIELD} mt-1`}
+                inputMode="decimal"
+                value={libraryForm.carbsPer100g}
+                onChange={(e) => setLibraryForm((s) => ({ ...s, carbsPer100g: e.target.value }))}
+              />
+            </label>
+            <label className="text-xs text-slate-400">
+              Fat g
+              <input
+                className={`${FIELD} mt-1`}
+                inputMode="decimal"
+                value={libraryForm.fatsPer100g}
+                onChange={(e) => setLibraryForm((s) => ({ ...s, fatsPer100g: e.target.value }))}
+              />
+            </label>
+            <label className="text-xs text-slate-400">
+              Fiber g (opt.)
+              <input
+                className={`${FIELD} mt-1`}
+                inputMode="decimal"
+                value={libraryForm.fiberPer100g}
+                onChange={(e) => setLibraryForm((s) => ({ ...s, fiberPer100g: e.target.value }))}
+              />
+            </label>
+            <label className="text-xs text-slate-400">
+              Sugar g (opt.)
+              <input
+                className={`${FIELD} mt-1`}
+                inputMode="decimal"
+                value={libraryForm.sugarPer100g}
+                onChange={(e) => setLibraryForm((s) => ({ ...s, sugarPer100g: e.target.value }))}
+              />
+            </label>
+          </div>
+          <label className="block text-xs text-slate-400">
+            Serving label (optional)
+            <input
+              className={`${FIELD} mt-1`}
+              value={libraryForm.servingLabel}
+              onChange={(e) => setLibraryForm((s) => ({ ...s, servingLabel: e.target.value }))}
+              placeholder='e.g. 1 cup (30 g)'
+              autoComplete="off"
+            />
+          </label>
+          <label className="block text-xs text-slate-400">
+            Serving grams (optional)
+            <input
+              className={`${FIELD} mt-1`}
+              inputMode="decimal"
+              value={libraryForm.servingGrams}
+              onChange={(e) => setLibraryForm((s) => ({ ...s, servingGrams: e.target.value }))}
+              placeholder="Default portion in g"
+              autoComplete="off"
+            />
+          </label>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <button
+              type="button"
+              className={`${BTN_PRIMARY} min-h-[48px] flex-1`}
+              disabled={savingLibrary}
+              onClick={submitLibraryFood}
+            >
+              {savingLibrary ? 'Saving…' : editingLibraryId ? 'Update' : 'Save to my foods'}
+            </button>
+            {editingLibraryId ? (
+              <button
+                type="button"
+                className={`${BTN_GHOST} min-h-[48px] flex-1`}
+                disabled={savingLibrary}
+                onClick={() => {
+                  setEditingLibraryId(null);
+                  setLibraryForm({ ...EMPTY_LIBRARY_FORM });
+                }}
+              >
+                New item
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </Sheet>
+
+      <Sheet
         open={sheet === 'logPick'}
         title="Log food"
         onClose={() => {
@@ -1174,6 +1555,26 @@ export default function Nutrition() {
             {pick.source === 'openfoodfacts' ? (
               <p className="text-xs text-slate-500">Source: Open Food Facts (values per 100 g unless adjusted).</p>
             ) : null}
+            {pick.source === 'user_library' ? (
+              <p className="text-xs text-slate-500">From your saved foods (per 100 g).</p>
+            ) : null}
+            <button
+              type="button"
+              className={`${BTN_GHOST} w-full text-sm`}
+              onClick={() => {
+                const libId =
+                  pick?.source === 'user_library' && pick?.externalId?.startsWith('uf_')
+                    ? pick.externalId.slice(3)
+                    : null;
+                setLibraryForm(pickRowToLibraryForm(pick));
+                setEditingLibraryId(libId);
+                setSheet('myLibrary');
+              }}
+            >
+              {pick?.source === 'user_library' && pick?.externalId?.startsWith('uf_')
+                ? 'Edit in my foods'
+                : 'Save copy to my foods'}
+            </button>
             {previewIncomplete ? (
               <p className="text-xs text-amber-200">
                 Nutrition data is incomplete in the database — adjust the values below if needed.

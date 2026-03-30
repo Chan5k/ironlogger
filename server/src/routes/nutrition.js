@@ -13,6 +13,12 @@ import {
 } from '../lib/nutritionNumbers.js';
 import { searchRomanianFoods, filterRomanianSuggestions } from '../lib/romanianFoodSearch.js';
 import { lookupBarcodeOpenFoodFacts, sanitizeBarcode } from '../lib/openFoodFactsBarcode.js';
+import UserNutritionFood from '../models/UserNutritionFood.js';
+import {
+  searchUserNutritionFoods,
+  userFoodToSearchRow,
+  findUserFoodByBarcodeDigits,
+} from '../lib/userNutritionFoodLib.js';
 
 const router = Router();
 router.use(authRequired);
@@ -103,6 +109,18 @@ router.get(
           product: out.product,
         });
       }
+      const local = await findUserFoodByBarcodeDigits(req.user.id, digits);
+      if (local) {
+        const product = userFoodToSearchRow(local);
+        if (product) {
+          return res.json({
+            found: true,
+            barcode: digits,
+            product,
+            source: 'user_library',
+          });
+        }
+      }
       return res.status(200).json({
         found: false,
         barcode: digits,
@@ -119,17 +137,202 @@ router.get(
   }
 );
 
+const MY_FOODS_SEARCH_CAP = 25;
+
+function optPer100gNumber(v, rounder, maxVal) {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return rounder(Math.min(n, maxVal));
+}
+
+router.get(
+  '/my-foods',
+  query('q').optional().isString(),
+  query('limit').optional().isInt({ min: 1, max: 40 }),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const q = sanitizeOneLine(req.query.q, 200);
+    const limit = Number(req.query.limit) || 40;
+    const rows = await searchUserNutritionFoods(req.user.id, q, { limit });
+    res.json({ foods: rows.map((r) => userFoodToSearchRow(r)).filter(Boolean) });
+  }
+);
+
+router.post(
+  '/my-foods',
+  body('name').trim().notEmpty().isLength({ min: 1, max: MAX_NAME }),
+  body('brand').optional({ nullable: true }).isString().isLength({ max: MAX_BRAND }),
+  body('barcode').optional({ nullable: true }).isString().isLength({ max: 32 }),
+  body('caloriesPer100g').optional({ nullable: true }).isFloat({ min: 0, max: MAX_CALORIE_TARGET }),
+  body('proteinPer100g').optional({ nullable: true }).isFloat({ min: 0, max: MAX_MACRO_TARGET }),
+  body('carbsPer100g').optional({ nullable: true }).isFloat({ min: 0, max: MAX_MACRO_TARGET }),
+  body('fatsPer100g').optional({ nullable: true }).isFloat({ min: 0, max: MAX_MACRO_TARGET }),
+  body('fiberPer100g').optional({ nullable: true }).isFloat({ min: 0, max: 500 }),
+  body('sugarPer100g').optional({ nullable: true }).isFloat({ min: 0, max: 500 }),
+  body('servingLabel').optional({ nullable: true }).isString().isLength({ max: MAX_SERVING_LABEL }),
+  body('servingGrams').optional({ nullable: true }).isFloat({ gt: 0, max: 100000 }),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    let barcode = null;
+    const barcodeRaw = req.body.barcode;
+    if (barcodeRaw != null && String(barcodeRaw).trim() !== '') {
+      const d = sanitizeBarcode(barcodeRaw);
+      if (!d) return res.status(400).json({ error: 'Invalid barcode' });
+      barcode = d;
+      const dup = await UserNutritionFood.findOne({ userId: req.user.id, barcode: d });
+      if (dup) {
+        return res.status(409).json({
+          error: 'You already have a food with this barcode',
+          id: String(dup._id),
+        });
+      }
+    }
+
+    try {
+      const doc = await UserNutritionFood.create({
+        userId: req.user.id,
+        name: sanitizeOneLine(req.body.name, MAX_NAME),
+        brand: sanitizeOneLine(req.body.brand ?? '', MAX_BRAND),
+        barcode,
+        caloriesPer100g: optPer100gNumber(req.body.caloriesPer100g, roundCalories, MAX_CALORIE_TARGET),
+        proteinPer100g: optPer100gNumber(req.body.proteinPer100g, roundMacro, MAX_MACRO_TARGET),
+        carbsPer100g: optPer100gNumber(req.body.carbsPer100g, roundMacro, MAX_MACRO_TARGET),
+        fatsPer100g: optPer100gNumber(req.body.fatsPer100g, roundMacro, MAX_MACRO_TARGET),
+        fiberPer100g: optPer100gNumber(req.body.fiberPer100g, roundMacro, 500),
+        sugarPer100g: optPer100gNumber(req.body.sugarPer100g, roundMacro, 500),
+        servingLabel: sanitizeOneLine(req.body.servingLabel ?? '', MAX_SERVING_LABEL),
+        servingGrams:
+          req.body.servingGrams == null || req.body.servingGrams === ''
+            ? null
+            : roundMacro(safeNonNegativeNumber(req.body.servingGrams, 0)),
+      });
+      res.status(201).json({ food: userFoodToSearchRow(doc) });
+    } catch (e) {
+      if (e && e.code === 11000) {
+        return res.status(409).json({ error: 'You already have a food with this barcode' });
+      }
+      console.error('nutrition my-foods post', e);
+      return res.status(500).json({ error: 'Could not save food' });
+    }
+  }
+);
+
+router.put(
+  '/my-foods/:id',
+  param('id').isMongoId(),
+  body('name').optional().trim().notEmpty().isLength({ min: 1, max: MAX_NAME }),
+  body('brand').optional({ nullable: true }).isString().isLength({ max: MAX_BRAND }),
+  body('barcode').optional({ nullable: true }).isString().isLength({ max: 32 }),
+  body('caloriesPer100g').optional({ nullable: true }).isFloat({ min: 0, max: MAX_CALORIE_TARGET }),
+  body('proteinPer100g').optional({ nullable: true }).isFloat({ min: 0, max: MAX_MACRO_TARGET }),
+  body('carbsPer100g').optional({ nullable: true }).isFloat({ min: 0, max: MAX_MACRO_TARGET }),
+  body('fatsPer100g').optional({ nullable: true }).isFloat({ min: 0, max: MAX_MACRO_TARGET }),
+  body('fiberPer100g').optional({ nullable: true }).isFloat({ min: 0, max: 500 }),
+  body('sugarPer100g').optional({ nullable: true }).isFloat({ min: 0, max: 500 }),
+  body('servingLabel').optional({ nullable: true }).isString().isLength({ max: MAX_SERVING_LABEL }),
+  body('servingGrams').optional({ nullable: true }).isFloat({ gt: 0, max: 100000 }),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const doc = await UserNutritionFood.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!doc) return res.status(404).json({ error: 'Food not found' });
+
+    if (req.body.name !== undefined) doc.name = sanitizeOneLine(req.body.name, MAX_NAME);
+    if (req.body.brand !== undefined) doc.brand = sanitizeOneLine(req.body.brand ?? '', MAX_BRAND);
+    if (req.body.caloriesPer100g !== undefined) {
+      doc.caloriesPer100g = optPer100gNumber(req.body.caloriesPer100g, roundCalories, MAX_CALORIE_TARGET);
+    }
+    if (req.body.proteinPer100g !== undefined) {
+      doc.proteinPer100g = optPer100gNumber(req.body.proteinPer100g, roundMacro, MAX_MACRO_TARGET);
+    }
+    if (req.body.carbsPer100g !== undefined) {
+      doc.carbsPer100g = optPer100gNumber(req.body.carbsPer100g, roundMacro, MAX_MACRO_TARGET);
+    }
+    if (req.body.fatsPer100g !== undefined) {
+      doc.fatsPer100g = optPer100gNumber(req.body.fatsPer100g, roundMacro, MAX_MACRO_TARGET);
+    }
+    if (req.body.fiberPer100g !== undefined) {
+      doc.fiberPer100g = optPer100gNumber(req.body.fiberPer100g, roundMacro, 500);
+    }
+    if (req.body.sugarPer100g !== undefined) {
+      doc.sugarPer100g = optPer100gNumber(req.body.sugarPer100g, roundMacro, 500);
+    }
+    if (req.body.servingLabel !== undefined) {
+      doc.servingLabel = sanitizeOneLine(req.body.servingLabel ?? '', MAX_SERVING_LABEL);
+    }
+    if (req.body.servingGrams !== undefined) {
+      doc.servingGrams =
+        req.body.servingGrams === null || req.body.servingGrams === ''
+          ? null
+          : roundMacro(safeNonNegativeNumber(req.body.servingGrams, 0));
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, 'barcode')) {
+      const barcodeRaw = req.body.barcode;
+      if (barcodeRaw == null || String(barcodeRaw).trim() === '') {
+        doc.barcode = null;
+      } else {
+        const d = sanitizeBarcode(barcodeRaw);
+        if (!d) return res.status(400).json({ error: 'Invalid barcode' });
+        const dup = await UserNutritionFood.findOne({
+          userId: req.user.id,
+          barcode: d,
+          _id: { $ne: doc._id },
+        });
+        if (dup) return res.status(409).json({ error: 'Another saved food already uses this barcode' });
+        doc.barcode = d;
+      }
+    }
+
+    try {
+      await doc.save();
+      res.json({ food: userFoodToSearchRow(doc) });
+    } catch (e) {
+      if (e && e.code === 11000) {
+        return res.status(409).json({ error: 'You already have a food with this barcode' });
+      }
+      console.error('nutrition my-foods put', e);
+      return res.status(500).json({ error: 'Could not update food' });
+    }
+  }
+);
+
+router.delete(
+  '/my-foods/:id',
+  param('id').isMongoId(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const r = await UserNutritionFood.deleteOne({ _id: req.params.id, userId: req.user.id });
+    if (r.deletedCount === 0) return res.status(404).json({ error: 'Food not found' });
+    res.json({ ok: true });
+  }
+);
+
 router.get('/search', query('q').optional().isString(), async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
   const q = sanitizeOneLine(req.query.q, 200);
   const page = Math.max(1, Math.min(10, Number(req.query.page) || 1));
   try {
+    const userLimit = Math.min(12, MY_FOODS_SEARCH_CAP);
+    const userRows =
+      q.length >= 1 ? await searchUserNutritionFoods(req.user.id, q, { limit: userLimit }) : [];
+    const userApi = userRows.map((r) => userFoodToSearchRow(r)).filter(Boolean);
     const out = searchRomanianFoods(q, { page });
+    const romanian = Array.isArray(out.results) ? out.results : [];
+    const rest = Math.max(0, MY_FOODS_SEARCH_CAP - userApi.length);
+    const merged = [...userApi, ...romanian.slice(0, rest)];
     return res.json({
-      results: out.results || [],
+      results: merged,
       degraded: false,
       source: 'romanian_reference',
+      userLibraryMatches: userApi.length,
     });
   } catch (e) {
     console.error('nutrition search', e);

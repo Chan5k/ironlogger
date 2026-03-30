@@ -52,6 +52,11 @@ export default {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
+        /** Centered nutrition / dialog modals */
+        uiNutritionModalIn: {
+          '0%': { opacity: '0', transform: 'scale(0.94) translateY(10px)' },
+          '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+        },
         prBackdrop: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
@@ -90,6 +95,8 @@ export default {
         'ui-fade-in': 'uiFadeIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both',
         'ui-modal-in': 'uiModalIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both',
         'ui-backdrop-in': 'uiBackdropIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        'ui-nutrition-modal-in':
+          'uiNutritionModalIn 320ms cubic-bezier(0.22, 1, 0.36, 1) both',
         'pr-backdrop': 'prBackdrop 0.55s ease-out both',
         'pr-card-in': 'prCardIn 0.95s cubic-bezier(0.22, 1, 0.32, 1.2) both',
         'pr-reveal-line': 'prRevealLine 0.55s ease-out both',
