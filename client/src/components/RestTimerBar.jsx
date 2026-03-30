@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 const REST_STORAGE_KEY = 'ironlog_rest_seconds';
 
@@ -25,8 +26,10 @@ export default function RestTimerBar({
   onAddSeconds,
   soundEnabled,
   hapticEnabled = true,
+  onBarHeightChange,
 }) {
   const prevRef = useRef(secondsLeft);
+  const rootRef = useRef(null);
 
   useEffect(() => {
     const prev = prevRef.current;
@@ -56,12 +59,32 @@ export default function RestTimerBar({
     }
   }, [secondsLeft, soundEnabled, hapticEnabled]);
 
+  useLayoutEffect(() => {
+    if (secondsLeft <= 0) {
+      onBarHeightChange?.(0);
+      return undefined;
+    }
+    const el = rootRef.current;
+    if (!el) return undefined;
+    const report = () => onBarHeightChange?.(el.offsetHeight);
+    report();
+    const ro = new ResizeObserver(report);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      onBarHeightChange?.(0);
+    };
+  }, [secondsLeft, onBarHeightChange]);
+
   if (secondsLeft <= 0) return null;
 
   const pct = totalSeconds > 0 ? Math.min(100, (secondsLeft / totalSeconds) * 100) : 0;
 
-  return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 safe-pb border-t border-slate-700 bg-surface-card/98 px-4 py-3 shadow-lg backdrop-blur-md">
+  return createPortal(
+    <div
+      ref={rootRef}
+      className="fixed bottom-0 left-0 right-0 z-50 safe-pb border-t border-slate-700 bg-surface-card/98 px-4 py-3 shadow-lg backdrop-blur-md"
+    >
       <div className="mx-auto flex max-w-4xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Rest</p>
@@ -92,6 +115,7 @@ export default function RestTimerBar({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

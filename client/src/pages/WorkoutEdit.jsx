@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   clearWorkoutDraft,
   loadWorkoutDraft,
@@ -115,10 +116,18 @@ export default function WorkoutEdit() {
   const [newSetKey, setNewSetKey] = useState(null);
   /** Per-exercise (_local) rolling baseline for sets completed in this session (server baselines exclude current workout). */
   const [sessionBaselineByLocal, setSessionBaselineByLocal] = useState({});
+  const [restBarHeight, setRestBarHeight] = useState(0);
+  const [pinnedActionsHeight, setPinnedActionsHeight] = useState(0);
+  const [discardConfirmOpen, setDiscardConfirmOpen] = useState(false);
+  const workoutActionsRef = useRef(null);
 
   const dismissPrCelebration = useCallback(() => setPrCelebration(null), []);
 
   const restRunning = restSecondsLeft > 0;
+
+  const handleRestBarHeight = useCallback((h) => {
+    setRestBarHeight(typeof h === 'number' && h > 0 ? h : 0);
+  }, []);
 
   useEffect(() => {
     if (!restRunning) return undefined;
@@ -127,6 +136,20 @@ export default function WorkoutEdit() {
     }, 1000);
     return () => clearInterval(t);
   }, [restRunning]);
+
+  useLayoutEffect(() => {
+    if (!restRunning) {
+      setPinnedActionsHeight(0);
+      return undefined;
+    }
+    const el = workoutActionsRef.current;
+    if (!el) return undefined;
+    const report = () => setPinnedActionsHeight(Math.round(el.getBoundingClientRect().height));
+    report();
+    const ro = new ResizeObserver(report);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [restRunning, discardConfirmOpen]);
 
   useEffect(() => {
     const targets = exercises.map((e) => ({
@@ -181,6 +204,15 @@ export default function WorkoutEdit() {
     setExercisePickerQuery('');
     const id = requestAnimationFrame(() => exercisePickerInputRef.current?.focus());
     return () => cancelAnimationFrame(id);
+  }, [pickerFor]);
+
+  useEffect(() => {
+    if (pickerFor === null) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
   }, [pickerFor]);
 
   useEffect(() => {
@@ -774,6 +806,18 @@ export default function WorkoutEdit() {
     }
   }
 
+  const performDiscard = useCallback(() => {
+    setDiscardConfirmOpen(false);
+    setRestSecondsLeft(0);
+    if (isNew) {
+      clearWorkoutDraft(newUnsavedWorkoutDraftKey());
+      resetNewWorkoutDraftSession();
+    } else {
+      clearWorkoutDraft(workoutDraftKey(id, false));
+    }
+    navigate(appPath('workouts'));
+  }, [isNew, id, navigate]);
+
   const filteredPickerExercises = useMemo(
     () => filterExercisesByQuery(library, exercisePickerQuery),
     [library, exercisePickerQuery]
@@ -787,8 +831,108 @@ export default function WorkoutEdit() {
     return <p className="text-slate-500">Loading…</p>;
   }
 
+  const showDiscard = isNew || !serverCompleted;
+
+  const workoutActionsInner = (
+    <>
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+        <button
+          type="button"
+          onClick={save}
+          disabled={saving}
+          className="rounded-xl bg-accent px-6 py-3 font-semibold text-white disabled:opacity-50"
+        >
+          {saving ? 'Saving…' : 'Save workout'}
+        </button>
+        {showDiscard ? (
+          <button
+            type="button"
+            onClick={() => setDiscardConfirmOpen(true)}
+            disabled={saving}
+            className={`rounded-xl border px-6 py-3 text-sm font-medium transition-colors disabled:opacity-50 ${
+              discardConfirmOpen
+                ? 'border-red-500/70 bg-red-950/40 text-red-200'
+                : 'border-red-900/80 text-red-400 hover:border-red-700 hover:bg-red-950/25'
+            }`}
+          >
+            Discard
+          </button>
+        ) : null}
+        {!isNew ? (
+          <>
+            <button
+              type="button"
+              onClick={() => markComplete(true)}
+              disabled={saving}
+              className="rounded-xl border border-emerald-700 px-6 py-3 font-medium text-emerald-400"
+            >
+              Mark complete
+            </button>
+            <button
+              type="button"
+              onClick={() => markComplete(false)}
+              disabled={saving}
+              className="rounded-xl border border-slate-600 px-6 py-3 text-slate-300"
+            >
+              Reopen
+            </button>
+            <button
+              type="button"
+              onClick={() => shareWorkoutLink()}
+              disabled={saving}
+              className="rounded-xl border border-slate-600 px-6 py-3 text-slate-300"
+            >
+              Share link
+            </button>
+            <button
+              type="button"
+              onClick={deleteWorkout}
+              className="rounded-xl border border-red-900 px-6 py-3 text-red-400"
+            >
+              Delete
+            </button>
+          </>
+        ) : null}
+      </div>
+      {discardConfirmOpen ? (
+        <div
+          className="motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none mt-3 origin-top animate-ui-modal-in rounded-xl border border-red-900/60 bg-red-950/40 p-4 shadow-lg ring-1 ring-red-500/15"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="workout-discard-title"
+          aria-describedby="workout-discard-desc"
+        >
+          <p id="workout-discard-title" className="text-sm font-semibold text-red-100">
+            Discard this workout?
+          </p>
+          <p id="workout-discard-desc" className="mt-1 text-sm text-red-200/85">
+            {isNew
+              ? 'Your draft will be removed. This cannot be undone.'
+              : 'Unsaved changes will be lost. The saved workout on the server stays as it was until you save again.'}
+          </p>
+          <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
+            <button
+              type="button"
+              onClick={() => setDiscardConfirmOpen(false)}
+              className="rounded-xl border border-slate-600 px-4 py-2.5 text-sm text-slate-200 transition-colors hover:bg-slate-800/80"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={performDiscard}
+              className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-500"
+            >
+              Yes, discard
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+
   return (
-    <div className={`min-w-0 space-y-6 ${restRunning ? 'pb-32' : 'pb-8'}`}>
+    <div className="min-w-0 space-y-6 pb-8">
       <div className="flex flex-wrap items-center gap-2">
         <Link
           to={appPath('workouts')}
@@ -1229,51 +1373,27 @@ export default function WorkoutEdit() {
         + Add exercise
       </button>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-        <button
-          type="button"
-          onClick={save}
-          disabled={saving}
-          className="rounded-xl bg-accent px-6 py-3 font-semibold text-white disabled:opacity-50"
-        >
-          {saving ? 'Saving…' : 'Save workout'}
-        </button>
-        {!isNew ? (
-          <>
-            <button
-              type="button"
-              onClick={() => markComplete(true)}
-              disabled={saving}
-              className="rounded-xl border border-emerald-700 px-6 py-3 font-medium text-emerald-400"
+      {restRunning ? (
+        <>
+          <div
+            aria-hidden
+            className="shrink-0"
+            style={{ height: Math.max(pinnedActionsHeight, 88) }}
+          />
+          {createPortal(
+            <div
+              ref={workoutActionsRef}
+              className="fixed left-0 right-0 z-[55] border-t border-slate-800 bg-surface-card/98 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-3 shadow-[0_-12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md"
+              style={{ bottom: restBarHeight }}
             >
-              Mark complete
-            </button>
-            <button
-              type="button"
-              onClick={() => markComplete(false)}
-              disabled={saving}
-              className="rounded-xl border border-slate-600 px-6 py-3 text-slate-300"
-            >
-              Reopen
-            </button>
-            <button
-              type="button"
-              onClick={() => shareWorkoutLink()}
-              disabled={saving}
-              className="rounded-xl border border-slate-600 px-6 py-3 text-slate-300"
-            >
-              Share link
-            </button>
-            <button
-              type="button"
-              onClick={deleteWorkout}
-              className="rounded-xl border border-red-900 px-6 py-3 text-red-400"
-            >
-              Delete
-            </button>
-          </>
-        ) : null}
-      </div>
+              <div className="mx-auto w-full max-w-6xl px-4 md:px-8">{workoutActionsInner}</div>
+            </div>,
+            document.body
+          )}
+        </>
+      ) : (
+        <div ref={workoutActionsRef}>{workoutActionsInner}</div>
+      )}
 
       <PrCelebrationOverlay
         key={prCelebration?.ts ?? 'closed'}
@@ -1294,6 +1414,7 @@ export default function WorkoutEdit() {
         onAddSeconds={(n) => setRestSecondsLeft((s) => s + n)}
         soundEnabled={restSoundEnabled}
         hapticEnabled={restHapticEnabled}
+        onBarHeightChange={handleRestBarHeight}
       />
 
       <WorkoutShareModal
@@ -1302,78 +1423,102 @@ export default function WorkoutEdit() {
         cardOptions={shareCardOptions}
       />
 
-      {pickerFor !== null ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">
-          <div className="max-h-[80vh] w-full max-w-md overflow-hidden rounded-2xl border border-slate-700 bg-surface-card shadow-xl">
-            <div className="border-b border-slate-800 px-4 py-3">
-              <div className="mb-3 flex items-center justify-between">
-                <span className="font-medium text-white">Choose exercise</span>
-                <button
-                  type="button"
-                  onClick={() => setPickerFor(null)}
-                  className="text-slate-400"
-                >
-                  Close
-                </button>
-              </div>
-              <label className="sr-only" htmlFor="workout-exercise-search">
-                Search exercises
-              </label>
-              <input
-                id="workout-exercise-search"
-                ref={exercisePickerInputRef}
-                type="search"
-                autoComplete="off"
-                autoCorrect="off"
-                spellCheck={false}
-                enterKeyHint="search"
-                placeholder="Type to filter by name or category…"
-                value={exercisePickerQuery}
-                onChange={(e) => setExercisePickerQuery(e.target.value)}
-                className="w-full rounded-xl border border-slate-700 bg-surface px-4 py-3 text-white placeholder:text-slate-500 outline-none focus:border-accent"
+      {pickerFor !== null
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[300] flex min-h-[100dvh] items-center justify-center overflow-y-auto overflow-x-hidden p-4"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="workout-exercise-picker-title"
+            >
+              <button
+                type="button"
+                tabIndex={-1}
+                aria-label="Close exercise picker"
+                className="animate-ui-backdrop-in fixed inset-0 bg-black/65 backdrop-blur-[2px] motion-reduce:animate-none motion-reduce:opacity-100"
+                onClick={() => setPickerFor(null)}
               />
-              {exercisePickerQuery.trim() ? (
-                <p className="mt-2 text-xs text-slate-500">
-                  {filteredPickerExercises.length} match
-                  {filteredPickerExercises.length !== 1 ? 'es' : ''}
-                </p>
-              ) : null}
-            </div>
-            <div className="max-h-[50vh] overflow-y-auto p-2 sm:max-h-[60vh]">
-              {filteredPickerExercises.length === 0 ? (
-                <p className="px-3 py-8 text-center text-sm text-slate-500">
-                  No exercises match “{exercisePickerQuery.trim()}”. Try fewer words or a category
-                  like chest or legs.
-                </p>
-              ) : (
-                Object.entries(groupedPicker)
-                  .sort(([a], [b]) => a.localeCompare(b))
-                  .map(([cat, list]) => (
-                    <div key={cat} className="mb-4">
-                      <p className="px-2 py-1 text-xs font-semibold uppercase text-slate-500">
-                        {cat}
-                      </p>
-                      <ul className="space-y-1">
-                        {list.map((e) => (
-                          <li key={e._id}>
-                            <button
-                              type="button"
-                              onClick={() => pickExercise(pickerFor, e)}
-                              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-white hover:bg-surface-elevated"
-                            >
-                              <ExerciseIcon name={e.name} category={e.category} className="h-4 w-4 text-slate-500" />
-                              <span>{e.name}</span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))
-              )}
-            </div>
-          </div>
-        </div>
-      ) : null}
+              <div
+                className="animate-ui-modal-in relative z-10 my-auto flex max-h-[min(85dvh,32rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-700 bg-surface-card shadow-2xl shadow-black/40 ring-1 ring-white/5 motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="shrink-0 border-b border-slate-800 px-4 py-3">
+                  <div className="mb-3 flex items-center justify-between gap-2">
+                    <span id="workout-exercise-picker-title" className="font-medium text-white">
+                      Choose exercise
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPickerFor(null)}
+                      className="min-h-10 min-w-10 rounded-lg px-2 text-sm text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                    >
+                      Close
+                    </button>
+                  </div>
+                  <label className="sr-only" htmlFor="workout-exercise-search">
+                    Search exercises
+                  </label>
+                  <input
+                    id="workout-exercise-search"
+                    ref={exercisePickerInputRef}
+                    type="search"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    enterKeyHint="search"
+                    placeholder="Type to filter by name or category…"
+                    value={exercisePickerQuery}
+                    onChange={(e) => setExercisePickerQuery(e.target.value)}
+                    className="w-full rounded-xl border border-slate-700 bg-surface px-4 py-3 text-white placeholder:text-slate-500 outline-none focus:border-accent"
+                  />
+                  {exercisePickerQuery.trim() ? (
+                    <p className="mt-2 text-xs text-slate-500">
+                      {filteredPickerExercises.length} match
+                      {filteredPickerExercises.length !== 1 ? 'es' : ''}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
+                  {filteredPickerExercises.length === 0 ? (
+                    <p className="px-3 py-8 text-center text-sm text-slate-500">
+                      No exercises match “{exercisePickerQuery.trim()}”. Try fewer words or a category
+                      like chest or legs.
+                    </p>
+                  ) : (
+                    Object.entries(groupedPicker)
+                      .sort(([a], [b]) => a.localeCompare(b))
+                      .map(([cat, list]) => (
+                        <div key={cat} className="mb-4">
+                          <p className="px-2 py-1 text-xs font-semibold uppercase text-slate-500">
+                            {cat}
+                          </p>
+                          <ul className="space-y-1">
+                            {list.map((e) => (
+                              <li key={e._id}>
+                                <button
+                                  type="button"
+                                  onClick={() => pickExercise(pickerFor, e)}
+                                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-white hover:bg-surface-elevated"
+                                >
+                                  <ExerciseIcon
+                                    name={e.name}
+                                    category={e.category}
+                                    className="h-4 w-4 text-slate-500"
+                                  />
+                                  <span>{e.name}</span>
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))
+                  )}
+                </div>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
     </div>
   );
 }
