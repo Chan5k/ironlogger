@@ -1303,11 +1303,13 @@ export default function WorkoutEdit() {
             </div>
             <p className="mb-2 text-xs text-slate-500">{ex.category}</p>
             <div className="space-y-2" role="table" aria-label={`Sets for ${ex.name || 'exercise'}`}>
-              <div className="hidden text-xs text-slate-500 sm:flex sm:items-center sm:gap-2 sm:px-1 sm:pb-1">
+              <div className="hidden text-xs text-slate-500 sm:flex sm:items-end sm:gap-2 sm:px-1 sm:pb-1">
                 <span className="w-8 shrink-0">Set</span>
                 <span className="w-[7.5rem] shrink-0">Type</span>
-                <span className="min-w-0 flex-1">Wt ({weightUnit})</span>
-                <span className="w-16 shrink-0">Reps</span>
+                <span className="flex min-w-0 max-w-[12.5rem] flex-1 gap-2">
+                  <span className="w-[6.25rem] shrink-0">Wt ({weightUnit})</span>
+                  <span className="w-16 shrink-0">Reps</span>
+                </span>
                 <span className="w-14 shrink-0 text-center">PR</span>
                 <span className="h-11 w-11 shrink-0" aria-hidden />
                 <span className="w-8 shrink-0" aria-hidden />
@@ -1315,6 +1317,7 @@ export default function WorkoutEdit() {
               {ex.sets.map((s, si) => {
                 const st = normalizeSetType(s.setType);
                 const base = prBaselines[exIdx];
+                const lastHint = base?.lastSessionSets?.[si] ?? null;
                 const prevMax = base?.maxWeight ?? 0;
                 const wNum = Number(s.weight) || 0;
                 const rNum = Math.floor(Number(s.reps) || 0);
@@ -1376,27 +1379,43 @@ export default function WorkoutEdit() {
                         </option>
                       ))}
                     </select>
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      step="any"
-                      value={formatWeightInputValue(s.weight, weightUnit)}
-                      onChange={(e) =>
-                        updateSet(exIdx, si, 'weight', parseWeightInput(e.target.value, weightUnit))
-                      }
-                      className="h-11 min-w-0 flex-1 rounded-lg border border-slate-700 bg-surface px-3 text-white sm:max-w-[6.5rem] sm:flex-none sm:basis-24"
-                      aria-label={`Set ${si + 1} weight`}
-                      data-no-row-toggle
-                    />
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      value={s.reps}
-                      onChange={(e) => updateSet(exIdx, si, 'reps', e.target.value)}
-                      className="h-11 w-[4.5rem] shrink-0 rounded-lg border border-slate-700 bg-surface px-2 text-white sm:w-16"
-                      aria-label={`Set ${si + 1} reps`}
-                      data-no-row-toggle
-                    />
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:max-w-[12.5rem]">
+                      <div className="flex min-w-0 gap-2">
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          step="any"
+                          value={formatWeightInputValue(s.weight, weightUnit)}
+                          onChange={(e) =>
+                            updateSet(exIdx, si, 'weight', parseWeightInput(e.target.value, weightUnit))
+                          }
+                          className="h-11 min-w-0 flex-1 rounded-lg border border-slate-700 bg-surface px-3 text-white sm:max-w-[6.5rem] sm:flex-none sm:basis-[6.25rem]"
+                          aria-label={`Set ${si + 1} weight`}
+                          data-no-row-toggle
+                        />
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          value={s.reps}
+                          onChange={(e) => updateSet(exIdx, si, 'reps', e.target.value)}
+                          className="h-11 w-[4.5rem] shrink-0 rounded-lg border border-slate-700 bg-surface px-2 text-white sm:w-16"
+                          aria-label={`Set ${si + 1} reps`}
+                          data-no-row-toggle
+                        />
+                      </div>
+                      {lastHint ? (
+                        <p
+                          className="text-[10px] leading-tight text-slate-600 sm:pl-0.5"
+                          title="From your last completed workout with this exercise (not prefilled)"
+                        >
+                          Last:{' '}
+                          <span className="text-slate-500">
+                            {formatWeightInputValue(lastHint.weightKg, weightUnit)} {weightUnit} ×{' '}
+                            {lastHint.reps}
+                          </span>
+                        </p>
+                      ) : null}
+                    </div>
                     <div
                       className="flex h-11 min-w-[2.5rem] flex-1 items-center justify-center sm:w-14 sm:flex-none"
                       role="cell"

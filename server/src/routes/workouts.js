@@ -53,6 +53,35 @@ function isCountingSet(s) {
   return normalizeSetType(s?.setType) !== 'warmup';
 }
 
+/**
+ * Most recent prior workout's sets for this exercise (by exerciseId or custom name), newest first.
+ * @param {{ exercises?: unknown[], completedAt?: Date | null }[]} workoutsDesc
+ * @param {string | null} eid
+ * @param {string} nameKey lowercased trimmed name
+ * @returns {( { weightKg: number, reps: number } | null )[]}
+ */
+function lastSessionSetHintsForTarget(workoutsDesc, eid, nameKey) {
+  for (const w of workoutsDesc) {
+    for (const ex of w.exercises || []) {
+      const byId = eid && ex.exerciseId?.toString() === eid;
+      const byName =
+        !eid &&
+        nameKey &&
+        (ex.exerciseId == null || ex.exerciseId === undefined) &&
+        (ex.name || '').trim().toLowerCase() === nameKey;
+      if (!byId && !byName) continue;
+      return (ex.sets || []).map((s) => {
+        if (!s?.completed) return null;
+        return {
+          weightKg: Number(s.weight) || 0,
+          reps: Math.floor(Number(s.reps) || 0),
+        };
+      });
+    }
+  }
+  return [];
+}
+
 /** Non–warm-up volume (kg×reps) for completed workouts in [from, to]; if `exclusiveUpper`, use `to` as exclusive end. */
 async function volumeNonWarmupInRange(userId, from, to, exclusiveUpper = false) {
   const range = exclusiveUpper
@@ -441,7 +470,12 @@ router.post(
     if (excludeWorkoutId) {
       match._id = { $ne: new mongoose.Types.ObjectId(excludeWorkoutId) };
     }
-    const workouts = await Workout.find(match).select('exercises').lean();
+    const workouts = await Workout.find(match).select('exercises completedAt').lean();
+    workouts.sort((a, b) => {
+      const ta = new Date(a.completedAt || 0).getTime();
+      const tb = new Date(b.completedAt || 0).getTime();
+      return tb - ta;
+    });
 
     const baselines = targets.map((t) => {
       const eid =
@@ -474,7 +508,8 @@ router.post(
           }
         }
       }
-      return { maxWeight, maxSetVolume, repsByWeight };
+      const lastSessionSets = lastSessionSetHintsForTarget(workouts, eid, nameKey);
+      return { maxWeight, maxSetVolume, repsByWeight, lastSessionSets };
     });
 
     res.json({ baselines });
