@@ -4,7 +4,8 @@ export default function ExerciseVideoModal({ title, videoUrl, onClose }) {
   const embed = embedUrlFromVideoUrl(videoUrl);
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end justify-center p-4 sm:items-center"
+      className="fixed inset-0 z-[60] flex min-h-[100dvh] items-center justify-center overflow-y-auto p-4"
+      style={{ top: 0, left: 0, right: 0, bottom: 0 }}
       role="dialog"
       aria-modal="true"
       aria-label="Exercise demonstration"

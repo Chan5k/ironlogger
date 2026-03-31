@@ -84,7 +84,16 @@ router.post(
       const name = String(ex.title || 'Exercise').trim() || 'Exercise';
       const category = hevyMuscleGroupToCategory(ex.muscle_group);
       const templateId = ex.exercise_template_id != null ? String(ex.exercise_template_id) : null;
-      const eid = await resolveExerciseForUser(req.user.id, templateId, name, category);
+      const rawHevyVideo = ex.url != null ? String(ex.url).trim() : '';
+      const hevyVideoOpts =
+        rawHevyVideo.startsWith('https://') ? { videoUrl: rawHevyVideo } : undefined;
+      const eid = await resolveExerciseForUser(
+        req.user.id,
+        templateId,
+        name,
+        category,
+        hevyVideoOpts
+      );
       const sets = Array.isArray(ex.sets) ? ex.sets : [];
       const { defaultSets, defaultReps, defaultWeight } = pickHevyPlanDefaults(sets, weightUnit);
       items.push({
@@ -219,6 +228,27 @@ router.post('/hevy', (req, res, next) => {
     const grouped = groupHevyRowsIntoWorkouts(rows, { timeZone: userTimeZone });
     const resolveCategory = await buildHevyCategoryResolver(req.user.id);
 
+    /** @type {Map<string, import('mongoose').Types.ObjectId>} */
+    const csvExerciseIdCache = new Map();
+    const resolveCsvExerciseId = async (exerciseName) => {
+      const key = String(exerciseName || '')
+        .trim()
+        .toLowerCase();
+      if (!key) {
+        return await resolveExerciseForUser(req.user.id, null, 'Exercise', 'other');
+      }
+      const cached = csvExerciseIdCache.get(key);
+      if (cached) return cached;
+      const oid = await resolveExerciseForUser(
+        req.user.id,
+        null,
+        exerciseName,
+        resolveCategory(exerciseName)
+      );
+      csvExerciseIdCache.set(key, oid);
+      return oid;
+    };
+
     let workoutsImported = 0;
     let workoutsSkipped = 0;
 
@@ -246,18 +276,22 @@ router.post('/hevy', (req, res, next) => {
 
       existingKeys.add(hevyImportKey);
 
-      const exercises = w.exercises.map((ex) => ({
-        exerciseId: null,
-        name: ex.name,
-        category: resolveCategory(ex.name),
-        order: ex.order,
-        sets: ex.sets.map((s) => ({
-          reps: s.reps,
-          weight: s.weight,
-          completed: s.completed,
-          setType: s.setType,
-        })),
-      }));
+      const exercises = [];
+      for (const ex of w.exercises) {
+        const exerciseId = await resolveCsvExerciseId(ex.name);
+        exercises.push({
+          exerciseId,
+          name: ex.name,
+          category: resolveCategory(ex.name),
+          order: ex.order,
+          sets: ex.sets.map((s) => ({
+            reps: s.reps,
+            weight: s.weight,
+            completed: s.completed,
+            setType: s.setType,
+          })),
+        });
+      }
 
       toInsert.push({
         userId: new mongoose.Types.ObjectId(req.user.id),

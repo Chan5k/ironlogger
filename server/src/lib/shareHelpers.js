@@ -53,17 +53,41 @@ export async function buildTemplateSnapshot(t) {
   };
 }
 
+function normalizeHttpsVideoUrl(raw) {
+  if (raw == null || typeof raw !== 'string') return '';
+  const t = raw.trim();
+  if (!t.startsWith('https://')) return '';
+  return t.slice(0, 500);
+}
+
+/**
+ * Attach a demo URL only to the user’s own non-global exercise when it has no video yet.
+ */
+async function applyHevyVideoIfMissing(exerciseId, userId, rawUrl) {
+  const videoUrl = normalizeHttpsVideoUrl(rawUrl);
+  if (!videoUrl) return;
+  const ex = await Exercise.findById(exerciseId).select('userId isGlobal videoUrl').lean();
+  if (!ex || ex.isGlobal) return;
+  if (ex.userId?.toString() !== String(userId)) return;
+  if (ex.videoUrl && String(ex.videoUrl).trim()) return;
+  await Exercise.updateOne({ _id: exerciseId }, { $set: { videoUrl } });
+}
+
 /**
  * Resolve an exercise for the importing user: reuse global/their doc, match by name, or create custom.
+ * @param {{ videoUrl?: string }} [opts] Optional HTTPS demo URL (e.g. from Hevy plan import).
  */
-export async function resolveExerciseForUser(userId, sourceExerciseId, name, category) {
+export async function resolveExerciseForUser(userId, sourceExerciseId, name, category, opts) {
   const cat = EXERCISE_CATEGORIES.includes(category) ? category : 'other';
   const uid = new mongoose.Types.ObjectId(userId);
+  const hevyVideo = opts?.videoUrl;
 
   if (sourceExerciseId && mongoose.Types.ObjectId.isValid(sourceExerciseId)) {
     const ex = await Exercise.findById(sourceExerciseId).lean();
     if (ex && (ex.isGlobal || ex.userId?.toString() === userId)) {
-      return new mongoose.Types.ObjectId(ex._id);
+      const id = new mongoose.Types.ObjectId(ex._id);
+      await applyHevyVideoIfMissing(id, userId, hevyVideo);
+      return id;
     }
   }
 
@@ -78,14 +102,20 @@ export async function resolveExerciseForUser(userId, sourceExerciseId, name, cat
     isGlobal: false,
     name: new RegExp(`^${escapeRegex(name.trim())}$`, 'i'),
   }).lean();
-  if (mine) return new mongoose.Types.ObjectId(mine._id);
+  if (mine) {
+    const id = new mongoose.Types.ObjectId(mine._id);
+    await applyHevyVideoIfMissing(id, userId, hevyVideo);
+    return id;
+  }
 
+  const videoUrl = normalizeHttpsVideoUrl(hevyVideo);
   const created = await Exercise.create({
     name: name.trim(),
     category: cat,
     userId: uid,
     isGlobal: false,
     notes: '',
+    videoUrl,
   });
   return created._id;
 }
