@@ -195,6 +195,24 @@ router.get('/users/:id', param('id').isMongoId(), async (req, res) => {
   });
 });
 
+router.post('/users/:id/verify-email', param('id').isMongoId(), async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  const target = await User.findById(req.params.id);
+  if (!target) return res.status(404).json({ error: 'User not found' });
+
+  const wasVerified = !!target.emailVerifiedAt;
+  target.emailVerifiedAt = new Date();
+  target.emailVerificationTokenHash = '';
+  target.emailVerificationExpires = null;
+  await target.save();
+  await logAdminAction(req.user.id, 'user.verify_email', {
+    targetUserId: target._id,
+    meta: { wasVerified },
+  });
+  res.json({ user: publicUser(target) });
+});
+
 router.get(
   '/users/:id/workouts',
   param('id').isMongoId(),

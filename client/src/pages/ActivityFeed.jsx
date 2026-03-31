@@ -69,7 +69,13 @@ export default function ActivityFeedPage() {
         setHasMore(!!data.hasMore);
       } catch (e) {
         if (!cancelled) {
-          setErr(e.response?.data?.error || 'Could not load feed');
+          if (e.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
+            setErr(
+              'Verify your email to use the activity feed. Check the banner at the top of the app or resend the link from Settings.'
+            );
+          } else {
+            setErr(e.response?.data?.error || 'Could not load feed');
+          }
           if (page === 1) setPosts([]);
         }
       } finally {

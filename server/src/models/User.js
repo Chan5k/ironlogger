@@ -3,6 +3,10 @@ import mongoose from 'mongoose';
 const userSchema = new mongoose.Schema(
   {
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    /** Set when the user confirms their email (new signups start as null until verified). */
+    emailVerifiedAt: { type: Date, default: null },
+    emailVerificationTokenHash: { type: String, default: '', trim: true },
+    emailVerificationExpires: { type: Date, default: null },
     passwordHash: { type: String, required: true },
     name: { type: String, trim: true, default: '' },
     reminderEnabled: { type: Boolean, default: false },

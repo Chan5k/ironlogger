@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { BadgeCheck } from 'lucide-react';
 import api from '../api/client.js';
 import { RankIcon } from '../components/ranks/RankIcon.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -10,7 +11,8 @@ export default function PublicProfile() {
   const { slug } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user: viewer } = useAuth();
+  const viewerCanSocial = !!viewer?.emailVerified || !!viewer?.isStaff;
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
   const [data, setData] = useState(null);
@@ -178,7 +180,18 @@ export default function PublicProfile() {
               </div>
             ) : null}
             <div className="rounded-2xl border border-slate-800 bg-surface-card p-6">
-              <h1 className="text-2xl font-bold text-white">{data.profile?.name || 'Athlete'}</h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl font-bold text-white">{data.profile?.name || 'Athlete'}</h1>
+                {data.profile?.emailVerified ? (
+                  <span
+                    className="inline-flex items-center gap-1 rounded-full bg-sky-500/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-sky-300 ring-1 ring-sky-500/30"
+                    title="Email verified"
+                  >
+                    <BadgeCheck className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+                    Verified
+                  </span>
+                ) : null}
+              </div>
               <p className="mt-1 text-sm text-slate-500">Public IronLog profile</p>
               {data.stats?.followerCount != null ? (
                 <p className="mt-2 text-xs text-slate-500">{data.stats.followerCount} follower(s)</p>
@@ -218,24 +231,37 @@ export default function PublicProfile() {
                 </div>
               ) : null}
 
+              {!data.seasonRank && !data.profile?.emailVerified ? (
+                <p className="mt-4 text-xs text-slate-600">
+                  Season rank appears here after this athlete verifies their email.
+                </p>
+              ) : null}
+
               {isAuthenticated && social && !social.isOwnProfile ? (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    disabled={followBusy}
-                    onClick={toggleFollow}
-                    className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                  >
-                    {social.isFollowing ? 'Unfollow' : 'Follow'}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={wallBusy || social.hasGivenKudos}
-                    onClick={sendKudos}
-                    className="rounded-xl border border-slate-600 px-4 py-2 text-sm text-slate-200 disabled:opacity-50"
-                  >
-                    {social.hasGivenKudos ? 'Kudos sent' : 'Kudos'}
-                  </button>
+                <div className="mt-4 flex flex-col gap-2">
+                  {!viewerCanSocial ? (
+                    <p className="text-xs text-amber-200/90">
+                      Verify your email to follow or send kudos. Open the app and check Settings.
+                    </p>
+                  ) : null}
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={followBusy || !viewerCanSocial}
+                      onClick={toggleFollow}
+                      className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                    >
+                      {social.isFollowing ? 'Unfollow' : 'Follow'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={wallBusy || social.hasGivenKudos || !viewerCanSocial}
+                      onClick={sendKudos}
+                      className="rounded-xl border border-slate-600 px-4 py-2 text-sm text-slate-200 disabled:opacity-50"
+                    >
+                      {social.hasGivenKudos ? 'Kudos sent' : 'Kudos'}
+                    </button>
+                  </div>
                 </div>
               ) : null}
 

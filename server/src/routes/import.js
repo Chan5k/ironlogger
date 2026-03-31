@@ -3,19 +3,29 @@ import multer from 'multer';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import mongoose from 'mongoose';
+import { body, validationResult } from 'express-validator';
 import { authRequired } from '../middleware/auth.js';
+import { emailVerifiedRequired } from '../middleware/emailVerified.js';
 import User from '../models/User.js';
 import Workout from '../models/Workout.js';
+import WorkoutTemplate from '../models/WorkoutTemplate.js';
 import HevyImportBatch from '../models/HevyImportBatch.js';
 import { parseHevyCsv } from '../lib/hevyImport/csvParse.js';
 import { groupHevyRowsIntoWorkouts } from '../lib/hevyImport/groupWorkouts.js';
 import { tryAwardSeasonRankPointsForWorkout } from '../lib/seasonRankPoints.js';
 import { buildHevyImportKey } from '../lib/hevyImport/importKeys.js';
 import { buildHevyCategoryResolver } from '../lib/hevyImport/exerciseCategory.js';
+import {
+  extractHevyRoutineShortId,
+  fetchHevyRoutineByShortId,
+  hevyMuscleGroupToCategory,
+} from '../lib/hevyImport/hevyRoutineFromUrl.js';
+import { resolveExerciseForUser } from '../lib/shareHelpers.js';
 import { currentSeasonIdUTC, rankFromSeasonPoints } from '../lib/rankLadder.js';
 
 const router = Router();
 router.use(authRequired);
+router.use(emailVerifiedRequired);
 
 const importRateLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -25,6 +35,105 @@ const importRateLimiter = rateLimit({
   legacyHeaders: false,
 });
 router.use(importRateLimiter);
+
+router.post(
+  '/hevy-plan',
+  body('url').trim().isLength({ min: 12, max: 512 }),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const shortId = extractHevyRoutineShortId(req.body.url);
+    if (!shortId) {
+      return res.status(400).json({
+        error:
+          'Could not read a Hevy routine link. Use a URL like https://hevy.com/routine/xxxxxxxxxxx',
+      });
+    }
+
+    let payload;
+    try {
+      payload = await fetchHevyRoutineByShortId(shortId);
+    } catch (e) {
+      const code = e instanceof Error ? e.message : '';
+      if (code === 'HEVY_ROUTINE_NOT_FOUND') {
+        return res.status(404).json({ error: 'Routine not found or link is invalid.' });
+      }
+      if (code === 'HEVY_ROUTINE_UNAUTHORIZED') {
+        return res.status(502).json({
+          error:
+            'Hevy API rejected the request. Set HEVY_WEB_API_KEY on the server if Hevy rotated their web key.',
+        });
+      }
+      console.error('hevy plan import fetch', e);
+      return res.status(502).json({ error: 'Could not load routine from Hevy. Try again later.' });
+    }
+
+    const routine = payload.routine;
+    const exercises = routine.exercises || [];
+    if (exercises.length === 0) {
+      return res.status(400).json({ error: 'This Hevy routine has no exercises.' });
+    }
+
+    const userDoc = await User.findById(req.user.id).select('weightUnit').lean();
+    const weightUnit = userDoc?.weightUnit === 'lbs' ? 'lbs' : 'kg';
+
+    const items = [];
+    for (let order = 0; order < exercises.length; order += 1) {
+      const ex = exercises[order];
+      const name = String(ex.title || 'Exercise').trim() || 'Exercise';
+      const category = hevyMuscleGroupToCategory(ex.muscle_group);
+      const templateId = ex.exercise_template_id != null ? String(ex.exercise_template_id) : null;
+      const eid = await resolveExerciseForUser(req.user.id, templateId, name, category);
+      const sets = Array.isArray(ex.sets) ? ex.sets : [];
+      const { defaultSets, defaultReps, defaultWeight } = pickHevyPlanDefaults(sets, weightUnit);
+      items.push({
+        exerciseId: eid,
+        exerciseName: name,
+        defaultSets,
+        defaultReps,
+        defaultWeight,
+        order,
+        itemNotes: ex.notes ? String(ex.notes).slice(0, 500) : '',
+      });
+    }
+
+    const routineTitle = String(routine.title || 'Hevy routine').trim() || 'Hevy routine';
+    const by = routine.username ? `@${routine.username}` : 'Hevy';
+    const sourceLine = `Imported from Hevy (${by}). Link: ${String(req.body.url).trim().slice(0, 400)}`;
+
+    const template = await WorkoutTemplate.create({
+      userId: req.user.id,
+      name: routineTitle,
+      description: sourceLine,
+      items,
+    });
+
+    res.status(201).json({
+      template,
+      hevy: { shortId, title: routineTitle, exerciseCount: items.length },
+    });
+  }
+);
+
+/**
+ * @param {object[]} sets
+ * @param {'kg' | 'lbs'} weightUnit
+ */
+function pickHevyPlanDefaults(sets, weightUnit) {
+  const working = sets.filter((s) => String(s?.indicator || 'normal').toLowerCase() !== 'warmup');
+  const use = working.length > 0 ? working : sets;
+  const defaultSets = Math.max(1, use.length || 1);
+  const repsList = use.map((s) => Number(s.reps)).filter((n) => Number.isFinite(n) && n >= 0);
+  const defaultReps =
+    repsList.length > 0 ? Math.round(repsList.reduce((a, b) => a + b, 0) / repsList.length) : 0;
+  const weights = use
+    .map((s) => Number(s.weight_kg))
+    .filter((n) => Number.isFinite(n) && n >= 0);
+  let wKg = weights.length > 0 ? Math.max(...weights) : 0;
+  const defaultWeight = weightUnit === 'lbs' ? wKg * 2.2046226218 : wKg;
+  return { defaultSets, defaultReps, defaultWeight };
+}
 
 const upload = multer({
   storage: multer.memoryStorage(),

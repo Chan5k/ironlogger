@@ -1,11 +1,18 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import { authRequired } from '../middleware/auth.js';
 import { userIsAdmin, userIsFullAdmin, userIsStaff } from '../config/admin.js';
-import { loginRateLimiter, registerRateLimiter } from '../middleware/authRateLimit.js';
+import {
+  loginRateLimiter,
+  registerRateLimiter,
+  resendVerificationRateLimiter,
+} from '../middleware/authRateLimit.js';
+import { isEmailVerifiedUser } from '../lib/userEmailVerified.js';
+import { issueAndSendEmailVerification } from '../lib/issueEmailVerification.js';
 import { fullAdminRequired } from '../middleware/admin.js';
 import { logAdminAction } from '../lib/adminAudit.js';
 import { seasonRankPayloadForUser } from '../lib/rankLadder.js';
@@ -13,6 +20,7 @@ import { seasonRankPayloadForUser } from '../lib/rankLadder.js';
 const router = Router();
 
 function userPayload(user) {
+  const verified = isEmailVerifiedUser(user);
   return {
     id: user._id,
     email: user.email,
@@ -25,9 +33,10 @@ function userPayload(user) {
     isAdmin: userIsAdmin(user),
     isSupport: !!user.isSupport,
     isStaff: userIsStaff(user),
+    emailVerified: verified,
     publicProfileEnabled: !!user.publicProfileEnabled,
     publicProfileSlug: user.publicProfileSlug || '',
-    seasonRank: seasonRankPayloadForUser(user),
+    seasonRank: verified ? seasonRankPayloadForUser(user) : null,
   };
 }
 
@@ -73,11 +82,25 @@ router.post(
       return res.status(409).json({ error: 'Email already registered' });
     }
     const passwordHash = await bcrypt.hash(password, 12);
-    const user = await User.create({ email, passwordHash, name: name.trim() });
+    const skipVerify = process.env.SKIP_EMAIL_VERIFICATION === '1';
+    const user = await User.create({
+      email,
+      passwordHash,
+      name: name.trim(),
+      emailVerifiedAt: skipVerify ? new Date() : null,
+    });
+    if (!skipVerify) {
+      try {
+        await issueAndSendEmailVerification(user);
+      } catch (e) {
+        console.error('verification email (register)', e?.message || e);
+      }
+    }
     const token = signUserToken(user);
     res.status(201).json({
       token,
       user: userPayload(user),
+      verificationEmailSent: !skipVerify,
     });
   }
 );
@@ -106,6 +129,44 @@ router.post(
     });
   }
 );
+
+router.post(
+  '/verify-email',
+  body('token').trim().isLength({ min: 16, max: 200 }),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const token = req.body.token;
+    const hash = crypto.createHash('sha256').update(token, 'utf8').digest('hex');
+    const user = await User.findOne({
+      emailVerificationTokenHash: hash,
+      emailVerificationExpires: { $gt: new Date() },
+    });
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired verification link' });
+    }
+    user.emailVerifiedAt = new Date();
+    user.emailVerificationTokenHash = '';
+    user.emailVerificationExpires = null;
+    await user.save();
+    res.json({ ok: true, user: userPayload(user) });
+  }
+);
+
+router.post('/resend-verification', authRequired, resendVerificationRateLimiter, async (req, res) => {
+  const user = await User.findById(req.user.id);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  if (isEmailVerifiedUser(user)) {
+    return res.json({ ok: true, alreadyVerified: true });
+  }
+  try {
+    await issueAndSendEmailVerification(user);
+  } catch (e) {
+    console.error('resend verification', e?.message || e);
+    return res.status(500).json({ error: 'Could not send verification email' });
+  }
+  res.json({ ok: true });
+});
 
 router.get('/me', authRequired, async (req, res) => {
   const user = await User.findById(req.user.id).select('-passwordHash');
@@ -219,6 +280,9 @@ router.patch(
           return res.status(409).json({ error: 'That email is already in use' });
         }
         user.email = normalized;
+        user.emailVerifiedAt = null;
+        user.emailVerificationTokenHash = '';
+        user.emailVerificationExpires = null;
         emailChanged = true;
       }
     }
@@ -270,6 +334,14 @@ router.patch(
     }
 
     await user.save();
+
+    if (emailChanged) {
+      try {
+        await issueAndSendEmailVerification(user);
+      } catch (e) {
+        console.error('verification email (email change)', e?.message || e);
+      }
+    }
 
     const issueNewToken = emailChanged || changingPassword;
     const payload = { user: userPayload(user) };

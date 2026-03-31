@@ -17,3 +17,11 @@ export const registerRateLimiter = rateLimit({
   standardHeaders: 'draft-7',
   legacyHeaders: false,
 });
+
+export const resendVerificationRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Too many verification emails. Try again in a few minutes.' },
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+});

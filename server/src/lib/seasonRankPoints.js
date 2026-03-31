@@ -1,8 +1,10 @@
 import User from '../models/User.js';
 import Workout from '../models/Workout.js';
+import { userIsStaff } from '../config/admin.js';
 import { currentSeasonIdUTC } from './rankLadder.js';
 import { totalVolumeKgNonWarmup } from './workoutVolume.js';
 import { dateKeyInTimeZone } from './trainingStreak.js';
+import { isEmailVerifiedUser } from './userEmailVerified.js';
 
 const BASE_COMPLETE = 15;
 const DAILY_FIRST_BONUS = 5;
@@ -51,9 +53,14 @@ export async function tryAwardSeasonRankPointsForWorkout(workoutLeanOrDoc) {
 
   try {
     const user = await User.findById(claimed.userId).select(
-      'timezone ladderSeasonId ladderSeasonPoints rankDailyBonusDayKey'
+      'email emailVerifiedAt isAdmin isSupport timezone ladderSeasonId ladderSeasonPoints rankDailyBonusDayKey'
     );
     if (!user) {
+      await Workout.updateOne({ _id: claimed._id }, { $set: { ladderPointsAwarded: false } });
+      return { awarded: false };
+    }
+
+    if (!userIsStaff(user) && !isEmailVerifiedUser(user)) {
       await Workout.updateOne({ _id: claimed._id }, { $set: { ladderPointsAwarded: false } });
       return { awarded: false };
     }

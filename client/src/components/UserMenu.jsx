@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, ChevronDown, LogOut, Settings, User } from 'lucide-react';
+import { AlertTriangle, BadgeCheck, ChevronDown, LogOut, Settings, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { appPath } from '../constants/routes.js';
 
@@ -136,8 +136,16 @@ export default function UserMenu({ onSignOut }) {
         aria-haspopup="menu"
         aria-label="Account menu"
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-700/90 text-sm font-semibold tracking-tight text-slate-100 ring-1 ring-slate-600/50">
+        <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-700/90 text-sm font-semibold tracking-tight text-slate-100 ring-1 ring-slate-600/50">
           {initials}
+          {user?.emailVerified ? (
+            <BadgeCheck
+              className="absolute -bottom-0.5 -right-0.5 h-4 w-4 text-sky-400 drop-shadow-[0_0_6px_rgba(56,189,248,0.45)]"
+              strokeWidth={2}
+              aria-label="Verified email"
+              title="Verified email"
+            />
+          ) : null}
         </span>
         <ChevronDown
           className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-motion ease-motion-standard motion-reduce:duration-0 ${open ? 'rotate-180' : ''}`}

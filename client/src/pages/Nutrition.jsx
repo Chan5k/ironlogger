@@ -258,7 +258,13 @@ export default function Nutrition() {
         fatsTarget: l.fatsTarget != null ? String(l.fatsTarget) : '',
       });
     } catch (e) {
-      setLoadErr(e.response?.data?.error || 'Could not load nutrition log.');
+      if (e.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
+        setLoadErr(
+          'Verify your email to use nutrition tracking. Check the banner at the top of the app or resend the link from Settings.'
+        );
+      } else {
+        setLoadErr(e.response?.data?.error || 'Could not load nutrition log.');
+      }
     } finally {
       setLoading(false);
     }

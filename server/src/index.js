@@ -18,6 +18,7 @@ import goalRoutes from './routes/goals.js';
 import nutritionRoutes from './routes/nutrition.js';
 import aiRoutes from './routes/ai.js';
 import importRoutes from './routes/import.js';
+import { runEmailVerificationGrandfather } from './lib/runMigrations.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -102,7 +103,15 @@ if (!jwt) {
 
 mongoose
   .connect(uri)
-  .then(() => {
+  .then(async () => {
+    try {
+      const m = await runEmailVerificationGrandfather();
+      if (m.ran) {
+        console.log(`Email verification migration: marked ${m.modifiedCount} existing users as verified`);
+      }
+    } catch (e) {
+      console.error('Email verification migration failed:', e?.message || e);
+    }
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`API listening on port ${PORT}`);
     });

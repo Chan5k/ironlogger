@@ -8,6 +8,7 @@ import ProfileFollow from '../models/ProfileFollow.js';
 import ProfileWallEntry from '../models/ProfileWallEntry.js';
 import { optionalAuth } from '../middleware/optionalAuth.js';
 import { getRankLadderSteps, RANK_LADDER, seasonRankPayloadForUser } from '../lib/rankLadder.js';
+import { isEmailVerifiedUser } from '../lib/userEmailVerified.js';
 
 const router = Router();
 
@@ -58,7 +59,7 @@ router.get('/profile/:slug', param('slug').trim().notEmpty(), async (req, res) =
     publicProfileEnabled: true,
     publicProfileSlug: slug,
   })
-    .select('name weightUnit publicProfileSlug ladderSeasonId ladderSeasonPoints')
+    .select('name weightUnit publicProfileSlug emailVerifiedAt ladderSeasonId ladderSeasonPoints')
     .lean();
   if (!user) return res.status(404).json({ error: 'Profile not found' });
 
@@ -102,9 +103,10 @@ router.get('/profile/:slug', param('slug').trim().notEmpty(), async (req, res) =
       name: user.name || 'Athlete',
       slug: user.publicProfileSlug,
       weightUnit: user.weightUnit === 'lbs' ? 'lbs' : 'kg',
+      emailVerified: isEmailVerifiedUser(user),
     },
-    /** Current UTC-month competitive rank — visible to all visitors (no auth). */
-    seasonRank: seasonRankPayloadForUser(user),
+    /** Current UTC-month competitive rank — visible when the athlete has verified their email. */
+    seasonRank: isEmailVerifiedUser(user) ? seasonRankPayloadForUser(user) : null,
     stats: {
       totalWorkouts,
       workoutsLast30Days: monthCount,

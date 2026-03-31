@@ -287,7 +287,13 @@ export default function Leaderboards() {
       });
       setData(res);
     } catch (e) {
-      setErr(e.response?.data?.error || 'Could not load leaderboard');
+      if (e.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
+        setErr(
+          'Verify your email to use leaderboards. Check the banner at the top of the app or resend the link from Settings.'
+        );
+      } else {
+        setErr(e.response?.data?.error || 'Could not load leaderboard');
+      }
       setData(null);
     } finally {
       setLoading(false);

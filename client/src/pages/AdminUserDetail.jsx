@@ -18,6 +18,7 @@ export default function AdminUserDetail() {
   const navigate = useNavigate();
   const { user: me, refreshUser, setToken } = useAuth();
   const meIsFullAdmin = !!me?.isAdmin;
+  const meIsStaff = !!(me?.isAdmin || me?.isSupport);
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState(null);
   const [workouts, setWorkouts] = useState([]);
@@ -242,6 +243,28 @@ export default function AdminUserDetail() {
     }
   }
 
+  async function verifyEmail() {
+    if (!userId || !meIsStaff) return;
+    if (
+      !(await appConfirm(
+        `Mark ${user.email} as email-verified? They will have access to import, nutrition, social, and season rank points.`
+      ))
+    ) {
+      return;
+    }
+    setBusy(true);
+    setMsg('');
+    try {
+      const { data } = await api.post(`/admin/users/${userId}/verify-email`);
+      setUser(data.user);
+      setMsg('Email marked verified.');
+    } catch (e) {
+      setMsg(e.response?.data?.error || 'Verify failed');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function deleteUser() {
     if (!user || !meIsFullAdmin) return;
     if (
@@ -349,10 +372,35 @@ export default function AdminUserDetail() {
           <li>Plans (templates): {stats?.templates ?? 0}</li>
           <li>Activity entries: {stats?.activityEntries ?? 0}</li>
           <li>Custom exercises: {stats?.customExercises ?? 0}</li>
+          <li>
+            Email verified:{' '}
+            {user.emailVerifiedAt ? (
+              <span className="text-emerald-400/90">yes</span>
+            ) : (
+              <span className="text-amber-400/90">no</span>
+            )}
+          </li>
           <li>Last login: {fmt(user.lastLoginAt)}</li>
           <li>Joined: {fmt(user.createdAt)}</li>
           <li>Updated: {fmt(user.updatedAt)}</li>
         </ul>
+
+        {meIsStaff && !user.emailVerifiedAt ? (
+          <div className="mt-4 border-t border-slate-800/80 pt-4">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => verifyEmail()}
+              className="rounded-xl border border-emerald-700/60 bg-emerald-950/25 px-4 py-2 text-sm text-emerald-100 disabled:opacity-50"
+            >
+              Mark email verified
+            </button>
+            <p className="mt-2 text-xs text-slate-500">
+              Use when the user cannot complete the email link (lost access, provider blocks mail,
+              etc.). This grants the same access as self-service verification.
+            </p>
+          </div>
+        ) : null}
 
         <div className="mt-4 space-y-3 border-t border-slate-800/80 pt-4">
           <h3 className="text-sm font-medium text-slate-300">Internal notes</h3>

@@ -30,6 +30,7 @@ import {
 } from '../utils/offlineQueue.js';
 import { appAlert } from '../lib/appDialogApi.js';
 import ResumeNewWorkoutCallout from './ResumeNewWorkoutCallout.jsx';
+import EmailVerificationBanner from './EmailVerificationBanner.jsx';
 
 /** Lucide defaults to outline strokes; keep nav glyphs uniform at 20px. */
 const NAV_ICON_STROKE = 1.75;
@@ -369,6 +370,8 @@ export default function Layout() {
 
         </aside>
       </div>
+
+      <EmailVerificationBanner />
 
       {impersonating ? (
         <div className="flex flex-col gap-2 border-b border-amber-800/70 bg-amber-950/45 px-4 py-2.5 text-center text-sm text-amber-100 sm:flex-row sm:items-center sm:justify-center sm:gap-4">

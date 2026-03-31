@@ -3,6 +3,7 @@ import { body, param, query, validationResult } from 'express-validator';
 import crypto from 'crypto';
 import NutritionDayLog, { NUTRITION_MEAL_TYPES } from '../models/NutritionDayLog.js';
 import { authRequired } from '../middleware/auth.js';
+import { emailVerifiedRequired } from '../middleware/emailVerified.js';
 import { dayKeyInBucharest, isValidDayKey, shiftDayKey } from '../lib/nutritionDayKey.js';
 import {
   roundCalories,
@@ -22,6 +23,7 @@ import {
 
 const router = Router();
 router.use(authRequired);
+router.use(emailVerifiedRequired);
 
 const MAX_FOODS_PER_DAY = 200;
 const MAX_NAME = 200;

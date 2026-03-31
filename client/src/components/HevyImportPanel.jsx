@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/client.js';
 import { appPath } from '../constants/routes.js';
 import { RankIcon } from './ranks/RankIcon.jsx';
@@ -22,12 +22,18 @@ function formatSeasonEnd(iso) {
 }
 
 export default function HevyImportPanel({ user, refreshUser }) {
+  const navigate = useNavigate();
+  const locked = user && !user.emailVerified && !user.isStaff;
   const sr = user?.seasonRank;
   const fileRef = useRef(null);
   const [phase, setPhase] = useState('idle');
   const [summary, setSummary] = useState(null);
   const [err, setErr] = useState('');
   const [rankFlash, setRankFlash] = useState(false);
+  const [hevyPlanUrl, setHevyPlanUrl] = useState('');
+  const [hevyPlanBusy, setHevyPlanBusy] = useState(false);
+  const [hevyPlanErr, setHevyPlanErr] = useState('');
+  const [hevyPlanOk, setHevyPlanOk] = useState(null);
 
   const runImport = useCallback(
     async (file) => {
@@ -62,6 +68,31 @@ export default function HevyImportPanel({ user, refreshUser }) {
     [refreshUser]
   );
 
+  const runPlanImport = useCallback(async () => {
+    setHevyPlanErr('');
+    setHevyPlanOk(null);
+    const url = hevyPlanUrl.trim();
+    if (!url) {
+      setHevyPlanErr('Paste a Hevy routine link first.');
+      return;
+    }
+    setHevyPlanBusy(true);
+    try {
+      const { data } = await api.post('/import/hevy-plan', { url });
+      setHevyPlanOk({
+        templateId: data.template?._id,
+        title: data.hevy?.title || data.template?.name,
+        exerciseCount: data.hevy?.exerciseCount,
+      });
+      setHevyPlanUrl('');
+      await refreshUser();
+    } catch (e) {
+      setHevyPlanErr(apiErr(e));
+    } finally {
+      setHevyPlanBusy(false);
+    }
+  }, [hevyPlanUrl, refreshUser]);
+
   const onPickFile = (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -77,9 +108,82 @@ export default function HevyImportPanel({ user, refreshUser }) {
     runImport(f);
   };
 
+  if (locked) {
+    return (
+      <section className="rounded-2xl border border-amber-900/50 bg-amber-950/20 p-4">
+        <h2 className="mb-2 font-semibold text-white">Import from Hevy</h2>
+        <p className="text-sm text-amber-100/90">
+          Verify your email to upload Hevy exports. Use the banner at the top of the app or open{' '}
+          <Link to={appPath('settings')} className="font-medium text-white underline underline-offset-2">
+            Settings
+          </Link>{' '}
+          to resend the confirmation link.
+        </p>
+        <p className="mt-4 text-sm text-slate-500">
+          <span className="font-medium text-slate-400">Hevy plans:</span> after you verify your email, you can paste a
+          share link (e.g. <span className="text-slate-400">hevy.com/routine/…</span>) to import a routine as an IronLog
+          plan. The CSV export is still only <strong className="text-slate-400">workout history</strong>, not templates.
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section className="rounded-2xl border border-slate-800 bg-surface-card p-4">
       <h2 className="mb-2 font-semibold text-white">Import from Hevy</h2>
+      <p className="mb-3 rounded-lg border border-slate-700/80 bg-slate-900/40 px-3 py-2 text-xs text-slate-500">
+        <span className="font-medium text-slate-400">CSV = history.</span> Hevy&apos;s export file is completed sessions
+        only. <span className="font-medium text-slate-400">Routine link = plan.</span> Paste a{' '}
+        <span className="text-slate-400">hevy.com/routine/…</span> URL below to create an IronLog plan (exercises match
+        by name; weights use your Settings unit).
+      </p>
+
+      <div className="mb-6 rounded-xl border border-slate-700/80 bg-surface/40 p-4">
+        <h3 className="mb-2 text-sm font-medium text-slate-200">Import Hevy plan from link</h3>
+        <p className="mb-3 text-xs text-slate-500">
+          In Hevy, open the routine → share → copy link. Example:{' '}
+          <span className="break-all text-slate-400">https://hevy.com/routine/dm9gx23J79V</span>
+        </p>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+          <input
+            type="url"
+            value={hevyPlanUrl}
+            onChange={(e) => {
+              setHevyPlanUrl(e.target.value);
+              setHevyPlanErr('');
+              setHevyPlanOk(null);
+            }}
+            placeholder="https://hevy.com/routine/…"
+            disabled={hevyPlanBusy}
+            className="min-w-0 flex-1 rounded-xl border border-slate-600 bg-[#0b0e14] px-3 py-2 text-sm text-slate-200 outline-none focus:border-accent disabled:opacity-50"
+          />
+          <button
+            type="button"
+            disabled={hevyPlanBusy}
+            onClick={() => runPlanImport()}
+            className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {hevyPlanBusy ? 'Importing…' : 'Import plan'}
+          </button>
+        </div>
+        {hevyPlanErr ? <p className="mt-2 text-sm text-red-400">{hevyPlanErr}</p> : null}
+        {hevyPlanOk ? (
+          <div className="mt-3 rounded-lg border border-emerald-900/50 bg-emerald-950/20 px-3 py-2 text-sm text-emerald-200/95">
+            <p>
+              Saved plan &quot;{hevyPlanOk.title}&quot; ({hevyPlanOk.exerciseCount ?? '—'} exercises).
+            </p>
+            {hevyPlanOk.templateId ? (
+              <button
+                type="button"
+                onClick={() => navigate(appPath(`templates/${hevyPlanOk.templateId}`))}
+                className="mt-2 text-sm font-medium text-white underline decoration-emerald-600 underline-offset-2"
+              >
+                Open in Plans →
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
       <p className="mb-4 text-sm text-slate-400">
         Upload a Hevy workout export (CSV). Each new session is saved as a completed workout and
         earns the same <span className="text-slate-300">monthly season rank</span> points as logging

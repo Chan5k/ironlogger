@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { BadgeCheck, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../api/client.js';
 import { appPath } from '../constants/routes.js';
@@ -88,6 +89,8 @@ export default function Settings() {
   const [publicProfileSlug, setPublicProfileSlug] = useState('');
   const [publicProfileBusy, setPublicProfileBusy] = useState(false);
   const [publicProfileMsg, setPublicProfileMsg] = useState('');
+  const [verifyBusy, setVerifyBusy] = useState(false);
+  const [verifyMsg, setVerifyMsg] = useState('');
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -342,6 +345,56 @@ export default function Settings() {
         <h1 className="text-xl font-bold text-white">Settings</h1>
         <p className="text-sm text-slate-400">Account, reminders, and preferences</p>
       </div>
+
+      {user && !user.isStaff && !user.emailVerified ? (
+        <section className="rounded-2xl border border-amber-800/50 bg-amber-950/25 p-4">
+          <div className="flex items-start gap-3">
+            <Mail className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" strokeWidth={1.75} aria-hidden />
+            <div className="min-w-0 flex-1">
+              <h2 className="text-sm font-semibold text-amber-50">Confirm your email</h2>
+              <p className="mt-1 text-xs text-amber-100/85">
+                Required for Hevy import, nutrition, social features, and earning season rank points. We sent a link to{' '}
+                <span className="font-mono text-amber-200/90">{user.email}</span>.
+              </p>
+              <button
+                type="button"
+                disabled={verifyBusy}
+                onClick={async () => {
+                  setVerifyMsg('');
+                  setVerifyBusy(true);
+                  try {
+                    const { data } = await api.post('/auth/resend-verification');
+                    setVerifyMsg(
+                      data?.alreadyVerified ? 'Already verified — refresh the page.' : 'Check your inbox (and spam).'
+                    );
+                    await refreshUser();
+                  } catch (e) {
+                    setVerifyMsg(e.response?.data?.error || 'Could not send.');
+                  } finally {
+                    setVerifyBusy(false);
+                  }
+                }}
+                className="mt-3 rounded-lg bg-amber-500/25 px-3 py-2 text-xs font-semibold text-amber-50 ring-1 ring-amber-500/40 hover:bg-amber-500/35 disabled:opacity-50"
+              >
+                {verifyBusy ? 'Sending…' : 'Resend verification email'}
+              </button>
+              {verifyMsg ? <p className="mt-2 text-xs text-amber-200/90">{verifyMsg}</p> : null}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {user?.emailVerified ? (
+        <section className="rounded-2xl border border-sky-900/40 bg-sky-950/20 p-4">
+          <div className="flex items-center gap-2 text-sm text-sky-100/90">
+            <BadgeCheck className="h-5 w-5 shrink-0 text-sky-400" strokeWidth={1.75} aria-hidden />
+            <span>
+              <span className="font-semibold text-white">Verified</span> — your email is confirmed. A verified badge appears
+              on your account menu and public profile.
+            </span>
+          </div>
+        </section>
+      ) : null}
 
       {user?.isStaff ? (
         <section className="rounded-2xl border border-slate-700 bg-slate-900/40 p-4">

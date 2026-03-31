@@ -38,7 +38,15 @@ export default function FollowingFeed() {
         const { data } = await api.get('/social/feed');
         if (!cancelled) setItems(data.items || []);
       } catch (e) {
-        if (!cancelled) setErr(e.response?.data?.error || 'Could not load feed');
+        if (!cancelled) {
+          if (e.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
+            setErr(
+              'Verify your email to use the following feed. Check the banner at the top of the app or resend the link from Settings.'
+            );
+          } else {
+            setErr(e.response?.data?.error || 'Could not load feed');
+          }
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }

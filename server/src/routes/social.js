@@ -7,7 +7,7 @@ import ProfileFollow from '../models/ProfileFollow.js';
 import ProfileWallEntry from '../models/ProfileWallEntry.js';
 import WorkoutLike from '../models/WorkoutLike.js';
 import Notification from '../models/Notification.js';
-import { authRequired } from '../middleware/auth.js';
+import { authAndEmailVerified } from '../middleware/authAndEmailVerified.js';
 import { optionalAuth } from '../middleware/optionalAuth.js';
 import { buildLeaderboard } from '../lib/leaderboards.js';
 import { buildSeasonRankLeaderboard } from '../lib/seasonRankLeaderboard.js';
@@ -145,7 +145,7 @@ router.get(
   }
 );
 
-router.post('/follow/:slug', authRequired, param('slug').trim().notEmpty(), async (req, res) => {
+router.post('/follow/:slug', authAndEmailVerified, param('slug').trim().notEmpty(), async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
   const target = await publicUserBySlug(req.params.slug);
@@ -178,7 +178,7 @@ router.post('/follow/:slug', authRequired, param('slug').trim().notEmpty(), asyn
   res.status(201).json({ ok: true });
 });
 
-router.delete('/follow/:slug', authRequired, param('slug').trim().notEmpty(), async (req, res) => {
+router.delete('/follow/:slug', authAndEmailVerified, param('slug').trim().notEmpty(), async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
   const target = await publicUserBySlug(req.params.slug);
@@ -190,7 +190,7 @@ router.delete('/follow/:slug', authRequired, param('slug').trim().notEmpty(), as
 /** Unfollow by target user id (works when they have no public slug or profile is off). */
 router.delete(
   '/following/:targetUserId',
-  authRequired,
+  authAndEmailVerified,
   param('targetUserId').isMongoId(),
   async (req, res) => {
     const errors = validationResult(req);
@@ -211,7 +211,7 @@ router.delete(
 const FEED_RECENT_WORKOUTS = 5;
 
 /** Activity for people you follow: session counts plus last completed workouts (title & timing only). */
-router.get('/feed', authRequired, async (req, res) => {
+router.get('/feed', authAndEmailVerified, async (req, res) => {
   const follows = await ProfileFollow.find({ followerId: asObjectId(req.user.id) })
     .select('targetUserId')
     .lean();
@@ -317,7 +317,7 @@ router.get('/feed', authRequired, async (req, res) => {
 
 router.get(
   '/activity-feed',
-  authRequired,
+  authAndEmailVerified,
   query('scope').isIn(['following', 'global']),
   query('sort').optional().isIn(['latest', 'top']),
   query('page').optional().isInt({ min: 1, max: 500 }),
@@ -343,7 +343,7 @@ router.get(
 
 router.get(
   '/workouts/:workoutId/comments',
-  authRequired,
+  authAndEmailVerified,
   param('workoutId').isMongoId(),
   query('limit').optional().isInt({ min: 1, max: 50 }),
   query('before').optional({ values: 'falsy' }).isISO8601(),
@@ -362,7 +362,7 @@ router.get(
 
 router.post(
   '/workouts/:workoutId/comments',
-  authRequired,
+  authAndEmailVerified,
   param('workoutId').isMongoId(),
   body('body').trim().notEmpty().isLength({ min: 1, max: 800 }),
   async (req, res) => {
@@ -379,7 +379,7 @@ router.post(
 
 router.get(
   '/leaderboards',
-  authRequired,
+  authAndEmailVerified,
   query('metric').isIn(['volume', 'workouts', 'streak', 'seasonRank']),
   query('scope').isIn(['following', 'global']),
   query('page').optional().isInt({ min: 1, max: 500 }),
@@ -423,7 +423,7 @@ router.get(
 
 router.get(
   '/workouts/:workoutId/likes',
-  authRequired,
+  authAndEmailVerified,
   param('workoutId').isMongoId(),
   query('preview').optional().isInt({ min: 1, max: 20 }),
   async (req, res) => {
@@ -467,7 +467,7 @@ router.get(
 
 router.post(
   '/workouts/:workoutId/like',
-  authRequired,
+  authAndEmailVerified,
   param('workoutId').isMongoId(),
   async (req, res) => {
     const errors = validationResult(req);
@@ -503,7 +503,7 @@ router.post(
 
 router.delete(
   '/workouts/:workoutId/like',
-  authRequired,
+  authAndEmailVerified,
   param('workoutId').isMongoId(),
   async (req, res) => {
     const errors = validationResult(req);
@@ -517,7 +517,7 @@ router.delete(
 
 router.post(
   '/wall/:slug',
-  authRequired,
+  authAndEmailVerified,
   param('slug').trim().notEmpty(),
   body('kind').isIn(['kudos', 'comment']),
   body('body').optional().trim().isLength({ max: 500 }),
@@ -573,7 +573,7 @@ router.post(
 
 router.delete(
   '/wall/:slug/:entryId',
-  authRequired,
+  authAndEmailVerified,
   param('slug').trim().notEmpty(),
   param('entryId').isMongoId(),
   async (req, res) => {

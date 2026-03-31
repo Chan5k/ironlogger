@@ -5,6 +5,7 @@ import Layout from './components/Layout.jsx';
 import Landing from './pages/Landing.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
+import VerifyEmail from './pages/VerifyEmail.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Workouts from './pages/Workouts.jsx';
 import WorkoutEdit from './pages/WorkoutEdit.jsx';
@@ -54,6 +55,7 @@ export default function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/u/:slug" element={<PublicProfile />} />
       <Route path="/add/:slug" element={<AddFriendInvite />} />
       <Route path="/share/:token" element={<ShareView />} />
