@@ -1359,10 +1359,12 @@ export default function WorkoutEdit() {
                   lastHint != null && Number(s.weight) === 0
                     ? ''
                     : formatWeightInputValue(s.weight, weightUnit);
+                const lastRepsFromSession =
+                  lastHint != null ? lastHint.reps : base?.lastSessionLastReps ?? null;
                 const repsPlaceholder =
-                  lastHint != null
-                    ? `reps: ${lastHint.reps} · last workout`
-                    : 'reps: e.g. 10';
+                  lastRepsFromSession != null && Number.isFinite(Number(lastRepsFromSession))
+                    ? String(Math.floor(Number(lastRepsFromSession)))
+                    : '10';
                 const repsControlled =
                   s.reps === '' || s.reps == null ? '' : String(s.reps);
                 const wtId = `set-wt-${ex._local}-${si}`;
@@ -1458,6 +1460,13 @@ export default function WorkoutEdit() {
                             updateSet(exIdx, si, 'reps', v === '' ? '' : v);
                           }}
                           className="h-11 w-full min-w-0 rounded-lg border border-slate-700 bg-surface px-3 text-sm text-white placeholder:text-slate-600"
+                          title={
+                            lastRepsFromSession != null
+                              ? lastHint != null
+                                ? `Last session, set ${si + 1}: ${Math.floor(Number(lastRepsFromSession))} reps`
+                                : `Last session (this exercise): ${Math.floor(Number(lastRepsFromSession))} reps`
+                              : undefined
+                          }
                           aria-label={`Set ${si + 1} repetitions`}
                           data-no-row-toggle
                         />

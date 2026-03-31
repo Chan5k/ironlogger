@@ -54,13 +54,15 @@ function isCountingSet(s) {
 }
 
 /**
- * Most recent prior workout's sets for this exercise (by exerciseId or custom name), newest first.
+ * Hints from the most recent prior workout for this exercise (by exerciseId or name).
+ * Per-set entries include completed working sets, or incomplete working sets that already have reps/weight.
+ * `lastSessionLastReps` is reps from the last completed counting set in that session (for extra rows / fallback).
  * @param {{ exercises?: unknown[], completedAt?: Date | null }[]} workoutsDesc
  * @param {string | null} eid
  * @param {string} nameKey lowercased trimmed name
- * @returns {( { weightKg: number, reps: number } | null )[]}
+ * @returns {{ lastSessionSets: ( { weightKg: number, reps: number } | null )[], lastSessionLastReps: number | null }}
  */
-function lastSessionSetHintsForTarget(workoutsDesc, eid, nameKey) {
+function lastSessionHintsBundle(workoutsDesc, eid, nameKey) {
   for (const w of workoutsDesc) {
     for (const ex of w.exercises || []) {
       const byId = eid && ex.exerciseId?.toString() === eid;
@@ -70,16 +72,45 @@ function lastSessionSetHintsForTarget(workoutsDesc, eid, nameKey) {
         (ex.exerciseId == null || ex.exerciseId === undefined) &&
         (ex.name || '').trim().toLowerCase() === nameKey;
       if (!byId && !byName) continue;
-      return (ex.sets || []).map((s) => {
-        if (!s?.completed) return null;
-        return {
-          weightKg: Number(s.weight) || 0,
-          reps: Math.floor(Number(s.reps) || 0),
-        };
+
+      const sets = ex.sets || [];
+
+      let lastSessionLastReps = null;
+      for (let i = sets.length - 1; i >= 0; i--) {
+        const s = sets[i];
+        if (!s || !isCountingSet(s) || !s.completed) continue;
+        lastSessionLastReps = Math.floor(Number(s.reps) || 0);
+        break;
+      }
+      if (lastSessionLastReps == null) {
+        for (let i = sets.length - 1; i >= 0; i--) {
+          const s = sets[i];
+          if (!s || !isCountingSet(s) || s.completed) continue;
+          const r = Math.floor(Number(s.reps) || 0);
+          if (r > 0) {
+            lastSessionLastReps = r;
+            break;
+          }
+        }
+      }
+
+      const lastSessionSets = sets.map((s) => {
+        if (!s || !isCountingSet(s)) return null;
+        const reps = Math.floor(Number(s.reps) || 0);
+        const weightKg = Number(s.weight) || 0;
+        if (s.completed) {
+          return { weightKg, reps };
+        }
+        if (reps > 0 || weightKg > 0) {
+          return { weightKg, reps };
+        }
+        return null;
       });
+
+      return { lastSessionSets, lastSessionLastReps };
     }
   }
-  return [];
+  return { lastSessionSets: [], lastSessionLastReps: null };
 }
 
 /** Non–warm-up volume (kg×reps) for completed workouts in [from, to]; if `exclusiveUpper`, use `to` as exclusive end. */
@@ -508,8 +539,8 @@ router.post(
           }
         }
       }
-      const lastSessionSets = lastSessionSetHintsForTarget(workouts, eid, nameKey);
-      return { maxWeight, maxSetVolume, repsByWeight, lastSessionSets };
+      const { lastSessionSets, lastSessionLastReps } = lastSessionHintsBundle(workouts, eid, nameKey);
+      return { maxWeight, maxSetVolume, repsByWeight, lastSessionSets, lastSessionLastReps };
     });
 
     res.json({ baselines });
