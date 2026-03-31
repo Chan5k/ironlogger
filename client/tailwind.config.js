@@ -52,10 +52,18 @@ export default {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
+        uiBackdropOut: {
+          '0%': { opacity: '1' },
+          '100%': { opacity: '0' },
+        },
         /** Centered nutrition / dialog modals */
         uiNutritionModalIn: {
           '0%': { opacity: '0', transform: 'scale(0.94) translateY(10px)' },
           '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+        },
+        uiNutritionModalOut: {
+          '0%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+          '100%': { opacity: '0', transform: 'scale(0.94) translateY(10px)' },
         },
         prBackdrop: {
           '0%': { opacity: '0' },
@@ -103,6 +111,10 @@ export default {
           '0%': { opacity: '0', transform: 'translateY(1.25rem)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
+        workoutDockOut: {
+          '0%': { opacity: '1', transform: 'translateY(0)' },
+          '100%': { opacity: '0', transform: 'translateY(1.25rem)' },
+        },
         aiSpinnerPulse: {
           '0%, 100%': { opacity: '0.6', transform: 'scale(1)' },
           '50%': { opacity: '1', transform: 'scale(1.08)' },
@@ -113,8 +125,11 @@ export default {
         'ui-fade-in': 'uiFadeIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both',
         'ui-modal-in': 'uiModalIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both',
         'ui-backdrop-in': 'uiBackdropIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        'ui-backdrop-out': 'uiBackdropOut 240ms cubic-bezier(0.22, 1, 0.36, 1) both',
         'ui-nutrition-modal-in':
           'uiNutritionModalIn 320ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        'ui-nutrition-modal-out':
+          'uiNutritionModalOut 300ms cubic-bezier(0.32, 0.72, 0, 1) both',
         'pr-backdrop': 'prBackdrop 0.55s ease-out both',
         'pr-card-in': 'prCardIn 0.95s cubic-bezier(0.22, 1, 0.32, 1.2) both',
         'pr-reveal-line': 'prRevealLine 0.55s ease-out both',
@@ -127,6 +142,8 @@ export default {
         'ai-spinner-pulse': 'aiSpinnerPulse 1.8s ease-in-out infinite',
         'workout-dock-in':
           'workoutDockIn 380ms cubic-bezier(0.32, 0.72, 0, 1) both',
+        'workout-dock-out':
+          'workoutDockOut 340ms cubic-bezier(0.32, 0.72, 0, 1) both',
       },
     },
   },
