@@ -13,6 +13,7 @@ import {
   sanitizeTotals,
 } from '../lib/nutritionNumbers.js';
 import { searchRomanianFoods, filterRomanianSuggestions } from '../lib/romanianFoodSearch.js';
+import { lookupRomanianBarcodeFallback } from '../lib/romanianBarcodeFallback.js';
 import { lookupBarcodeOpenFoodFacts, sanitizeBarcode } from '../lib/openFoodFactsBarcode.js';
 import UserNutritionFood from '../models/UserNutritionFood.js';
 import {
@@ -109,6 +110,14 @@ router.get(
           found: true,
           barcode: digits,
           product: out.product,
+        });
+      }
+      const roProduct = lookupRomanianBarcodeFallback(digits);
+      if (roProduct) {
+        return res.json({
+          found: true,
+          barcode: digits,
+          product: roProduct,
         });
       }
       const local = await findUserFoodByBarcodeDigits(req.user.id, digits);

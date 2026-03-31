@@ -802,10 +802,12 @@ export default function Nutrition() {
       <div>
         <h1 className="text-xl font-bold text-white">Nutrition</h1>
         <p className="mt-1 text-[15px] leading-relaxed text-slate-400">
-          Log calories and macros by day. Search blends the Romanian reference with foods you save under
+          Log calories and macros by day. Search blends Romanian dishes, common retail staples sold in RO, and
+          foods you save under
           <strong className="font-medium text-slate-200"> My foods </strong>
           (per 100 g, optional barcode). Scan barcodes via live camera or a single photo — no need to hold
-          still while decoding a snapshot. Open Food Facts fills many packs; your library covers the rest.
+          still while decoding a snapshot. Open Food Facts fills many packs; a small local barcode list and
+          your library cover more.
         </p>
       </div>
 
@@ -1238,6 +1240,10 @@ export default function Nutrition() {
                     <span className="rounded bg-violet-900/45 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-200">
                       My food
                     </span>
+                  ) : r.source === 'ro_reference' ? (
+                    <span className="rounded bg-slate-700/80 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-300">
+                      RO ref
+                    </span>
                   ) : null}
                 </p>
                 {r.brand ? <p className="text-xs text-slate-500">{r.brand}</p> : null}
@@ -1271,7 +1277,9 @@ export default function Nutrition() {
           setSheet(null);
         }}
       >
-        <p className="text-sm text-slate-400">Checking Open Food Facts and your saved foods…</p>
+        <p className="text-sm text-slate-400">
+          Checking Open Food Facts, local Romanian product barcodes, and your saved foods…
+        </p>
       </Sheet>
 
       <Sheet
@@ -1284,9 +1292,11 @@ export default function Nutrition() {
       >
         <div className="space-y-4">
           <p className="text-sm text-slate-300">
-            No match online or in your saved foods. Coverage is incomplete for some local packs — add details to
+            No match in Open Food Facts, the local barcode list, or your saved foods. Try
+            <strong className="font-medium text-white"> text search </strong>
+            (Romanian dishes + retail staples), add the pack to
             <strong className="font-medium text-white"> My foods </strong>
-            (per 100 g) so the next scan finds it, or use manual entry / text search.
+            , or enter manually.
           </p>
           {notFoundBarcode ? (
             <div className="rounded-lg border border-slate-700 bg-slate-900/50 px-3 py-2">
@@ -1369,7 +1379,7 @@ export default function Nutrition() {
       >
         <p className="text-xs leading-relaxed text-slate-400">
           Store foods with nutrition per 100 g. They show in search when the name or brand matches, and your
-          barcode is checked if Open Food Facts has no product.
+          barcodes are checked against Open Food Facts, then a small local Romanian list, then your entries.
         </p>
         {libraryLoading ? (
           <p className="mt-3 text-sm text-slate-400">Loading your list…</p>
@@ -1564,6 +1574,16 @@ export default function Nutrition() {
             <p className="text-sm text-white">{pick.name}</p>
             {pick.source === 'openfoodfacts' ? (
               <p className="text-xs text-slate-500">Source: Open Food Facts (values per 100 g unless adjusted).</p>
+            ) : null}
+            {pick.source === 'ro_reference' ? (
+              <p className="text-xs text-slate-500">
+                Source: Romanian reference database (estimates per 100 g — dishes and retail staples).
+              </p>
+            ) : null}
+            {pick.source === 'ro_barcode' ? (
+              <p className="text-xs text-slate-500">
+                Source: Local Romanian barcode list → reference nutrition (per 100 g; verify on pack if needed).
+              </p>
             ) : null}
             {pick.source === 'user_library' ? (
               <p className="text-xs text-slate-500">From your saved foods (per 100 g).</p>

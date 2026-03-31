@@ -1,7 +1,11 @@
 /**
- * Romanian food reference for IronLogger — replaces external product APIs.
+ * Romanian food reference for IronLogger — local JSON databases (no external product API).
  * Curated typical values (per 100 g edible portion unless noted); soups include liquid weight.
  * Sources are general food composition references + common Romanian portions; treat as estimates, not lab data.
+ *
+ * Datasets (merged, unique id per row — first file wins on duplicate id):
+ * - server/data/romanian-foods.json — home-cooked & traditional dishes
+ * - server/data/romanian-retail-staples.json — supermarket / packaged staples common in RO
  */
 
 import { readFileSync } from 'fs';
@@ -9,7 +13,11 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DATA_FILE = join(__dirname, '../../data/romanian-foods.json');
+
+const DATA_FILES = [
+  join(__dirname, '../../data/romanian-foods.json'),
+  join(__dirname, '../../data/romanian-retail-staples.json'),
+];
 
 const PAGE_SIZE = 25;
 
@@ -49,18 +57,29 @@ let _rows = null;
 
 function loadRows() {
   if (_rows) return _rows;
-  const raw = readFileSync(DATA_FILE, 'utf8');
-  const data = JSON.parse(raw);
-  if (!Array.isArray(data)) throw new Error('romanian-foods.json must be a JSON array');
-  _rows = data.map((row) => ({
-    ...row,
-    _blob: buildSearchBlob(row),
-  }));
+  const byId = new Map();
+  for (const filePath of DATA_FILES) {
+    const raw = readFileSync(filePath, 'utf8');
+    const data = JSON.parse(raw);
+    if (!Array.isArray(data)) {
+      throw new Error(`Romanian food file must be a JSON array: ${filePath}`);
+    }
+    for (const row of data) {
+      if (!row || typeof row !== 'object' || !row.id) continue;
+      const id = String(row.id);
+      if (byId.has(id)) continue;
+      byId.set(id, {
+        ...row,
+        _blob: buildSearchBlob(row),
+      });
+    }
+  }
+  _rows = Array.from(byId.values());
   return _rows;
 }
 
 /**
- * Same outward shape as the old Open Food Facts normalizer so the client stays unchanged.
+ * Same outward shape as the Open Food Facts normalizer so the client stays unchanged.
  */
 function toApiRow(row) {
   return {
@@ -76,7 +95,31 @@ function toApiRow(row) {
     servingLabel: row.servingLabel || null,
     servingGrams: row.servingG != null ? Number(row.servingG) : null,
     nutriScore: null,
+    source: 'ro_reference',
   };
+}
+
+/**
+ * Picker / barcode row: API shape + optional scanned barcode for “save to my foods”.
+ * @param {object} row internal row from loadRows()
+ * @param {{ barcode?: string|null }} [opts]
+ */
+export function referenceRowToPickerProduct(row, opts = {}) {
+  if (!row) return null;
+  const base = toApiRow(row);
+  const bc = opts.barcode != null && String(opts.barcode).trim() ? String(opts.barcode).replace(/\D/g, '') : '';
+  const barcodeOk = bc.length >= 8 && bc.length <= 14 ? bc : null;
+  return {
+    ...base,
+    source: barcodeOk ? 'ro_barcode' : 'ro_reference',
+    barcode: barcodeOk,
+  };
+}
+
+export function getRomanianReferenceRowById(id) {
+  const rows = loadRows();
+  const needle = String(id || '').trim();
+  return rows.find((r) => r.id === needle) || null;
 }
 
 function scoreRow(foldedQuery, row) {
