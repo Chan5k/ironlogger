@@ -823,15 +823,29 @@ export default function WorkoutEdit() {
     }
   }
 
-  const performDiscard = useCallback(() => {
+  const performDiscard = useCallback(async () => {
     setDiscardConfirmOpen(false);
     setRestSecondsLeft(0);
     if (isNew) {
       clearWorkoutDraft(newUnsavedWorkoutDraftKey());
       resetNewWorkoutDraftSession();
-    } else {
-      clearWorkoutDraft(workoutDraftKey(id, false));
+      navigate(appPath('workouts'));
+      return;
     }
+    try {
+      await api.delete(`/workouts/${id}`);
+    } catch (e) {
+      if (
+        isOfflineQueueableError(e) &&
+        enqueueOfflineRequest({ method: 'DELETE', url: `/workouts/${id}`, data: null })
+      ) {
+        await appAlert('Offline: delete was queued and will sync when you are online.');
+      } else {
+        await appAlert(e.response?.data?.error || 'Could not delete this workout');
+        return;
+      }
+    }
+    clearWorkoutDraft(workoutDraftKey(id, false));
     navigate(appPath('workouts'));
   }, [isNew, id, navigate]);
 
@@ -1306,9 +1320,9 @@ export default function WorkoutEdit() {
               <div className="hidden text-xs text-slate-500 sm:flex sm:items-end sm:gap-2 sm:px-1 sm:pb-1">
                 <span className="w-8 shrink-0">Set</span>
                 <span className="w-[7.5rem] shrink-0">Type</span>
-                <span className="flex min-w-0 max-w-[12.5rem] flex-1 gap-2">
-                  <span className="w-[6.25rem] shrink-0">Wt ({weightUnit})</span>
-                  <span className="w-16 shrink-0">Reps</span>
+                <span className="grid min-w-0 max-w-[15rem] flex-1 grid-cols-2 gap-2">
+                  <span className="font-medium uppercase tracking-wide">Weight ({weightUnit})</span>
+                  <span className="font-medium uppercase tracking-wide">Reps</span>
                 </span>
                 <span className="w-14 shrink-0 text-center">PR</span>
                 <span className="h-11 w-11 shrink-0" aria-hidden />
@@ -1336,24 +1350,29 @@ export default function WorkoutEdit() {
                       : s.completed
                         ? 'bg-emerald-950/20'
                         : 'bg-transparent';
+                const unitShort = weightUnit === 'lbs' ? 'lbs' : 'kg';
                 const weightPlaceholder =
                   lastHint != null
-                    ? formatWeightInputValue(lastHint.weightKg, weightUnit)
+                    ? `${unitShort}: ${formatWeightInputValue(lastHint.weightKg, weightUnit)} · last workout`
                     : undefined;
                 const weightControlled =
                   lastHint != null && Number(s.weight) === 0
                     ? ''
                     : formatWeightInputValue(s.weight, weightUnit);
                 const repsPlaceholder =
-                  lastHint != null ? String(lastHint.reps) : '10';
+                  lastHint != null
+                    ? `reps: ${lastHint.reps} · last workout`
+                    : 'reps: e.g. 10';
                 const repsControlled =
                   s.reps === '' || s.reps == null ? '' : String(s.reps);
+                const wtId = `set-wt-${ex._local}-${si}`;
+                const rpId = `set-rp-${ex._local}-${si}`;
 
                 return (
                   <div
                     key={si}
                     role="row"
-                    className={`flex flex-wrap items-center gap-x-2 gap-y-2 rounded-xl border px-2 py-2 transition-[background-color,box-shadow,border-color] duration-motion ease-motion-standard sm:flex-nowrap sm:gap-2 sm:px-1 ${rowBg} ${
+                    className={`flex flex-wrap items-start gap-x-2 gap-y-2 rounded-xl border px-2 py-2 transition-[background-color,box-shadow,border-color] duration-motion ease-motion-standard sm:flex-nowrap sm:items-center sm:gap-2 sm:px-1 ${rowBg} ${
                       s.completed
                         ? 'border-emerald-500/25'
                         : 'border-slate-800/80 hover:border-slate-700'
@@ -1374,7 +1393,7 @@ export default function WorkoutEdit() {
                     tabIndex={0}
                   >
                     <span
-                      className="flex h-11 w-8 shrink-0 items-center text-sm text-slate-400"
+                      className="flex h-11 w-8 shrink-0 items-center self-center text-sm text-slate-400"
                       role="cell"
                     >
                       {si + 1}
@@ -1392,39 +1411,57 @@ export default function WorkoutEdit() {
                         </option>
                       ))}
                     </select>
-                    <div className="flex min-w-0 basis-full gap-2 sm:basis-auto sm:max-w-[12.5rem]">
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        step="any"
-                        value={weightControlled}
-                        placeholder={weightPlaceholder}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          updateSet(
-                            exIdx,
-                            si,
-                            'weight',
-                            v === '' ? 0 : parseWeightInput(v, weightUnit)
-                          );
-                        }}
-                        className="h-11 min-w-[5.5rem] flex-1 rounded-lg border border-slate-700 bg-surface px-3 text-white placeholder:text-slate-600 sm:max-w-[6.5rem] sm:flex-none sm:basis-[6.25rem]"
-                        aria-label={`Set ${si + 1} weight`}
-                        data-no-row-toggle
-                      />
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        value={repsControlled}
-                        placeholder={repsPlaceholder}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          updateSet(exIdx, si, 'reps', v === '' ? '' : v);
-                        }}
-                        className="h-11 w-[4.75rem] shrink-0 rounded-lg border border-slate-700 bg-surface px-2 text-white placeholder:text-slate-600 sm:w-16"
-                        aria-label={`Set ${si + 1} reps`}
-                        data-no-row-toggle
-                      />
+                    <div className="grid min-w-0 basis-full grid-cols-2 gap-2 sm:basis-auto sm:max-w-[15rem]">
+                      <div className="min-w-0">
+                        <label
+                          htmlFor={wtId}
+                          className="mb-0.5 block text-[10px] font-medium uppercase tracking-wide text-slate-500"
+                        >
+                          Weight ({weightUnit})
+                        </label>
+                        <input
+                          id={wtId}
+                          type="number"
+                          inputMode="decimal"
+                          step="any"
+                          value={weightControlled}
+                          placeholder={weightPlaceholder}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            updateSet(
+                              exIdx,
+                              si,
+                              'weight',
+                              v === '' ? 0 : parseWeightInput(v, weightUnit)
+                            );
+                          }}
+                          className="h-11 w-full min-w-0 rounded-lg border border-slate-700 bg-surface px-3 text-sm text-white placeholder:text-slate-600"
+                          aria-label={`Set ${si + 1} weight in ${weightUnit}`}
+                          data-no-row-toggle
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <label
+                          htmlFor={rpId}
+                          className="mb-0.5 block text-[10px] font-medium uppercase tracking-wide text-slate-500"
+                        >
+                          Reps
+                        </label>
+                        <input
+                          id={rpId}
+                          type="number"
+                          inputMode="numeric"
+                          value={repsControlled}
+                          placeholder={repsPlaceholder}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            updateSet(exIdx, si, 'reps', v === '' ? '' : v);
+                          }}
+                          className="h-11 w-full min-w-0 rounded-lg border border-slate-700 bg-surface px-3 text-sm text-white placeholder:text-slate-600"
+                          aria-label={`Set ${si + 1} repetitions`}
+                          data-no-row-toggle
+                        />
+                      </div>
                     </div>
                     <div
                       className="flex w-full shrink-0 basis-full items-center justify-end gap-2 sm:w-auto sm:basis-auto sm:justify-center"
@@ -1590,7 +1627,7 @@ export default function WorkoutEdit() {
                 <p id="workout-discard-desc" className="mt-2 text-sm leading-relaxed text-red-200/90">
                   {isNew
                     ? 'Your draft will be removed. This cannot be undone.'
-                    : 'Unsaved changes will be lost. The saved workout on the server stays as it was until you save again.'}
+                    : 'This workout will be permanently deleted from your log (including any draft edits). This cannot be undone.'}
                 </p>
                 <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
                   <button

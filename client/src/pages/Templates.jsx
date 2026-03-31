@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/client.js';
 import { appPath } from '../constants/routes.js';
@@ -8,6 +9,9 @@ import { appAlert, appConfirm } from '../lib/appDialogApi.js';
 
 export default function Templates() {
   const [templates, setTemplates] = useState([]);
+  const [creating, setCreating] = useState(null);
+  const [createProgress, setCreateProgress] = useState(0);
+  const progressIntervalRef = useRef(null);
   const navigate = useNavigate();
 
   async function load() {
@@ -19,14 +23,45 @@ export default function Templates() {
     load();
   }, []);
 
+  useEffect(() => {
+    if (!creating) {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+      return;
+    }
+    setCreateProgress(0);
+    progressIntervalRef.current = window.setInterval(() => {
+      setCreateProgress((p) => (p >= 88 ? p : Math.min(p + 6 + Math.random() * 10, 88)));
+    }, 130);
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+    };
+  }, [creating]);
+
   async function startFromTemplate(t) {
+    if (creating) return;
+    setCreating({ name: t.name, id: t._id });
     try {
       const { data } = await api.post(`/workouts/from-template/${t._id}`, {
         title: t.name,
       });
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+      setCreateProgress(100);
+      await new Promise((r) => setTimeout(r, 320));
       navigate(appPath(`workouts/${data.workout._id}`));
     } catch (e) {
       await appAlert(e.response?.data?.error || 'Could not start workout');
+    } finally {
+      setCreating(null);
+      setCreateProgress(0);
     }
   }
 
@@ -51,6 +86,40 @@ export default function Templates() {
 
   return (
     <div className="space-y-4">
+      {creating
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[320] flex min-h-[100dvh] items-center justify-center overflow-y-auto p-4"
+              role="alertdialog"
+              aria-busy="true"
+              aria-live="polite"
+              aria-label="Creating workout"
+            >
+              <div className="fixed inset-0 bg-black/70 backdrop-blur-sm motion-reduce:backdrop-blur-none" />
+              <div className="animate-ui-modal-in relative z-10 w-full max-w-sm rounded-2xl border border-slate-700 bg-surface-card p-6 shadow-2xl ring-1 ring-white/5 motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none">
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/60 opacity-75 motion-reduce:animate-none" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                  </span>
+                  <h2 className="text-base font-semibold text-white">Creating workout</h2>
+                </div>
+                <p className="mt-2 text-sm text-slate-400">Building your session from &quot;{creating.name}&quot;…</p>
+                <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-slate-800">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-emerald-600 via-accent to-emerald-500 transition-[width] duration-300 ease-out motion-reduce:transition-none"
+                    style={{ width: `${createProgress}%` }}
+                  />
+                </div>
+                <p className="mt-3 text-center text-xs text-slate-500">
+                  {createProgress >= 100 ? 'Opening editor…' : 'Preparing exercises and sets…'}
+                </p>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
+
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-white">Workout plans</h1>
@@ -83,10 +152,11 @@ export default function Templates() {
               <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
                 <button
                   type="button"
+                  disabled={!!creating}
                   onClick={() => startFromTemplate(t)}
-                  className="min-h-12 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 sm:min-h-11 sm:px-5"
+                  className="min-h-12 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-11 sm:px-5"
                 >
-                  Start workout
+                  {creating?.id === t._id ? 'Starting…' : 'Start workout'}
                 </button>
                 <Link
                   to={appPath(`templates/${t._id}`)}
