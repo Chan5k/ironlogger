@@ -23,6 +23,8 @@ async function getHtml5Formats() {
 function barcodeFormatsConfig(Html5QrcodeSupportedFormats) {
   return {
     verbose: false,
+    /** Native BarcodeDetector in Chromium is much faster than pure-JS decode when available. */
+    useBarCodeDetectorIfSupported: true,
     formatsToSupport: [
       Html5QrcodeSupportedFormats.EAN_13,
       Html5QrcodeSupportedFormats.EAN_8,
@@ -306,7 +308,7 @@ export default function BarcodeScannerModal({ open, onClose, onBarcodeScanned })
           if (!digits) return;
           const now = Date.now();
           const last = lastHitRef.current;
-          if (last.digits === digits && now - last.t < 550) return;
+          if (last.digits === digits && now - last.t < 90) return;
           lastHitRef.current = { digits, t: now };
 
           lockedRef.current = true;
@@ -325,11 +327,11 @@ export default function BarcodeScannerModal({ open, onClose, onBarcodeScanned })
         };
 
         const scanConfig = {
-          fps: 8,
+          fps: 30,
           qrbox: (viewfinderW, viewfinderH) => {
-            const w = Math.min(300, Math.floor(viewfinderW * 0.9));
-            const h = Math.min(170, Math.floor(viewfinderH * 0.38));
-            return { width: w, height: Math.max(80, h) };
+            const w = Math.min(340, Math.floor(viewfinderW * 0.92));
+            const h = Math.min(200, Math.floor(viewfinderH * 0.42));
+            return { width: w, height: Math.max(88, h) };
           },
         };
 
@@ -368,13 +370,10 @@ export default function BarcodeScannerModal({ open, onClose, onBarcodeScanned })
       }
     };
 
-    const raf = window.requestAnimationFrame(() => {
-      run();
-    });
+    void run();
 
     return () => {
       alive = false;
-      window.cancelAnimationFrame(raf);
       const inst = scannerRef.current;
       scannerRef.current = null;
       if (inst) {

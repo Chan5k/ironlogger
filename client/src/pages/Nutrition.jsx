@@ -176,6 +176,10 @@ function MacroBar({ label, current, target, emphasize }) {
 }
 
 export default function Nutrition() {
+  useEffect(() => {
+    void import('html5-qrcode');
+  }, []);
+
   const [dayKey, setDayKey] = useState(() => dayKeyInBucharest());
   const [log, setLog] = useState(null);
   const [history, setHistory] = useState([]);

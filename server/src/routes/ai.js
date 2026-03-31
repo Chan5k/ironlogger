@@ -4,6 +4,7 @@ import rateLimit from 'express-rate-limit';
 import { authRequired } from '../middleware/auth.js';
 import { generateWorkoutReview } from '../lib/aiWorkoutReview.js';
 import { generateProgressReview } from '../lib/aiProgressReview.js';
+import { normalizeHevyTimestampsForUser } from '../lib/backfillHevyTimestamps.js';
 
 const router = Router();
 router.use(authRequired);
@@ -50,6 +51,7 @@ router.post(
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
+      await normalizeHevyTimestampsForUser(req.user.id);
       const result = await generateProgressReview(req.user.id, Number(req.body.days));
       res.json(result);
     } catch (e) {

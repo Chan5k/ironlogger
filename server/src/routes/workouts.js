@@ -16,6 +16,7 @@ import {
 } from '../lib/trainingStreak.js';
 import { totalVolumeKgNonWarmup } from '../lib/workoutVolume.js';
 import { tryAwardSeasonRankPointsForWorkout } from '../lib/seasonRankPoints.js';
+import { normalizeHevyTimestampsForUser } from '../lib/backfillHevyTimestamps.js';
 
 /** Longest run of consecutive calendar days present in `set` (YYYY-MM-DD keys). */
 function bestStreakFromDaySet(trainingDays) {
@@ -107,6 +108,12 @@ router.get(
 );
 
 router.get('/summary', async (req, res) => {
+  try {
+    await normalizeHevyTimestampsForUser(req.user.id);
+  } catch (e) {
+    console.error('normalizeHevyTimestampsForUser (summary)', e);
+  }
+
   const now = new Date();
   const weekAgo = new Date(now);
   weekAgo.setDate(weekAgo.getDate() - 7);
@@ -353,6 +360,7 @@ router.get(
 
 router.get('/intelligence', async (req, res) => {
   try {
+    await normalizeHevyTimestampsForUser(req.user.id);
     const data = await buildDashboardIntelligence(req.user.id);
     res.json(data);
   } catch (e) {

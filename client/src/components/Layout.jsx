@@ -139,10 +139,7 @@ function CloseIcon() {
 }
 
 function buildNavSections(isStaff) {
-  const other = [
-    { to: appPath('settings'), label: 'Settings', Icon: IconSettings },
-    ...(isStaff ? [{ to: appPath('admin'), label: 'Admin', Icon: IconAdmin }] : []),
-  ];
+  const other = [{ to: appPath('settings'), label: 'Settings', Icon: IconSettings }];
   return [
     {
       id: 'main',
@@ -151,6 +148,7 @@ function buildNavSections(isStaff) {
         { to: appPath(), label: 'Home', end: true, Icon: IconHome },
         { to: appPath('workouts'), label: 'Workouts', Icon: IconWorkouts },
         { to: appPath('library'), label: 'Library', Icon: IconLibrary },
+        ...(isStaff ? [{ to: appPath('admin'), label: 'Admin', Icon: IconAdmin }] : []),
       ],
     },
     {
@@ -296,9 +294,18 @@ export default function Layout() {
           </button>
           <Link
             to={appPath()}
-            className="truncate text-lg font-semibold tracking-tight text-white transition-colors duration-motion ease-motion-standard hover:text-blue-100 focus:outline-none focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-blue-500/40"
+            aria-label="IronLog home"
+            className="flex shrink-0 items-center rounded-lg transition-[filter,opacity] duration-motion ease-motion-standard hover:opacity-95 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
           >
-            IronLog
+            <img
+              src={`${import.meta.env.BASE_URL}icons/icon-192.png`}
+              alt=""
+              width={32}
+              height={32}
+              decoding="async"
+              fetchPriority="high"
+              className="h-8 w-8 rounded-lg object-contain ring-1 ring-white/25 shadow-[0_0_24px_rgba(59,130,246,0.2)]"
+            />
           </Link>
         </div>
         <div className="flex shrink-0 items-center gap-0.5">

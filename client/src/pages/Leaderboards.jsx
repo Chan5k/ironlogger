@@ -25,9 +25,31 @@ function formatSeasonEnd(iso) {
   }
 }
 
-function SeasonRankGuide() {
+function SeasonRankGuide({ ladderFromParent }) {
   const [open, setOpen] = useState(false);
+  const [fetchedLadder, setFetchedLadder] = useState(null);
   const panelId = 'season-rank-guide-panel';
+
+  useEffect(() => {
+    if (ladderFromParent?.length) return;
+    if (!open || fetchedLadder?.length) return;
+    let cancelled = false;
+    api
+      .get('/public/season-rank-ladder')
+      .then(({ data }) => {
+        if (!cancelled && Array.isArray(data?.ladder)) setFetchedLadder(data.ladder);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [open, ladderFromParent, fetchedLadder]);
+
+  useEffect(() => {
+    if (ladderFromParent?.length) setFetchedLadder(null);
+  }, [ladderFromParent]);
+
+  const ladderRows = ladderFromParent?.length ? ladderFromParent : fetchedLadder;
 
   return (
     <div className="overflow-hidden rounded-xl border border-slate-800/90 bg-[#121826]/80 ring-1 ring-slate-800/50">
@@ -64,55 +86,110 @@ function SeasonRankGuide() {
             }`}
           >
             <section className="space-y-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Earning points</h3>
-          <ul className="list-inside list-disc space-y-1.5 text-slate-400 marker:text-slate-600">
-            <li>
-              <span className="text-slate-300">Complete a workout</span> — you get points once when you mark a session
-              finished. The workout must include at least one <strong className="font-medium text-slate-300">non-warmup</strong>{' '}
-              set with <strong className="font-medium text-slate-300">at least one rep</strong> logged. Warmup-only sessions
-              do not count.
-            </li>
-            <li>
-              <span className="text-slate-300">+15</span> base points per qualifying completion.
-            </li>
-            <li>
-              <span className="text-slate-300">Volume bonus:</span> +1 point per{' '}
-              <strong className="font-medium text-slate-300">500 kg×reps</strong> of non-warmup volume in that workout (stored
-              weights are in kg), up to <strong className="font-medium text-slate-300">+25</strong> extra per session.
-            </li>
-            <li>
-              <span className="text-slate-300">Daily bonus:</span> the first qualifying workout on a{' '}
-              <strong className="font-medium text-slate-300">calendar day</strong> in your account timezone (Settings) earns an
-              extra <strong className="font-medium text-slate-300">+5</strong>. Later workouts the same day still get base +
-              volume, but not another daily bonus.
-            </li>
-            <li>
-              Each workout awards points <strong className="font-medium text-slate-300">at most once</strong>, even if you edit
-              it later.
-            </li>
-          </ul>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Earning points</h3>
+              <ul className="list-inside list-disc space-y-1.5 text-slate-400 marker:text-slate-600">
+                <li>
+                  <span className="text-slate-300">Complete a workout in IronLog</span> — points are granted once when you mark
+                  a session finished. It must include at least one{' '}
+                  <strong className="font-medium text-slate-300">non-warmup</strong> set with{' '}
+                  <strong className="font-medium text-slate-300">at least one rep</strong>. Warmup-only sessions do not count.
+                </li>
+                <li>
+                  <span className="text-slate-300">+15</span> base points per qualifying session.
+                </li>
+                <li>
+                  <span className="text-slate-300">Volume bonus:</span> +1 point per{' '}
+                  <strong className="font-medium text-slate-300">500 kg×reps</strong> of non-warmup volume in that session
+                  (weights are stored in kg), up to <strong className="font-medium text-slate-300">+25</strong> per session.
+                </li>
+                <li>
+                  <span className="text-slate-300">Daily bonus:</span> the first qualifying session on each{' '}
+                  <strong className="font-medium text-slate-300">calendar day</strong> in your account timezone (Settings) earns{' '}
+                  <strong className="font-medium text-slate-300">+5</strong>. Later sessions that day still get base + volume,
+                  not another daily bonus.
+                </li>
+                <li>
+                  Each session can award points <strong className="font-medium text-slate-300">at most once</strong>, even if
+                  you edit it later.
+                </li>
+              </ul>
             </section>
+
             <section className="space-y-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Seasons</h3>
-          <p>
-            Seasons follow <strong className="font-medium text-slate-300">UTC calendar months</strong> (e.g. 1–31 March UTC).
-            When a new month starts, everyone&apos;s <strong className="font-medium text-slate-300">season score resets to 0</strong>{' '}
-            the next time they earn points. Leaderboards show who has the most points in the current month.
-          </p>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Hevy imports</h3>
+              <ul className="list-inside list-disc space-y-1.5 text-slate-400 marker:text-slate-600">
+                <li>
+                  Under <strong className="font-medium text-slate-300">Settings → Import from Hevy</strong>, upload your Hevy
+                  CSV export. Each <strong className="font-medium text-slate-300">new</strong> workout (by UTC date + title) is
+                  saved as a completed session and earns the <strong className="font-medium text-slate-300">same</strong> season
+                  points as logging it manually: base, volume bonus, and daily bonus when the rules above apply.
+                </li>
+                <li>
+                  Imports are processed in <strong className="font-medium text-slate-300">chronological order</strong> so the
+                  daily +5 lines up with each session&apos;s calendar day in your timezone.
+                </li>
+                <li>
+                  <strong className="font-medium text-slate-300">Duplicates</strong> (same date + workout name as an import you
+                  already have) are skipped and earn no points. Re-uploading the same file within 24 hours is blocked.
+                </li>
+                <li>
+                  Points from imports go to the <strong className="font-medium text-slate-300">current UTC month</strong> season,
+                  same as in-app completions.
+                </li>
+              </ul>
             </section>
+
             <section className="space-y-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Ranks</h3>
-          <p>
-            Your <strong className="font-medium text-slate-300">rank</strong> (Wood → Ultimate Champion, levels 1–3 with 3
-            highest in each tier) depends only on your <strong className="font-medium text-slate-300">season points</strong>.
-            Earn more points this month to move up. The card above shows how many points you need for the next rank; the{' '}
-            <strong className="font-medium text-slate-300">rank ladder</strong> lists every tier and highlights where you
-            stand.
-          </p>
-          <p className="text-xs text-slate-500">
-            Tiers: Wood, Iron, Silver, Gold, Platinum, Emerald, Diamond, Master, Ultimate Champion — each has ranks 1, 2, and 3.
-          </p>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Seasons</h3>
+              <p>
+                Seasons use <strong className="font-medium text-slate-300">UTC calendar months</strong> (e.g. 1–31 March UTC).
+                When a new month starts, your displayed season score resets to{' '}
+                <strong className="font-medium text-slate-300">0</strong> until you earn points again. Leaderboards rank by
+                points in the current month.
+              </p>
             </section>
+
+            <section className="space-y-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Ranks (45 steps)</h3>
+              <p>
+                There are <strong className="font-medium text-slate-300">45 ranks</strong>:{' '}
+                <strong className="font-medium text-slate-300">15 tiers</strong>, each with{' '}
+                <strong className="font-medium text-slate-300">3 divisions</strong> (division 3 is the top of that tier). After
+                Ultimate Champion, six prestige tiers continue the climb: Astral, Mythic, Celestial, Eternal, Transcendent, and
+                Sovereign. Your rank follows only <strong className="font-medium text-slate-300">season points</strong> this
+                month. The rank ladder below highlights your current step.
+              </p>
+            </section>
+
+            {ladderRows?.length ? (
+              <section className="space-y-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Point thresholds (lowest → highest rank)
+                </h3>
+                <div className="max-h-[min(22rem,60dvh)] overflow-y-auto overscroll-contain rounded-lg border border-slate-800/90 bg-slate-950/40">
+                  <table className="w-full text-left text-xs text-slate-400">
+                    <thead className="sticky top-0 z-[1] border-b border-slate-800 bg-[#121826] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                      <tr>
+                        <th className="px-3 py-2">Rank</th>
+                        <th className="px-3 py-2 text-right tabular-nums">Min. pts</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/80">
+                      {ladderRows.map((step) => (
+                        <tr key={step.index} className="hover:bg-slate-800/30">
+                          <td className="px-3 py-1.5 text-slate-300">{step.label}</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums text-slate-500">
+                            {step.minPoints.toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            ) : open ? (
+              <p className="text-xs text-slate-600">Loading ladder…</p>
+            ) : null}
           </div>
         </div>
       </div>
@@ -284,7 +361,7 @@ export default function Leaderboards() {
         ))}
       </div>
 
-      {isSeason ? <SeasonRankGuide /> : null}
+      {isSeason ? <SeasonRankGuide ladderFromParent={data?.ladder ?? null} /> : null}
 
       {seasonCard ? (
         <div className="rounded-xl border border-slate-800/90 bg-[#121826]/95 px-4 py-4">

@@ -13,6 +13,8 @@ import { parseAdminEmails, userIsAdmin } from '../config/admin.js';
 import { adminApiRateLimiter } from '../middleware/adminRateLimit.js';
 import { logAdminAction } from '../lib/adminAudit.js';
 import { currentSeasonIdUTC, seasonRankPayloadForUser } from '../lib/rankLadder.js';
+import { runHevyImportBackfill } from '../lib/backfillHevyImports.js';
+import { normalizeAllHevyTimestampsPending } from '../lib/backfillHevyTimestamps.js';
 
 const router = Router();
 router.use(authRequired);
@@ -356,6 +358,33 @@ router.patch(
     });
   }
 );
+
+router.post(
+  '/maintenance/backfill-hevy-imports',
+  fullAdminRequired,
+  body('fixCategories').optional().isBoolean(),
+  body('awardSeasonPoints').optional().isBoolean(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const fixCategories = req.body.fixCategories !== false;
+    const awardSeasonPoints = req.body.awardSeasonPoints !== false;
+    const result = await runHevyImportBackfill({ fixCategories, awardSeasonPoints });
+    await logAdminAction(req.user.id, 'maintenance.backfill_hevy_imports', { meta: result });
+    res.json({ ok: true, result });
+  }
+);
+
+router.post('/maintenance/backfill-hevy-timestamps', fullAdminRequired, async (req, res) => {
+  try {
+    const result = await normalizeAllHevyTimestampsPending();
+    await logAdminAction(req.user.id, 'maintenance.backfill_hevy_timestamps', { meta: result });
+    res.json({ ok: true, result });
+  } catch (e) {
+    console.error('backfill-hevy-timestamps', e);
+    res.status(500).json({ error: 'Backfill failed' });
+  }
+});
 
 router.delete(
   '/users/:id',

@@ -47,7 +47,7 @@ self.addEventListener('push', (event) => {
   }
   const title = data.title || 'IronLog';
   const body = data.body || '';
-  const iconUrl = new URL('iron-logger-logo.jpg', scopeUrl).href;
+  const iconUrl = new URL('icons/icon-192.png', scopeUrl).href;
   event.waitUntil(
     self.registration.showNotification(title, {
       body,

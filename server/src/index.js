@@ -17,6 +17,7 @@ import cronRoutes from './routes/cron.js';
 import goalRoutes from './routes/goals.js';
 import nutritionRoutes from './routes/nutrition.js';
 import aiRoutes from './routes/ai.js';
+import importRoutes from './routes/import.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -76,6 +77,7 @@ app.use('/api/nutrition', nutritionRoutes);
 app.use('/api/templates', templateRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/import', importRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.use((err, _req, res, _next) => {

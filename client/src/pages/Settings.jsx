@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../api/client.js';
+import { appPath } from '../constants/routes.js';
 import { urlBase64ToUint8Array } from '../utils/pushSubscribe.js';
 import { siteOriginPrefix } from '../utils/siteBase.js';
+import HevyImportPanel from '../components/HevyImportPanel.jsx';
 
 const DAYS = [
   { v: 0, label: 'Sun' },
@@ -340,6 +343,22 @@ export default function Settings() {
         <p className="text-sm text-slate-400">Account, reminders, and preferences</p>
       </div>
 
+      {user?.isStaff ? (
+        <section className="rounded-2xl border border-slate-700 bg-slate-900/40 p-4">
+          <h2 className="mb-1 text-sm font-semibold text-white">Admin console</h2>
+          <p className="mb-3 text-xs text-slate-500">
+            Staff dashboard — users, exercises, audit log. Also listed under <strong className="text-slate-400">Main</strong>{' '}
+            in the sidebar as <strong className="text-slate-400">Admin</strong>.
+          </p>
+          <Link
+            to={appPath('admin')}
+            className="inline-flex min-h-10 items-center rounded-xl border border-slate-600 bg-slate-800/60 px-4 py-2 text-sm font-medium text-slate-100 hover:border-slate-500 hover:bg-slate-800"
+          >
+            Open admin
+          </Link>
+        </section>
+      ) : null}
+
       <section className="rounded-2xl border border-slate-800 bg-surface-card p-4">
         <h2 className="mb-2 font-semibold text-white">Account</h2>
         <p className="mb-4 text-sm text-slate-400">
@@ -487,6 +506,8 @@ export default function Settings() {
           </button>
         </div>
       </section>
+
+      <HevyImportPanel user={user} refreshUser={refreshUser} />
 
       <section className="rounded-2xl border border-slate-800 bg-surface-card p-4">
         <h2 className="mb-2 font-semibold text-white">Public profile</h2>

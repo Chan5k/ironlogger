@@ -213,7 +213,7 @@ export default function PublicProfile() {
                     </div>
                   </div>
                   <p className="mt-3 text-[11px] text-slate-600">
-                    Same monthly ladder as in-app leaderboards. Resets at the end of each UTC calendar month.
+                    Same 45-step monthly ladder as in-app logs and Hevy imports. Resets each UTC calendar month.
                   </p>
                 </div>
               ) : null}

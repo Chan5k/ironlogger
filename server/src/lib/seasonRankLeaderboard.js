@@ -75,7 +75,8 @@ export async function buildSeasonRankLeaderboard({ scope, page, limit, viewerId 
     seasonLabel: seasonDisplayLabel(seasonId),
     seasonStartsAt: bounds?.start?.toISOString() ?? null,
     seasonEndsAt: bounds?.end?.toISOString() ?? null,
-    metricNote: 'Ranked by seasonal ladder points (UTC month). +15 per workout, up to +25 volume bonus, +5 first workout of your day.',
+    metricNote:
+      'Ranked by seasonal ladder points (UTC month). +15 per qualifying workout, up to +25 volume bonus, +5 first workout of your calendar day (timezone). In-app logs and Hevy CSV imports use the same rules; each session counts once.',
     ladder: getRankLadderSteps(),
     viewerLadder: {
       seasonPoints: viewerSeasonPoints,

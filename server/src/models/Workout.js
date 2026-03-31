@@ -33,6 +33,12 @@ const workoutSchema = new mongoose.Schema(
     templateId: { type: mongoose.Schema.Types.ObjectId, ref: 'WorkoutTemplate', default: null },
     /** True after seasonal rank points were granted for this completion */
     ladderPointsAwarded: { type: Boolean, default: false },
+    /** Set when workout was created from a Hevy CSV import. */
+    importSource: { type: String, enum: ['hevy'], default: null },
+    /** Stable key for duplicate detection: local calendar day + normalized title (Hevy imports only). */
+    hevyImportKey: { type: String, default: null, trim: true },
+    /** True after `startedAt` / `completedAt` use timezone-correct instants (new imports + backfill). */
+    hevyTimestampsNormalized: { type: Boolean, default: false },
     exercises: [workoutExerciseSchema],
   },
   { timestamps: true }
@@ -40,5 +46,9 @@ const workoutSchema = new mongoose.Schema(
 
 workoutSchema.index({ userId: 1, startedAt: -1 });
 workoutSchema.index({ userId: 1, completedAt: -1 });
+workoutSchema.index(
+  { userId: 1, hevyImportKey: 1 },
+  { unique: true, sparse: true }
+);
 
 export default mongoose.model('Workout', workoutSchema);

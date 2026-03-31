@@ -15,7 +15,7 @@ import {
   sessionBaselineMapFromExercises,
 } from '../utils/prBaseline.js';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Check } from 'lucide-react';
+import { Check, MoreHorizontal } from 'lucide-react';
 import api from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { appPath } from '../constants/routes.js';
@@ -122,7 +122,15 @@ export default function WorkoutEdit() {
   const [pinnedActionsHeight, setPinnedActionsHeight] = useState(0);
   const [discardConfirmOpen, setDiscardConfirmOpen] = useState(false);
   const [postWorkoutRecapOpen, setPostWorkoutRecapOpen] = useState(false);
+  const [workoutMoreOpen, setWorkoutMoreOpen] = useState(false);
+  const [workoutMoreBtnPop, setWorkoutMoreBtnPop] = useState(false);
   const workoutActionsRef = useRef(null);
+
+  const openWorkoutMoreMenu = useCallback(() => {
+    setWorkoutMoreBtnPop(true);
+    setWorkoutMoreOpen(true);
+    window.setTimeout(() => setWorkoutMoreBtnPop(false), 220);
+  }, []);
 
   const dismissPrCelebration = useCallback(() => setPrCelebration(null), []);
 
@@ -842,63 +850,188 @@ export default function WorkoutEdit() {
 
   const showDiscard = isNew || !serverCompleted;
 
+  const workoutActionsDesktop = (
+    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+      <button
+        type="button"
+        onClick={save}
+        disabled={saving}
+        className="rounded-xl bg-accent px-6 py-3 font-semibold text-white disabled:opacity-50"
+      >
+        {saving ? 'Saving…' : 'Save workout'}
+      </button>
+      {showDiscard ? (
+        <button
+          type="button"
+          onClick={() => setDiscardConfirmOpen(true)}
+          disabled={saving}
+          className="rounded-xl border border-red-900/80 px-6 py-3 text-sm font-medium text-red-400 transition-colors hover:border-red-700 hover:bg-red-950/25 disabled:opacity-50"
+        >
+          Discard
+        </button>
+      ) : null}
+      {!isNew ? (
+        <>
+          <button
+            type="button"
+            onClick={() => markComplete(true)}
+            disabled={saving}
+            className="rounded-xl border border-emerald-700 px-6 py-3 font-medium text-emerald-400"
+          >
+            Mark complete
+          </button>
+          <button
+            type="button"
+            onClick={() => markComplete(false)}
+            disabled={saving}
+            className="rounded-xl border border-slate-600 px-6 py-3 text-slate-300"
+          >
+            Reopen
+          </button>
+          <button
+            type="button"
+            onClick={() => shareWorkoutLink()}
+            disabled={saving}
+            className="rounded-xl border border-slate-600 px-6 py-3 text-slate-300"
+          >
+            Share link
+          </button>
+          <button
+            type="button"
+            onClick={deleteWorkout}
+            className="rounded-xl border border-red-900 px-6 py-3 text-red-400"
+          >
+            Delete
+          </button>
+        </>
+      ) : null}
+    </div>
+  );
+
+  const workoutMoreMenuPortal =
+    workoutMoreOpen && typeof document !== 'undefined'
+      ? createPortal(
+          <div
+            className="fixed inset-0 z-[70] flex min-h-[100dvh] items-center justify-center overflow-y-auto overflow-x-hidden p-4 md:hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="workout-more-actions-title"
+          >
+            <button
+              type="button"
+              tabIndex={-1}
+              aria-label="Close menu"
+              className="animate-ui-backdrop-in fixed inset-0 bg-black/65 backdrop-blur-[2px] motion-reduce:animate-none motion-reduce:opacity-100"
+              onClick={() => setWorkoutMoreOpen(false)}
+            />
+            <div
+              className="animate-ui-modal-in relative z-10 my-auto w-full max-w-lg overflow-hidden rounded-2xl border border-slate-700 bg-surface-card shadow-2xl shadow-black/40 ring-1 ring-white/5 motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none"
+              style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+                <span id="workout-more-actions-title" className="text-sm font-semibold text-white">
+                  Workout actions
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setWorkoutMoreOpen(false)}
+                  className="rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                >
+                  Close
+                </button>
+              </div>
+              <div className="max-h-[min(60dvh,360px)] space-y-1 overflow-y-auto overscroll-contain px-2 pb-3 pt-2">
+                {showDiscard ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setWorkoutMoreOpen(false);
+                      setDiscardConfirmOpen(true);
+                    }}
+                    disabled={saving}
+                    className="flex w-full items-center justify-center rounded-xl border border-red-900/70 py-2.5 text-sm font-medium text-red-400 transition-colors hover:bg-red-950/20 disabled:opacity-50"
+                  >
+                    Discard
+                  </button>
+                ) : null}
+                {!isNew ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWorkoutMoreOpen(false);
+                        markComplete(true);
+                      }}
+                      disabled={saving}
+                      className="flex w-full items-center justify-center rounded-xl border border-emerald-800/80 py-2.5 text-sm font-medium text-emerald-400 disabled:opacity-50"
+                    >
+                      Mark complete
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWorkoutMoreOpen(false);
+                        markComplete(false);
+                      }}
+                      disabled={saving}
+                      className="flex w-full items-center justify-center rounded-xl border border-slate-600 py-2.5 text-sm text-slate-200 disabled:opacity-50"
+                    >
+                      Reopen
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWorkoutMoreOpen(false);
+                        shareWorkoutLink();
+                      }}
+                      disabled={saving}
+                      className="flex w-full items-center justify-center rounded-xl border border-slate-600 py-2.5 text-sm text-slate-200 disabled:opacity-50"
+                    >
+                      Share link
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWorkoutMoreOpen(false);
+                        deleteWorkout();
+                      }}
+                      className="flex w-full items-center justify-center rounded-xl border border-red-900/70 py-2.5 text-sm font-medium text-red-400"
+                    >
+                      Delete
+                    </button>
+                  </>
+                ) : null}
+              </div>
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
+
   const workoutActionsInner = (
     <>
-      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+      <div className="hidden md:block">{workoutActionsDesktop}</div>
+      <div className="flex gap-2 md:hidden">
         <button
           type="button"
           onClick={save}
           disabled={saving}
-          className="rounded-xl bg-accent px-6 py-3 font-semibold text-white disabled:opacity-50"
+          className="min-h-11 flex-1 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
         >
           {saving ? 'Saving…' : 'Save workout'}
         </button>
-        {showDiscard ? (
-          <button
-            type="button"
-            onClick={() => setDiscardConfirmOpen(true)}
-            disabled={saving}
-            className="rounded-xl border border-red-900/80 px-6 py-3 text-sm font-medium text-red-400 transition-colors hover:border-red-700 hover:bg-red-950/25 disabled:opacity-50"
-          >
-            Discard
-          </button>
-        ) : null}
-        {!isNew ? (
-          <>
-            <button
-              type="button"
-              onClick={() => markComplete(true)}
-              disabled={saving}
-              className="rounded-xl border border-emerald-700 px-6 py-3 font-medium text-emerald-400"
-            >
-              Mark complete
-            </button>
-            <button
-              type="button"
-              onClick={() => markComplete(false)}
-              disabled={saving}
-              className="rounded-xl border border-slate-600 px-6 py-3 text-slate-300"
-            >
-              Reopen
-            </button>
-            <button
-              type="button"
-              onClick={() => shareWorkoutLink()}
-              disabled={saving}
-              className="rounded-xl border border-slate-600 px-6 py-3 text-slate-300"
-            >
-              Share link
-            </button>
-            <button
-              type="button"
-              onClick={deleteWorkout}
-              className="rounded-xl border border-red-900 px-6 py-3 text-red-400"
-            >
-              Delete
-            </button>
-          </>
-        ) : null}
+        <button
+          type="button"
+          onClick={openWorkoutMoreMenu}
+          disabled={saving}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-600 bg-surface-elevated text-slate-200 transition-colors hover:border-slate-500 hover:bg-slate-800 disabled:opacity-50 motion-reduce:transition-none ${workoutMoreBtnPop ? 'animate-ai-btn-pop motion-reduce:animate-none' : ''}`}
+          aria-label="More workout actions"
+        >
+          <MoreHorizontal className="h-5 w-5" strokeWidth={2} aria-hidden />
+        </button>
       </div>
+      {workoutMoreMenuPortal}
     </>
   );
 

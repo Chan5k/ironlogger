@@ -9,7 +9,8 @@ const DAILY_FIRST_BONUS = 5;
 const VOLUME_STEP = 500;
 const VOLUME_BONUS_CAP = 25;
 
-function workoutMeetsLadderMinimum(exercises) {
+/** Exported for Hevy import validation (same rules as ladder eligibility). */
+export function workoutMeetsLadderMinimum(exercises) {
   for (const ex of exercises || []) {
     for (const s of ex.sets || []) {
       const t = s?.setType || 'normal';

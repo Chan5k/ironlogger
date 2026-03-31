@@ -21,6 +21,18 @@ const S = {
   maDark: '#6D28D9',
   uc: '#F97316',
   ucGold: '#FBBF24',
+  astral: '#93C5FD',
+  astralDark: '#1D4ED8',
+  mythic: '#E879F9',
+  mythicDark: '#86198F',
+  celestial: '#D8B4FE',
+  celestialDark: '#6B21A8',
+  eternal: '#6EE7B7',
+  eternalDark: '#047857',
+  transcend: '#7DD3FC',
+  transcendDark: '#075985',
+  sovereign: '#FDE047',
+  sovereignDark: '#854D0E',
 };
 
 function Pips({ n, cx, cy, r, fill }) {
@@ -226,6 +238,127 @@ const ICONS = {
       <circle cx="16" cy="10" r="6" fill={S.uc} stroke={S.ucGold} strokeWidth="1" />
       <path d="M10 6 L12 2 L14 5 L16 2 L18 5 L20 2 L22 6" fill="none" stroke={S.ucGold} strokeWidth="1.5" strokeLinecap="round" />
       {Pips({ n: 3, cx: 16, cy: 21, r: 2, fill: S.uc })}
+    </>
+  ),
+  'astral-1': (
+    <>
+      <polygon points="16,3 27,10 27,22 16,29 5,22 5,10" fill={S.astral} stroke={S.astralDark} strokeWidth="1" />
+      <circle cx="16" cy="15" r="4" fill={S.astralDark} opacity="0.35" />
+    </>
+  ),
+  'astral-2': (
+    <>
+      <polygon points="16,3 27,10 27,22 16,29 5,22 5,10" fill={S.astral} stroke={S.astralDark} strokeWidth="1" />
+      <path d="M11 14 L16 10 L21 14 L19 20 L13 20 Z" fill={S.astralDark} opacity="0.45" />
+      {Pips({ n: 2, cx: 16, cy: 24, r: 1.6, fill: S.astralDark })}
+    </>
+  ),
+  'astral-3': (
+    <>
+      <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill={S.astral} stroke={S.astralDark} strokeWidth="1" />
+      <circle cx="16" cy="14" r="5" fill="#E0F2FE" opacity="0.5" />
+      {Pips({ n: 3, cx: 16, cy: 23, r: 1.8, fill: S.astralDark })}
+    </>
+  ),
+  'mythic-1': (
+    <>
+      <polygon points="16,3 27,10 27,22 16,29 5,22 5,10" fill={S.mythic} stroke={S.mythicDark} strokeWidth="1" />
+      <path d="M16 8 L18 14 L24 14 L19 18 L21 24 L16 20 L11 24 L13 18 L8 14 L14 14 Z" fill={S.mythicDark} opacity="0.4" />
+    </>
+  ),
+  'mythic-2': (
+    <>
+      <polygon points="16,3 27,10 27,22 16,29 5,22 5,10" fill={S.mythic} stroke={S.mythicDark} strokeWidth="1" />
+      <path d="M16 7 L19 15 L27 15 L20 20 L23 28 L16 23 L9 28 L12 20 L5 15 L13 15 Z" fill="#FAE8FF" opacity="0.55" />
+      {Pips({ n: 2, cx: 16, cy: 25, r: 1.6, fill: S.mythicDark })}
+    </>
+  ),
+  'mythic-3': (
+    <>
+      <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill={S.mythic} stroke={S.mythicDark} strokeWidth="1" />
+      <path d="M16 6 L20 16 L30 16 L22 22 L25 32 L16 26 L7 32 L10 22 L2 16 L12 16 Z" fill={S.mythicDark} opacity="0.35" />
+      {Pips({ n: 3, cx: 16, cy: 24, r: 1.8, fill: S.mythicDark })}
+    </>
+  ),
+  'celestial-1': (
+    <>
+      <polygon points="16,3 27,10 27,22 16,29 5,22 5,10" fill={S.celestial} stroke={S.celestialDark} strokeWidth="1" />
+      <ellipse cx="16" cy="15" rx="7" ry="4" fill={S.celestialDark} opacity="0.25" />
+    </>
+  ),
+  'celestial-2': (
+    <>
+      <polygon points="16,3 27,10 27,22 16,29 5,22 5,10" fill={S.celestial} stroke={S.celestialDark} strokeWidth="1" />
+      <circle cx="16" cy="13" r="6" fill="#F3E8FF" opacity="0.4" />
+      {Pips({ n: 2, cx: 16, cy: 24, r: 1.6, fill: S.celestialDark })}
+    </>
+  ),
+  'celestial-3': (
+    <>
+      <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill={S.celestial} stroke={S.celestialDark} strokeWidth="1" />
+      <circle cx="16" cy="12" r="7" fill={S.celestialDark} opacity="0.2" />
+      <circle cx="16" cy="12" r="4" fill="#FAF5FF" opacity="0.5" />
+      {Pips({ n: 3, cx: 16, cy: 23, r: 1.8, fill: S.celestialDark })}
+    </>
+  ),
+  'eternal-1': (
+    <>
+      <polygon points="16,3 27,10 27,22 16,29 5,22 5,10" fill={S.eternal} stroke={S.eternalDark} strokeWidth="1" />
+      <path d="M16 9 L17 13 L21 13 L18 16 L19 20 L16 18 L13 20 L14 16 L11 13 L15 13 Z" fill={S.eternalDark} opacity="0.45" />
+    </>
+  ),
+  'eternal-2': (
+    <>
+      <polygon points="16,3 27,10 27,22 16,29 5,22 5,10" fill={S.eternal} stroke={S.eternalDark} strokeWidth="1" />
+      <path d="M16 7 L18 14 L25 14 L19 19 L21 27 L16 22 L11 27 L13 19 L7 14 L14 14 Z" fill="#D1FAE5" opacity="0.55" />
+      {Pips({ n: 2, cx: 16, cy: 25, r: 1.6, fill: S.eternalDark })}
+    </>
+  ),
+  'eternal-3': (
+    <>
+      <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill={S.eternal} stroke={S.eternalDark} strokeWidth="1" />
+      <path d="M16 6 L19 15 L28 15 L21 21 L23 30 L16 25 L9 30 L11 21 L4 15 L13 15 Z" fill={S.eternalDark} opacity="0.35" />
+      {Pips({ n: 3, cx: 16, cy: 24, r: 1.8, fill: S.eternalDark })}
+    </>
+  ),
+  'transcendent-1': (
+    <>
+      <polygon points="16,3 27,10 27,22 16,29 5,22 5,10" fill={S.transcend} stroke={S.transcendDark} strokeWidth="1" />
+      <rect x="11" y="11" width="10" height="8" rx="1" fill={S.transcendDark} opacity="0.35" />
+    </>
+  ),
+  'transcendent-2': (
+    <>
+      <polygon points="16,3 27,10 27,22 16,29 5,22 5,10" fill={S.transcend} stroke={S.transcendDark} strokeWidth="1" />
+      <path d="M8 12 L24 12 L20 22 L12 22 Z" fill="#E0F2FE" opacity="0.5" />
+      {Pips({ n: 2, cx: 16, cy: 25, r: 1.6, fill: S.transcendDark })}
+    </>
+  ),
+  'transcendent-3': (
+    <>
+      <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill={S.transcend} stroke={S.transcendDark} strokeWidth="1" />
+      <path d="M6 11 L26 11 L22 24 L10 24 Z" fill={S.transcendDark} opacity="0.3" />
+      {Pips({ n: 3, cx: 16, cy: 24, r: 1.8, fill: S.transcendDark })}
+    </>
+  ),
+  'sovereign-1': (
+    <>
+      <polygon points="16,3 27,10 27,22 16,29 5,22 5,10" fill={S.sovereign} stroke={S.sovereignDark} strokeWidth="1" />
+      <circle cx="16" cy="15" r="5" fill={S.sovereignDark} opacity="0.25" />
+    </>
+  ),
+  'sovereign-2': (
+    <>
+      <polygon points="16,3 27,10 27,22 16,29 5,22 5,10" fill={S.sovereign} stroke={S.sovereignDark} strokeWidth="1" />
+      <polygon points="16,8 19,16 27,16 21,21 23,28 16,24 9,28 11,21 5,16 13,16" fill="#FEF9C3" opacity="0.85" />
+      {Pips({ n: 2, cx: 16, cy: 25, r: 1.6, fill: S.sovereignDark })}
+    </>
+  ),
+  'sovereign-3': (
+    <>
+      <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill={S.sovereign} stroke={S.sovereignDark} strokeWidth="1.2" />
+      <polygon points="16,6 20,14 29,14 22,20 25,30 16,25 7,30 10,20 3,14 12,14" fill={S.sovereignDark} opacity="0.35" />
+      {Pips({ n: 3, cx: 16, cy: 23, r: 2, fill: S.sovereignDark })}
     </>
   ),
 };

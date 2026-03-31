@@ -33,7 +33,7 @@ export function seasonDisplayLabel(seasonId) {
 }
 
 /**
- * 27 ranks: Wood 1 → Ultimate Champion 3 (3 is highest within each tier).
+ * 45 ranks: fifteen tiers × three divisions (division 3 is highest within each tier).
  * `minPoints` is inclusive lower bound for that step.
  */
 export const RANK_LADDER = [
@@ -64,6 +64,24 @@ export const RANK_LADDER = [
   { iconId: 'ultimate-champion-1', tier: 'Ultimate Champion', sub: 1, minPoints: 1560 },
   { iconId: 'ultimate-champion-2', tier: 'Ultimate Champion', sub: 2, minPoints: 1710 },
   { iconId: 'ultimate-champion-3', tier: 'Ultimate Champion', sub: 3, minPoints: 1880 },
+  { iconId: 'astral-1', tier: 'Astral', sub: 1, minPoints: 2060 },
+  { iconId: 'astral-2', tier: 'Astral', sub: 2, minPoints: 2250 },
+  { iconId: 'astral-3', tier: 'Astral', sub: 3, minPoints: 2450 },
+  { iconId: 'mythic-1', tier: 'Mythic', sub: 1, minPoints: 2680 },
+  { iconId: 'mythic-2', tier: 'Mythic', sub: 2, minPoints: 2920 },
+  { iconId: 'mythic-3', tier: 'Mythic', sub: 3, minPoints: 3180 },
+  { iconId: 'celestial-1', tier: 'Celestial', sub: 1, minPoints: 3460 },
+  { iconId: 'celestial-2', tier: 'Celestial', sub: 2, minPoints: 3760 },
+  { iconId: 'celestial-3', tier: 'Celestial', sub: 3, minPoints: 4080 },
+  { iconId: 'eternal-1', tier: 'Eternal', sub: 1, minPoints: 4430 },
+  { iconId: 'eternal-2', tier: 'Eternal', sub: 2, minPoints: 4800 },
+  { iconId: 'eternal-3', tier: 'Eternal', sub: 3, minPoints: 5190 },
+  { iconId: 'transcendent-1', tier: 'Transcendent', sub: 1, minPoints: 5610 },
+  { iconId: 'transcendent-2', tier: 'Transcendent', sub: 2, minPoints: 6060 },
+  { iconId: 'transcendent-3', tier: 'Transcendent', sub: 3, minPoints: 6540 },
+  { iconId: 'sovereign-1', tier: 'Sovereign', sub: 1, minPoints: 7060 },
+  { iconId: 'sovereign-2', tier: 'Sovereign', sub: 2, minPoints: 7620 },
+  { iconId: 'sovereign-3', tier: 'Sovereign', sub: 3, minPoints: 8220 },
 ];
 
 /** Static steps for clients (full ladder, lowest index = entry rank). */

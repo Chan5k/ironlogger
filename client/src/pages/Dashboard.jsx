@@ -502,11 +502,28 @@ export default function Dashboard() {
                   <span className="text-slate-500"> — log today or yesterday to start</span>
                 ) : null}
               </p>
+              <p className="mt-1 text-xs leading-snug text-slate-600">
+                Consecutive calendar days with a workout, counting backward from today or yesterday. One
+                rest day in that chain resets this number (not the same as how often you trained this
+                week).
+              </p>
+              {summary.streak.currentDays === 0 &&
+              summary.streak.bestEver != null &&
+              summary.streak.bestEver > 0 ? (
+                <p className="mt-1 text-sm text-slate-400">
+                  Personal best:{' '}
+                  <span className="font-mono tabular-nums text-slate-300">
+                    {summary.streak.bestEver}
+                  </span>
+                  -day streak (from your history, including imports).
+                </p>
+              ) : null}
               {recordHint ? <p className="mt-2 text-sm font-medium text-slate-300">{recordHint}</p> : null}
               <p className="mt-2 text-sm text-slate-500">
-                Trained on{' '}
+                This week — distinct days with a workout:{' '}
                 <span className="font-mono text-slate-400">{summary.streak.trainingDaysLast7}</span> of the last 7
-                days (your timezone).
+                (your timezone). High here but a low streak above usually means there was a gap in the last
+                couple of days.
               </p>
             </div>
           </div>

@@ -7,9 +7,35 @@ import ShareLink from '../models/ShareLink.js';
 import ProfileFollow from '../models/ProfileFollow.js';
 import ProfileWallEntry from '../models/ProfileWallEntry.js';
 import { optionalAuth } from '../middleware/optionalAuth.js';
-import { seasonRankPayloadForUser } from '../lib/rankLadder.js';
+import { getRankLadderSteps, RANK_LADDER, seasonRankPayloadForUser } from '../lib/rankLadder.js';
 
 const router = Router();
+
+/** Full season rank ladder (thresholds) for UI guides — no auth. */
+router.get('/season-rank-ladder', (_req, res) => {
+  res.json({
+    ladder: getRankLadderSteps(),
+    rankCount: RANK_LADDER.length,
+    tiers: [
+      'Wood',
+      'Iron',
+      'Silver',
+      'Gold',
+      'Platinum',
+      'Emerald',
+      'Diamond',
+      'Master',
+      'Ultimate Champion',
+      'Astral',
+      'Mythic',
+      'Celestial',
+      'Eternal',
+      'Transcendent',
+      'Sovereign',
+    ],
+    divisionsPerTier: 3,
+  });
+});
 
 /** Read-only preview of a shared workout or plan (no auth). */
 router.get('/share/:token', param('token').trim().isLength({ min: 10, max: 128 }), async (req, res) => {
