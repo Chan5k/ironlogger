@@ -65,6 +65,15 @@ const emptySet = (type = 'normal') => ({
 const REST_SOUND_KEY = 'ironlog_rest_sound';
 const REST_HAPTIC_KEY = 'ironlog_rest_haptic';
 
+/** Match longest exit animation (modal 300ms + small buffer). */
+const WORKOUT_MORE_MENU_CLOSE_MS = 320;
+const WORKOUT_DOCK_CLOSE_MS = 340;
+
+function prefersReducedMotion() {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
+}
+
 function userInitials(name) {
   const s = (name || '').trim();
   if (!s) return '?';
@@ -122,22 +131,72 @@ export default function WorkoutEdit() {
   const [pinnedActionsHeight, setPinnedActionsHeight] = useState(0);
   const [discardConfirmOpen, setDiscardConfirmOpen] = useState(false);
   const [postWorkoutRecapOpen, setPostWorkoutRecapOpen] = useState(false);
-  const [workoutMoreOpen, setWorkoutMoreOpen] = useState(false);
+  const [workoutMoreShown, setWorkoutMoreShown] = useState(false);
+  const [workoutMoreClosing, setWorkoutMoreClosing] = useState(false);
+  const workoutMoreShownRef = useRef(false);
+  const workoutMoreCloseTimerRef = useRef(null);
   const [workoutMoreBtnPop, setWorkoutMoreBtnPop] = useState(false);
   const workoutActionsRef = useRef(null);
+  const [restDockExit, setRestDockExit] = useState(false);
+  const prevRestRunningRef = useRef(false);
   /** When last-session reps exist, show an empty reps field + placeholder until the user edits (covers plan defaults e.g. 10). */
   const repsTouchedRef = useRef(new Set());
   const [repsTouchEpoch, setRepsTouchEpoch] = useState(0);
 
+  const closeWorkoutMoreMenu = useCallback((after) => {
+    window.clearTimeout(workoutMoreCloseTimerRef.current);
+    if (!workoutMoreShownRef.current) {
+      after?.();
+      return;
+    }
+    setWorkoutMoreClosing(true);
+    const ms = prefersReducedMotion() ? 0 : WORKOUT_MORE_MENU_CLOSE_MS;
+    workoutMoreCloseTimerRef.current = window.setTimeout(() => {
+      workoutMoreShownRef.current = false;
+      setWorkoutMoreShown(false);
+      setWorkoutMoreClosing(false);
+      workoutMoreCloseTimerRef.current = null;
+      after?.();
+    }, ms);
+  }, []);
+
   const openWorkoutMoreMenu = useCallback(() => {
+    window.clearTimeout(workoutMoreCloseTimerRef.current);
+    workoutMoreCloseTimerRef.current = null;
+    workoutMoreShownRef.current = true;
+    setWorkoutMoreClosing(false);
+    setWorkoutMoreShown(true);
     setWorkoutMoreBtnPop(true);
-    setWorkoutMoreOpen(true);
     window.setTimeout(() => setWorkoutMoreBtnPop(false), 220);
   }, []);
 
   const dismissPrCelebration = useCallback(() => setPrCelebration(null), []);
 
   const restRunning = restSecondsLeft > 0;
+
+  useEffect(() => {
+    return () => {
+      window.clearTimeout(workoutMoreCloseTimerRef.current);
+      workoutMoreShownRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (restRunning) {
+      setRestDockExit(false);
+      prevRestRunningRef.current = true;
+      return undefined;
+    }
+    if (prevRestRunningRef.current) {
+      prevRestRunningRef.current = false;
+      setRestDockExit(true);
+      const ms = prefersReducedMotion() ? 0 : WORKOUT_DOCK_CLOSE_MS;
+      const t = window.setTimeout(() => setRestDockExit(false), ms);
+      return () => window.clearTimeout(t);
+    }
+    prevRestRunningRef.current = false;
+    return undefined;
+  }, [restRunning]);
 
   const handleRestBarHeight = useCallback((h) => {
     setRestBarHeight(typeof h === 'number' && h > 0 ? h : 0);
@@ -152,7 +211,7 @@ export default function WorkoutEdit() {
   }, [restRunning]);
 
   useLayoutEffect(() => {
-    if (!restRunning) {
+    if (!restRunning && !restDockExit) {
       setPinnedActionsHeight(0);
       return undefined;
     }
@@ -163,7 +222,7 @@ export default function WorkoutEdit() {
     const ro = new ResizeObserver(report);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [restRunning]);
+  }, [restRunning, restDockExit]);
 
   useEffect(() => {
     const targets = exercises.map((e) => ({
@@ -968,7 +1027,7 @@ export default function WorkoutEdit() {
   );
 
   const workoutMoreMenuPortal =
-    workoutMoreOpen && typeof document !== 'undefined'
+    workoutMoreShown && typeof document !== 'undefined'
       ? createPortal(
           <div
             className="fixed inset-0 z-[70] flex min-h-[100dvh] items-center justify-center overflow-y-auto overflow-x-hidden p-4 md:hidden"
@@ -980,35 +1039,50 @@ export default function WorkoutEdit() {
               type="button"
               tabIndex={-1}
               aria-label="Close menu"
-              className="animate-ui-backdrop-in fixed inset-0 bg-black/65 backdrop-blur-[2px] motion-reduce:animate-none motion-reduce:opacity-100"
-              onClick={() => setWorkoutMoreOpen(false)}
+              className={`fixed inset-0 bg-black/65 backdrop-blur-[2px] motion-reduce:animate-none ${
+                workoutMoreClosing
+                  ? 'animate-ui-backdrop-out motion-reduce:opacity-0'
+                  : 'animate-ui-backdrop-in motion-reduce:opacity-100'
+              }`}
+              onClick={() => closeWorkoutMoreMenu()}
             />
             <div
-              className="animate-ui-nutrition-modal-in relative z-10 my-auto w-full max-w-lg overflow-hidden rounded-2xl border border-slate-700 bg-surface-card shadow-2xl shadow-black/40 ring-1 ring-white/5 motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none"
+              className={`relative z-10 my-auto w-full max-w-lg overflow-hidden rounded-2xl border border-slate-700 bg-surface-card shadow-2xl shadow-black/40 ring-1 ring-white/5 ${
+                workoutMoreClosing
+                  ? 'animate-ui-nutrition-modal-out motion-reduce:animate-none motion-reduce:opacity-0 motion-reduce:scale-[0.94]'
+                  : 'animate-ui-nutrition-modal-in motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none'
+              }`}
               style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex animate-ai-stagger-in items-center justify-between border-b border-slate-800 px-4 py-3 motion-reduce:animate-none">
+              <div
+                className={`flex items-center justify-between border-b border-slate-800 px-4 py-3 motion-reduce:animate-none ${
+                  workoutMoreClosing ? '' : 'animate-ai-stagger-in'
+                }`}
+              >
                 <span id="workout-more-actions-title" className="text-sm font-semibold text-white">
                   Workout actions
                 </span>
                 <button
                   type="button"
-                  onClick={() => setWorkoutMoreOpen(false)}
+                  onClick={() => closeWorkoutMoreMenu()}
                   className="rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
                 >
                   Close
                 </button>
               </div>
               <div
-                className="max-h-[min(60dvh,360px)] space-y-1 overflow-y-auto overscroll-contain px-2 pb-3 pt-2 [&>button]:motion-reduce:animate-none [&>button]:animate-ai-stagger-in [&>button]:[animation-fill-mode:backwards] [&>button:nth-child(1)]:[animation-delay:40ms] [&>button:nth-child(2)]:[animation-delay:85ms] [&>button:nth-child(3)]:[animation-delay:130ms] [&>button:nth-child(4)]:[animation-delay:175ms] [&>button:nth-child(5)]:[animation-delay:220ms] [&>button:nth-child(6)]:[animation-delay:265ms]"
+                className={
+                  workoutMoreClosing
+                    ? 'max-h-[min(60dvh,360px)] space-y-1 overflow-y-auto overscroll-contain px-2 pb-3 pt-2'
+                    : 'max-h-[min(60dvh,360px)] space-y-1 overflow-y-auto overscroll-contain px-2 pb-3 pt-2 [&>button]:motion-reduce:animate-none [&>button]:animate-ai-stagger-in [&>button]:[animation-fill-mode:backwards] [&>button:nth-child(1)]:[animation-delay:40ms] [&>button:nth-child(2)]:[animation-delay:85ms] [&>button:nth-child(3)]:[animation-delay:130ms] [&>button:nth-child(4)]:[animation-delay:175ms] [&>button:nth-child(5)]:[animation-delay:220ms] [&>button:nth-child(6)]:[animation-delay:265ms]'
+                }
               >
                 {showDiscard ? (
                   <button
                     type="button"
                     onClick={() => {
-                      setWorkoutMoreOpen(false);
-                      setDiscardConfirmOpen(true);
+                      closeWorkoutMoreMenu(() => setDiscardConfirmOpen(true));
                     }}
                     disabled={saving}
                     className="flex w-full items-center justify-center rounded-xl border border-red-900/70 py-2.5 text-sm font-medium text-red-400 transition-colors hover:bg-red-950/20 disabled:opacity-50"
@@ -1021,8 +1095,7 @@ export default function WorkoutEdit() {
                     <button
                       type="button"
                       onClick={() => {
-                        setWorkoutMoreOpen(false);
-                        markComplete(true);
+                        closeWorkoutMoreMenu(() => markComplete(true));
                       }}
                       disabled={saving}
                       className="flex w-full items-center justify-center rounded-xl border border-emerald-800/80 py-2.5 text-sm font-medium text-emerald-400 disabled:opacity-50"
@@ -1032,8 +1105,7 @@ export default function WorkoutEdit() {
                     <button
                       type="button"
                       onClick={() => {
-                        setWorkoutMoreOpen(false);
-                        markComplete(false);
+                        closeWorkoutMoreMenu(() => markComplete(false));
                       }}
                       disabled={saving}
                       className="flex w-full items-center justify-center rounded-xl border border-slate-600 py-2.5 text-sm text-slate-200 disabled:opacity-50"
@@ -1043,8 +1115,7 @@ export default function WorkoutEdit() {
                     <button
                       type="button"
                       onClick={() => {
-                        setWorkoutMoreOpen(false);
-                        shareWorkoutLink();
+                        closeWorkoutMoreMenu(() => shareWorkoutLink());
                       }}
                       disabled={saving}
                       className="flex w-full items-center justify-center rounded-xl border border-slate-600 py-2.5 text-sm text-slate-200 disabled:opacity-50"
@@ -1054,8 +1125,7 @@ export default function WorkoutEdit() {
                     <button
                       type="button"
                       onClick={() => {
-                        setWorkoutMoreOpen(false);
-                        deleteWorkout();
+                        closeWorkoutMoreMenu(() => deleteWorkout());
                       }}
                       className="flex w-full items-center justify-center rounded-xl border border-red-900/70 py-2.5 text-sm font-medium text-red-400"
                     >
@@ -1640,7 +1710,7 @@ export default function WorkoutEdit() {
         + Add exercise
       </button>
 
-      {restRunning ? (
+      {restRunning || restDockExit ? (
         <>
           <div
             aria-hidden
@@ -1650,7 +1720,11 @@ export default function WorkoutEdit() {
           {createPortal(
             <div
               ref={workoutActionsRef}
-              className="motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none animate-workout-dock-in fixed left-0 right-0 z-[55] border-t border-slate-800 bg-surface-card/98 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-3 shadow-[0_-12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md"
+              className={`motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none fixed left-0 right-0 z-[55] border-t border-slate-800 bg-surface-card/98 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-3 shadow-[0_-12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md ${
+                restDockExit && !restRunning
+                  ? 'animate-workout-dock-out'
+                  : 'animate-workout-dock-in'
+              }`}
               style={{ bottom: restBarHeight }}
             >
               <div className="mx-auto w-full max-w-6xl px-4 md:px-8">{workoutActionsInner}</div>
