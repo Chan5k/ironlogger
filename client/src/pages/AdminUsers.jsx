@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { BadgeCheck } from 'lucide-react';
 import api from '../api/client.js';
 import { appPath } from '../constants/routes.js';
 
@@ -144,6 +145,9 @@ export default function AdminUsers() {
                 <tr className="border-b border-slate-800 text-xs text-slate-500">
                   <th className="px-3 py-2 font-medium">User</th>
                   <th className="hidden px-3 py-2 font-medium sm:table-cell">Email</th>
+                  <th className="px-3 py-2 font-medium text-center text-slate-500" title="In-app verified badge">
+                    Badge
+                  </th>
                   <th className="px-3 py-2 font-medium">Stats</th>
                   <th className="hidden px-3 py-2 font-medium md:table-cell">Last login</th>
                   <th className="hidden px-3 py-2 font-medium md:table-cell">Joined</th>
@@ -168,6 +172,17 @@ export default function AdminUsers() {
                       <div className="text-xs text-slate-500 sm:hidden">{u.email}</div>
                     </td>
                     <td className="hidden px-3 py-2 text-slate-400 sm:table-cell">{u.email}</td>
+                    <td className="px-3 py-2 text-center">
+                      {u.emailVerifiedAt ? (
+                        <span className="inline-flex text-sky-400" title="Verified">
+                          <BadgeCheck className="mx-auto h-4 w-4" strokeWidth={2} aria-label="Verified" />
+                        </span>
+                      ) : (
+                        <span className="text-slate-600" title="Not verified">
+                          —
+                        </span>
+                      )}
+                    </td>
                     <td className="px-3 py-2 text-xs text-slate-500">
                       {u.stats?.workouts ?? 0} workouts · {u.stats?.templates ?? 0} plans ·{' '}
                       {u.stats?.activityLogs ?? 0} activity

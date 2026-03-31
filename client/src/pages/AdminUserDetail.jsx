@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { BadgeCheck } from 'lucide-react';
 import api from '../api/client.js';
 import { RankIcon } from '../components/ranks/RankIcon.jsx';
 import { appPath } from '../constants/routes.js';
@@ -244,7 +245,7 @@ export default function AdminUserDetail() {
   }
 
   async function verifyEmail() {
-    if (!userId || !meIsStaff) return;
+    if (!userId || !meIsFullAdmin) return;
     if (
       !(await appConfirm(
         `Mark ${user.email} as email-verified? They will have access to import, nutrition, social, and season rank points.`
@@ -339,6 +340,19 @@ export default function AdminUserDetail() {
             Support
           </span>
         ) : null}
+        {user.emailVerifiedAt ? (
+          <span
+            className="mt-1 ml-2 inline-flex items-center gap-1 rounded-full bg-sky-500/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-sky-300 ring-1 ring-sky-500/30"
+            title="Same verified badge as in the app menu and on their public profile"
+          >
+            <BadgeCheck className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+            Verified
+          </span>
+        ) : (
+          <span className="mt-1 ml-2 inline-block rounded bg-amber-950/50 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-amber-200/90 ring-1 ring-amber-900/40">
+            Unverified
+          </span>
+        )}
         {showPublicLink ? (
           <p className="mt-2 text-sm">
             <Link
@@ -385,19 +399,37 @@ export default function AdminUserDetail() {
           <li>Updated: {fmt(user.updatedAt)}</li>
         </ul>
 
-        {meIsStaff && !user.emailVerifiedAt ? (
+        {meIsFullAdmin && !user.emailVerifiedAt ? (
           <div className="mt-4 border-t border-slate-800/80 pt-4">
+            <h3 className="mb-2 text-sm font-medium text-slate-300">Email verification</h3>
             <button
               type="button"
               disabled={busy}
               onClick={() => verifyEmail()}
               className="rounded-xl border border-emerald-700/60 bg-emerald-950/25 px-4 py-2 text-sm text-emerald-100 disabled:opacity-50"
             >
-              Mark email verified
+              Mark verified &amp; grant badge
             </button>
             <p className="mt-2 text-xs text-slate-500">
-              Use when the user cannot complete the email link (lost access, provider blocks mail,
-              etc.). This grants the same access as self-service verification.
+              Sets their account to verified (same as clicking the email link). They get the app menu
+              checkmark, public &quot;Verified&quot; badge, and access to import, nutrition, social, and
+              season rank points. They pick it up on the next{' '}
+              <span className="text-slate-400">/auth/me</span> refresh (reopen app or navigate).
+            </p>
+          </div>
+        ) : meIsStaff && !meIsFullAdmin && !user.emailVerifiedAt ? (
+          <div className="mt-4 border-t border-slate-800/80 pt-4">
+            <p className="text-xs text-slate-500">
+              This account is not verified. Ask a full admin to use <strong className="text-slate-400">Mark verified</strong>{' '}
+              so the user gets the in-app badge and gated features.
+            </p>
+          </div>
+        ) : meIsStaff && user.emailVerifiedAt ? (
+          <div className="mt-4 flex items-start gap-2 border-t border-slate-800/80 pt-4 text-sm text-slate-400">
+            <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" strokeWidth={2} aria-hidden />
+            <p>
+              This account is verified. Revocation is not available here — change email in production
+              flows or contact engineering if you need to reset verification.
             </p>
           </div>
         ) : null}
