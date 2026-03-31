@@ -98,6 +98,11 @@ export default {
           '50%': { transform: 'scale(0.95)' },
           '100%': { transform: 'scale(1)' },
         },
+        /** Pinned workout save/actions bar (slides above rest timer) */
+        workoutDockIn: {
+          '0%': { opacity: '0', transform: 'translateY(1.25rem)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
         aiSpinnerPulse: {
           '0%, 100%': { opacity: '0.6', transform: 'scale(1)' },
           '50%': { opacity: '1', transform: 'scale(1.08)' },
@@ -120,6 +125,8 @@ export default {
         'ai-stagger-in': 'aiStaggerIn 350ms cubic-bezier(0.22, 1, 0.36, 1) both',
         'ai-btn-pop': 'aiBtnPop 200ms cubic-bezier(0.22, 1, 0.36, 1)',
         'ai-spinner-pulse': 'aiSpinnerPulse 1.8s ease-in-out infinite',
+        'workout-dock-in':
+          'workoutDockIn 380ms cubic-bezier(0.32, 0.72, 0, 1) both',
       },
     },
   },

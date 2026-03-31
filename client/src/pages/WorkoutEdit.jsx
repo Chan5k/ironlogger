@@ -984,11 +984,11 @@ export default function WorkoutEdit() {
               onClick={() => setWorkoutMoreOpen(false)}
             />
             <div
-              className="animate-ui-modal-in relative z-10 my-auto w-full max-w-lg overflow-hidden rounded-2xl border border-slate-700 bg-surface-card shadow-2xl shadow-black/40 ring-1 ring-white/5 motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none"
+              className="animate-ui-nutrition-modal-in relative z-10 my-auto w-full max-w-lg overflow-hidden rounded-2xl border border-slate-700 bg-surface-card shadow-2xl shadow-black/40 ring-1 ring-white/5 motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none"
               style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+              <div className="flex animate-ai-stagger-in items-center justify-between border-b border-slate-800 px-4 py-3 motion-reduce:animate-none">
                 <span id="workout-more-actions-title" className="text-sm font-semibold text-white">
                   Workout actions
                 </span>
@@ -1000,7 +1000,9 @@ export default function WorkoutEdit() {
                   Close
                 </button>
               </div>
-              <div className="max-h-[min(60dvh,360px)] space-y-1 overflow-y-auto overscroll-contain px-2 pb-3 pt-2">
+              <div
+                className="max-h-[min(60dvh,360px)] space-y-1 overflow-y-auto overscroll-contain px-2 pb-3 pt-2 [&>button]:motion-reduce:animate-none [&>button]:animate-ai-stagger-in [&>button]:[animation-fill-mode:backwards] [&>button:nth-child(1)]:[animation-delay:40ms] [&>button:nth-child(2)]:[animation-delay:85ms] [&>button:nth-child(3)]:[animation-delay:130ms] [&>button:nth-child(4)]:[animation-delay:175ms] [&>button:nth-child(5)]:[animation-delay:220ms] [&>button:nth-child(6)]:[animation-delay:265ms]"
+              >
                 {showDiscard ? (
                   <button
                     type="button"
@@ -1648,7 +1650,7 @@ export default function WorkoutEdit() {
           {createPortal(
             <div
               ref={workoutActionsRef}
-              className="fixed left-0 right-0 z-[55] border-t border-slate-800 bg-surface-card/98 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-3 shadow-[0_-12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md"
+              className="motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none animate-workout-dock-in fixed left-0 right-0 z-[55] border-t border-slate-800 bg-surface-card/98 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-3 shadow-[0_-12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md"
               style={{ bottom: restBarHeight }}
             >
               <div className="mx-auto w-full max-w-6xl px-4 md:px-8">{workoutActionsInner}</div>
