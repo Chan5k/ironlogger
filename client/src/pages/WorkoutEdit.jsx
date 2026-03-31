@@ -125,6 +125,9 @@ export default function WorkoutEdit() {
   const [workoutMoreOpen, setWorkoutMoreOpen] = useState(false);
   const [workoutMoreBtnPop, setWorkoutMoreBtnPop] = useState(false);
   const workoutActionsRef = useRef(null);
+  /** When last-session reps exist, show an empty reps field + placeholder until the user edits (covers plan defaults e.g. 10). */
+  const repsTouchedRef = useRef(new Set());
+  const [repsTouchEpoch, setRepsTouchEpoch] = useState(0);
 
   const openWorkoutMoreMenu = useCallback(() => {
     setWorkoutMoreBtnPop(true);
@@ -229,6 +232,10 @@ export default function WorkoutEdit() {
 
   useEffect(() => {
     setSessionBaselineByLocal({});
+  }, [id, isNew]);
+
+  useEffect(() => {
+    repsTouchedRef.current = new Set();
   }, [id, isNew]);
 
   useEffect(() => {
@@ -422,6 +429,34 @@ export default function WorkoutEdit() {
 
   const weightUnit = useWeightUnit();
 
+  const markRepsTouched = useCallback((key) => {
+    if (repsTouchedRef.current.has(key)) return;
+    repsTouchedRef.current.add(key);
+    setRepsTouchEpoch((n) => n + 1);
+  }, []);
+
+  const effectiveRepsForSet = useCallback(
+    (exIdx, si) => {
+      const ex = exercises[exIdx];
+      const s = ex?.sets?.[si];
+      if (!ex || !s) return 0;
+      const key = `${ex._local}-${si}`;
+      const base = prBaselines[exIdx];
+      const lastHint = base?.lastSessionSets?.[si] ?? null;
+      const lastReps = lastHint != null ? lastHint.reps : base?.lastSessionLastReps;
+      if (
+        !s.completed &&
+        lastReps != null &&
+        Number.isFinite(Number(lastReps)) &&
+        !repsTouchedRef.current.has(key)
+      ) {
+        return Math.floor(Number(lastReps));
+      }
+      return Number(s.reps) || 0;
+    },
+    [exercises, prBaselines]
+  );
+
   const startedISO = useMemo(
     () => fromDatetimeLocalValue(sessionStartedLocal),
     [sessionStartedLocal]
@@ -602,13 +637,16 @@ export default function WorkoutEdit() {
       if (!ex || !s) return;
       const st = normalizeSetType(s.setType);
       if (checked) {
+        const rEff = effectiveRepsForSet(exIdx, setIdx);
+        if (rEff !== Math.floor(Number(s.reps) || 0)) {
+          updateSet(exIdx, setIdx, 'reps', String(rEff));
+        }
         if (st !== 'warmup') {
           const wNum = Number(s.weight) || 0;
-          const rNum = Math.floor(Number(s.reps) || 0);
           const serverB = prBaselines[exIdx];
           const sessionB = sessionBaselineByLocal[ex._local];
           const effective = mergeTwoBaselines(serverB, sessionB);
-          const pr = evaluateSetPr(effective, wNum, rNum);
+          const pr = evaluateSetPr(effective, wNum, rEff);
           if (pr) {
             window.setTimeout(() => playPrFanfare(), 200);
             setPrCelebration({
@@ -616,14 +654,14 @@ export default function WorkoutEdit() {
               exerciseName: ex.name?.trim() || 'Lift',
               exerciseCategory: ex.category || 'other',
               weight: wNum,
-              reps: rNum,
+              reps: rEff,
               weightUnit,
               headline: pr.headline,
             });
           }
           setSessionBaselineByLocal((prev) => ({
             ...prev,
-            [ex._local]: mergeSetIntoBaseline(prev[ex._local], wNum, rNum),
+            [ex._local]: mergeSetIntoBaseline(prev[ex._local], wNum, rEff),
           }));
         }
         beginRestAfterSet();
@@ -632,7 +670,14 @@ export default function WorkoutEdit() {
       setSetPulse({ exIdx, si: setIdx });
       window.setTimeout(() => setSetPulse(null), 450);
     },
-    [exercises, prBaselines, sessionBaselineByLocal, weightUnit, sessionInProgress]
+    [
+      exercises,
+      prBaselines,
+      sessionBaselineByLocal,
+      weightUnit,
+      sessionInProgress,
+      effectiveRepsForSet,
+    ]
   );
 
   function applyRestPreset(sec) {
@@ -669,8 +714,8 @@ export default function WorkoutEdit() {
       name: e.name,
       category: e.category || 'other',
       order,
-      sets: e.sets.map((s) => ({
-        reps: Number(s.reps) || 0,
+      sets: e.sets.map((s, si) => ({
+        reps: effectiveRepsForSet(order, si),
         weight: Number(s.weight) || 0,
         completed: !!s.completed,
         setType: normalizeSetType(s.setType),
@@ -1329,12 +1374,13 @@ export default function WorkoutEdit() {
                 <span className="w-8 shrink-0" aria-hidden />
               </div>
               {ex.sets.map((s, si) => {
+                void repsTouchEpoch;
                 const st = normalizeSetType(s.setType);
                 const base = prBaselines[exIdx];
                 const lastHint = base?.lastSessionSets?.[si] ?? null;
                 const prevMax = base?.maxWeight ?? 0;
                 const wNum = Number(s.weight) || 0;
-                const rNum = Math.floor(Number(s.reps) || 0);
+                const rNum = effectiveRepsForSet(exIdx, si);
                 const sessionB = sessionBaselineByLocal[ex._local];
                 const effectiveB = mergeTwoBaselines(base, sessionB);
                 const prResult = st !== 'warmup' && !!s.completed
@@ -1351,22 +1397,46 @@ export default function WorkoutEdit() {
                         ? 'bg-emerald-950/20'
                         : 'bg-transparent';
                 const unitShort = weightUnit === 'lbs' ? 'lbs' : 'kg';
+                const hasLastSession =
+                  (base?.lastSessionSets || []).some((h) => h != null) ||
+                  base?.lastSessionLastReps != null;
+                const lastWeightForPlaceholder =
+                  lastHint?.weightKg ??
+                  (base?.lastSessionSets || []).find((h) => h != null)?.weightKg ??
+                  null;
                 const weightPlaceholder =
-                  lastHint != null
-                    ? `${unitShort}: ${formatWeightInputValue(lastHint.weightKg, weightUnit)} · last workout`
+                  lastWeightForPlaceholder != null
+                    ? `${formatWeightInputValue(lastWeightForPlaceholder, weightUnit)} ${unitShort} - last workout`
                     : undefined;
                 const weightControlled =
-                  lastHint != null && Number(s.weight) === 0
+                  hasLastSession && Number(s.weight) === 0
                     ? ''
                     : formatWeightInputValue(s.weight, weightUnit);
                 const lastRepsFromSession =
                   lastHint != null ? lastHint.reps : base?.lastSessionLastReps ?? null;
+                const lastWeightForTitle =
+                  lastHint?.weightKg ??
+                  (base?.lastSessionSets || []).find((h) => h != null)?.weightKg ??
+                  null;
                 const repsPlaceholder =
                   lastRepsFromSession != null && Number.isFinite(Number(lastRepsFromSession))
-                    ? String(Math.floor(Number(lastRepsFromSession)))
-                    : '10';
-                const repsControlled =
-                  s.reps === '' || s.reps == null ? '' : String(s.reps);
+                    ? `${Math.floor(Number(lastRepsFromSession))} rp - last workout`
+                    : hasLastSession
+                      ? 'rp - last workout'
+                      : '10';
+                const repsKey = `${ex._local}-${si}`;
+                const repsFromLastPlaceholder =
+                  !s.completed &&
+                  lastRepsFromSession != null &&
+                  Number.isFinite(Number(lastRepsFromSession)) &&
+                  !repsTouchedRef.current.has(repsKey);
+                const repsControlled = s.completed
+                  ? String(s.reps)
+                  : repsFromLastPlaceholder
+                    ? ''
+                    : s.reps === '' || s.reps == null
+                      ? ''
+                      : String(s.reps);
                 const wtId = `set-wt-${ex._local}-${si}`;
                 const rpId = `set-rp-${ex._local}-${si}`;
 
@@ -1438,6 +1508,13 @@ export default function WorkoutEdit() {
                             );
                           }}
                           className="h-11 w-full min-w-0 rounded-lg border border-slate-700 bg-surface px-3 text-sm text-white placeholder:text-slate-600"
+                          title={
+                            hasLastSession && lastWeightForTitle != null
+                              ? lastHint != null
+                                ? `Last session, set ${si + 1}: ${formatWeightInputValue(lastWeightForTitle, weightUnit)} ${weightUnit}`
+                                : `Last session: ${formatWeightInputValue(lastWeightForTitle, weightUnit)} ${weightUnit}`
+                              : undefined
+                          }
                           aria-label={`Set ${si + 1} weight in ${weightUnit}`}
                           data-no-row-toggle
                         />
@@ -1456,6 +1533,7 @@ export default function WorkoutEdit() {
                           value={repsControlled}
                           placeholder={repsPlaceholder}
                           onChange={(e) => {
+                            markRepsTouched(repsKey);
                             const v = e.target.value;
                             updateSet(exIdx, si, 'reps', v === '' ? '' : v);
                           }}
