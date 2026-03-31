@@ -56,7 +56,7 @@ import AiWorkoutReview from '../components/AiWorkoutReview.jsx';
 import PostWorkoutRecapModal from '../components/PostWorkoutRecapModal.jsx';
 
 const emptySet = (type = 'normal') => ({
-  reps: 10,
+  reps: '',
   weight: 0,
   completed: false,
   setType: type,
@@ -1336,11 +1336,24 @@ export default function WorkoutEdit() {
                       : s.completed
                         ? 'bg-emerald-950/20'
                         : 'bg-transparent';
+                const weightPlaceholder =
+                  lastHint != null
+                    ? formatWeightInputValue(lastHint.weightKg, weightUnit)
+                    : undefined;
+                const weightControlled =
+                  lastHint != null && Number(s.weight) === 0
+                    ? ''
+                    : formatWeightInputValue(s.weight, weightUnit);
+                const repsPlaceholder =
+                  lastHint != null ? String(lastHint.reps) : '10';
+                const repsControlled =
+                  s.reps === '' || s.reps == null ? '' : String(s.reps);
+
                 return (
                   <div
                     key={si}
                     role="row"
-                    className={`flex flex-wrap items-center gap-2 rounded-xl border px-2 py-2 transition-[background-color,box-shadow,border-color] duration-motion ease-motion-standard sm:flex-nowrap sm:gap-2 sm:px-1 ${rowBg} ${
+                    className={`flex flex-wrap items-center gap-x-2 gap-y-2 rounded-xl border px-2 py-2 transition-[background-color,box-shadow,border-color] duration-motion ease-motion-standard sm:flex-nowrap sm:gap-2 sm:px-1 ${rowBg} ${
                       s.completed
                         ? 'border-emerald-500/25'
                         : 'border-slate-800/80 hover:border-slate-700'
@@ -1379,93 +1392,96 @@ export default function WorkoutEdit() {
                         </option>
                       ))}
                     </select>
-                    <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:max-w-[12.5rem]">
-                      <div className="flex min-w-0 gap-2">
-                        <input
-                          type="number"
-                          inputMode="decimal"
-                          step="any"
-                          value={formatWeightInputValue(s.weight, weightUnit)}
-                          onChange={(e) =>
-                            updateSet(exIdx, si, 'weight', parseWeightInput(e.target.value, weightUnit))
-                          }
-                          className="h-11 min-w-0 flex-1 rounded-lg border border-slate-700 bg-surface px-3 text-white sm:max-w-[6.5rem] sm:flex-none sm:basis-[6.25rem]"
-                          aria-label={`Set ${si + 1} weight`}
-                          data-no-row-toggle
-                        />
-                        <input
-                          type="number"
-                          inputMode="numeric"
-                          value={s.reps}
-                          onChange={(e) => updateSet(exIdx, si, 'reps', e.target.value)}
-                          className="h-11 w-[4.5rem] shrink-0 rounded-lg border border-slate-700 bg-surface px-2 text-white sm:w-16"
-                          aria-label={`Set ${si + 1} reps`}
-                          data-no-row-toggle
-                        />
-                      </div>
-                      {lastHint ? (
-                        <p
-                          className="text-[10px] leading-tight text-slate-600 sm:pl-0.5"
-                          title="From your last completed workout with this exercise (not prefilled)"
-                        >
-                          Last:{' '}
-                          <span className="text-slate-500">
-                            {formatWeightInputValue(lastHint.weightKg, weightUnit)} {weightUnit} ×{' '}
-                            {lastHint.reps}
-                          </span>
-                        </p>
-                      ) : null}
+                    <div className="flex min-w-0 basis-full gap-2 sm:basis-auto sm:max-w-[12.5rem]">
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        step="any"
+                        value={weightControlled}
+                        placeholder={weightPlaceholder}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          updateSet(
+                            exIdx,
+                            si,
+                            'weight',
+                            v === '' ? 0 : parseWeightInput(v, weightUnit)
+                          );
+                        }}
+                        className="h-11 min-w-[5.5rem] flex-1 rounded-lg border border-slate-700 bg-surface px-3 text-white placeholder:text-slate-600 sm:max-w-[6.5rem] sm:flex-none sm:basis-[6.25rem]"
+                        aria-label={`Set ${si + 1} weight`}
+                        data-no-row-toggle
+                      />
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        value={repsControlled}
+                        placeholder={repsPlaceholder}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          updateSet(exIdx, si, 'reps', v === '' ? '' : v);
+                        }}
+                        className="h-11 w-[4.75rem] shrink-0 rounded-lg border border-slate-700 bg-surface px-2 text-white placeholder:text-slate-600 sm:w-16"
+                        aria-label={`Set ${si + 1} reps`}
+                        data-no-row-toggle
+                      />
                     </div>
                     <div
-                      className="flex h-11 min-w-[2.5rem] flex-1 items-center justify-center sm:w-14 sm:flex-none"
-                      role="cell"
+                      className="flex w-full shrink-0 basis-full items-center justify-end gap-2 sm:w-auto sm:basis-auto sm:justify-center"
+                      role="group"
+                      aria-label={`Set ${si + 1} actions`}
                     >
-                      {prResult ? (
-                        <span className="inline-flex items-center rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-muted">
-                          PR
-                        </span>
-                      ) : st !== 'warmup' && s.completed && prevMax > 0 ? (
-                        <span
-                          className="text-[10px] text-slate-600"
-                          title="Prior best weight (completed, non-warmup)"
-                        >
-                          max {prevMax}
-                        </span>
-                      ) : (
-                        <span className="text-slate-700">—</span>
-                      )}
+                      <div
+                        className="flex h-11 w-14 shrink-0 items-center justify-center sm:w-14"
+                        role="cell"
+                      >
+                        {prResult ? (
+                          <span className="inline-flex items-center rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-muted">
+                            PR
+                          </span>
+                        ) : st !== 'warmup' && s.completed && prevMax > 0 ? (
+                          <span
+                            className="text-[10px] text-slate-600"
+                            title="Prior best weight (completed, non-warmup)"
+                          >
+                            max {prevMax}
+                          </span>
+                        ) : (
+                          <span className="text-slate-700">—</span>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        data-no-row-toggle
+                        aria-pressed={!!s.completed}
+                        aria-label={
+                          s.completed ? `Unmark set ${si + 1} as done` : `Mark set ${si + 1} done`
+                        }
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSetComplete(exIdx, si, !s.completed);
+                        }}
+                        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 transition-colors duration-motion ease-motion-standard sm:h-11 sm:w-11 ${
+                          s.completed
+                            ? 'border-emerald-500/60 bg-emerald-500/20 text-emerald-300'
+                            : 'border-slate-600 bg-slate-800/60 text-slate-500 hover:border-slate-500 hover:text-slate-300'
+                        }`}
+                      >
+                        <Check className="h-6 w-6" strokeWidth={2.5} aria-hidden />
+                      </button>
+                      <button
+                        type="button"
+                        data-no-row-toggle
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeSet(exIdx, si);
+                        }}
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-lg text-slate-500 hover:bg-slate-800 hover:text-slate-300"
+                        aria-label={`Remove set ${si + 1}`}
+                      >
+                        ×
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      data-no-row-toggle
-                      aria-pressed={!!s.completed}
-                      aria-label={
-                        s.completed ? `Unmark set ${si + 1} as done` : `Mark set ${si + 1} done`
-                      }
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleSetComplete(exIdx, si, !s.completed);
-                      }}
-                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 transition-colors duration-motion ease-motion-standard sm:h-11 sm:w-11 ${
-                        s.completed
-                          ? 'border-emerald-500/60 bg-emerald-500/20 text-emerald-300'
-                          : 'border-slate-600 bg-slate-800/60 text-slate-500 hover:border-slate-500 hover:text-slate-300'
-                      }`}
-                    >
-                      <Check className="h-6 w-6" strokeWidth={2.5} aria-hidden />
-                    </button>
-                    <button
-                      type="button"
-                      data-no-row-toggle
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeSet(exIdx, si);
-                      }}
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-lg text-slate-500 hover:bg-slate-800 hover:text-slate-300"
-                      aria-label={`Remove set ${si + 1}`}
-                    >
-                      ×
-                    </button>
                   </div>
                 );
               })}
