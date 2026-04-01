@@ -55,6 +55,7 @@ import WorkoutShareModal from '../components/WorkoutShareModal.jsx';
 import ExerciseIcon from '../components/ExerciseIcon.jsx';
 import AiWorkoutReview from '../components/AiWorkoutReview.jsx';
 import PostWorkoutRecapModal from '../components/PostWorkoutRecapModal.jsx';
+import { isStandalonePwa } from '../utils/pwaDisplayMode.js';
 
 const emptySet = (type = 'normal') => ({
   reps: '',
@@ -65,6 +66,8 @@ const emptySet = (type = 'normal') => ({
 
 const REST_SOUND_KEY = 'ironlog_rest_sound';
 const REST_HAPTIC_KEY = 'ironlog_rest_haptic';
+const LOCK_MEDIA_PRIMED_KEY = 'ironlog_lock_media_primed';
+const LOCK_TIP_DISMISS_SESSION_KEY = 'ironlog_lock_tip_dismiss_session';
 
 /** Match longest exit animation (modal 300ms + small buffer). */
 const WORKOUT_MORE_MENU_CLOSE_MS = 320;
@@ -109,6 +112,21 @@ export default function WorkoutEdit() {
   const [restTotal, setRestTotal] = useState(0);
   const [restDurationPick, setRestDurationPick] = useState(() => readRestDurationSeconds());
   const [restCustomDraft, setRestCustomDraft] = useState(() => String(readRestDurationSeconds()));
+  const [standalonePwa, setStandalonePwa] = useState(false);
+  const [lockMediaPrimed, setLockMediaPrimed] = useState(() => {
+    try {
+      return localStorage.getItem(LOCK_MEDIA_PRIMED_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const [lockTipDismissedSession, setLockTipDismissedSession] = useState(() => {
+    try {
+      return sessionStorage.getItem(LOCK_TIP_DISMISS_SESSION_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
   const [restSoundEnabled, setRestSoundEnabled] = useState(() => {
     try {
       return localStorage.getItem(REST_SOUND_KEY) !== '0';
@@ -272,6 +290,10 @@ export default function WorkoutEdit() {
       const { data } = await api.get('/exercises');
       setLibrary(data.exercises || []);
     })();
+  }, []);
+
+  useEffect(() => {
+    setStandalonePwa(isStandalonePwa());
   }, []);
 
   useEffect(() => {
@@ -539,6 +561,25 @@ export default function WorkoutEdit() {
     restTotal,
     weightUnit,
   });
+
+  const primeLockScreenMedia = useCallback(() => {
+    engagePlayback();
+    try {
+      localStorage.setItem(LOCK_MEDIA_PRIMED_KEY, '1');
+    } catch {
+      /* ignore */
+    }
+    setLockMediaPrimed(true);
+  }, [engagePlayback]);
+
+  const dismissLockScreenTipForSession = useCallback(() => {
+    try {
+      sessionStorage.setItem(LOCK_TIP_DISMISS_SESSION_KEY, '1');
+    } catch {
+      /* ignore */
+    }
+    setLockTipDismissedSession(true);
+  }, []);
 
   const durationLabel = useMemo(() => {
     if (!startedISO) return '—';
@@ -1206,6 +1247,39 @@ export default function WorkoutEdit() {
         </p>
       ) : null}
 
+      {sessionInProgress &&
+      standalonePwa &&
+      !lockMediaPrimed &&
+      !lockTipDismissedSession ? (
+        <div className="rounded-2xl border border-blue-500/35 bg-blue-950/25 px-4 py-3 ring-1 ring-blue-500/20">
+          <p className="text-sm text-slate-200">
+            <span className="font-medium text-white">Installed app (PWA):</span> Lock-screen workout
+            cards <span className="text-slate-300">are supported here</span> — same as in Chrome, using
+            media controls. Android usually shows them reliably; iPhone still depends on Safari and may
+            be inconsistent.
+          </p>
+          <p className="mt-2 text-xs text-slate-500">
+            The browser requires one explicit tap to start silent playback (then the OS shows the card).
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={primeLockScreenMedia}
+              className="rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white"
+            >
+              Enable lock screen workout card
+            </button>
+            <button
+              type="button"
+              onClick={dismissLockScreenTipForSession}
+              className="rounded-xl px-3 py-2 text-sm text-slate-500 hover:bg-slate-800/60 hover:text-slate-300"
+            >
+              Not now
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <div>
         <label className="mb-1 block text-xs text-slate-500">Title</label>
         <input
@@ -1316,11 +1390,12 @@ export default function WorkoutEdit() {
             Starts when you tick <span className="text-slate-400">Done</span> on a set. Choose a
             default (10–600s), saved on this device — same control lives under{' '}
             <span className="text-slate-400">Settings</span>. Use +30s on the bar if you need more time
-            mid-set.             Tap a set or control once after opening the workout so audio can start (browser rule). With
-            the screen off, many phones show this session in{' '}
-            <span className="text-slate-400">media / lock-screen controls</span> (next set and rest
-            countdown). If you hear a faint loop, lower media volume — pause on the lock screen to
-            stop. Works best in the installed app (PWA); iOS can be inconsistent.
+            mid-set.             In the <span className="text-slate-400">installed PWA</span>, use &quot;Enable lock screen
+            workout card&quot; above (or tap any set/control) so playback can start. With the screen
+            off, many phones show this session in{' '}
+            <span className="text-slate-400">media / lock-screen controls</span>. If you hear a faint
+            loop, lower media volume — pause on the lock screen to stop. iOS WebKit is still the least
+            predictable.
           </p>
           <div className="mb-3 flex flex-wrap gap-2">
             {[60, 90, 120, 180].map((sec) => (
