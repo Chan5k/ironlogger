@@ -11,12 +11,12 @@ export default function WorkoutPostCard({ post, style }) {
 
   return (
     <article
-      className="animate-feed-post rounded-[11px] border border-slate-200/90 dark:border-slate-800/90 bg-app-panel/95 p-4 shadow-sm shadow-slate-400/25 dark:shadow-black/15 transition-[transform,box-shadow] duration-motion-slow ease-motion-standard hover:-translate-y-0.5 hover:border-slate-200/80 dark:border-slate-700/80 hover:shadow-md hover:shadow-slate-400/25 dark:shadow-black/25 md:p-5"
+      className="animate-feed-post rounded-[11px] border border-slate-200/90 dark:border-slate-800/90 bg-app-panel/95 p-4 shadow-sm shadow-slate-400/25 dark:shadow-black/15 transition-[transform,box-shadow] duration-motion-slow ease-motion-standard hover:-translate-y-0.5 hover:border-slate-300/90 dark:hover:border-slate-700/80 hover:shadow-md hover:shadow-slate-400/25 dark:hover:shadow-black/25 md:p-5"
       style={style}
     >
       <header className="flex items-start gap-3">
         <div
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-700/90 text-xs font-semibold text-slate-100 ring-1 ring-slate-600/50"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-800 ring-1 ring-slate-400/50 dark:bg-slate-700/90 dark:text-slate-100 dark:ring-slate-600/50"
           aria-hidden
         >
           {user.initials}
@@ -26,7 +26,7 @@ export default function WorkoutPostCard({ post, style }) {
             {user.slug ? (
               <Link
                 to={`/u/${encodeURIComponent(user.slug)}`}
-                className="font-semibold text-slate-900 dark:text-white hover:text-blue-200"
+                className="font-semibold text-slate-900 hover:text-blue-700 dark:text-white dark:hover:text-blue-200"
               >
                 {user.name}
               </Link>
@@ -45,7 +45,7 @@ export default function WorkoutPostCard({ post, style }) {
           {prs.map((pr) => (
             <div
               key={`${pr.exerciseName}-${pr.detail}`}
-              className="rounded-lg bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-300/95 ring-1 ring-emerald-500/20"
+              className="rounded-lg bg-emerald-100 px-3 py-2 text-xs font-medium text-emerald-900 ring-1 ring-emerald-600/25 dark:bg-emerald-500/10 dark:text-emerald-300/95 dark:ring-emerald-500/20"
             >
               🔥 New PR on {pr.exerciseName} ({pr.detail})
             </div>
@@ -60,11 +60,11 @@ export default function WorkoutPostCard({ post, style }) {
               <ExerciseIcon
                 name={ex.name}
                 category={ex.category}
-                className="h-4 w-4 shrink-0 text-slate-500"
+                className="h-4 w-4 shrink-0 text-slate-600 dark:text-slate-500"
               />
-              <span className="font-medium text-slate-200">{ex.name}</span>
-              <span className="text-slate-600"> · </span>
-              <span className="font-mono text-xs text-slate-400">{ex.setsLine}</span>
+              <span className="font-medium text-slate-900 dark:text-slate-200">{ex.name}</span>
+              <span className="text-slate-500 dark:text-slate-600"> · </span>
+              <span className="font-mono text-xs text-slate-600 dark:text-slate-400">{ex.setsLine}</span>
             </li>
           ))}
         </ul>
@@ -74,14 +74,16 @@ export default function WorkoutPostCard({ post, style }) {
       <footer className="mt-4 border-t border-slate-200/80 dark:border-slate-800/80 pt-4">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-500">
           <span>
-            <span className="text-slate-600">Volume </span>
-            <span className="font-mono tabular-nums text-slate-300">
+            <span className="text-slate-600 dark:text-slate-500">Volume </span>
+            <span className="font-mono tabular-nums font-semibold text-slate-900 dark:font-normal dark:text-slate-300">
               {(workout.totalVolumeKg ?? workout.totalVolume).toLocaleString()} kg
             </span>
           </span>
           <span>
-            <span className="text-slate-600">Sets </span>
-            <span className="tabular-nums text-slate-300">{workout.totalSets}</span>
+            <span className="text-slate-600 dark:text-slate-500">Sets </span>
+            <span className="tabular-nums font-semibold text-slate-900 dark:font-normal dark:text-slate-300">
+              {workout.totalSets}
+            </span>
           </span>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-0">

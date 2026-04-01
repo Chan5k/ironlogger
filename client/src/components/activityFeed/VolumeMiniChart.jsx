@@ -6,7 +6,7 @@ export default function VolumeMiniChart({ volumeByExercise }) {
   const barMaxPx = 52;
   return (
     <div className="flex min-w-[120px] flex-col justify-end gap-1.5" aria-hidden>
-      <p className="text-[10px] font-medium uppercase tracking-wide text-slate-600">Volume</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-600">Volume</p>
       <div className="flex h-16 items-end gap-1">
         {volumeByExercise.slice(0, 6).map((ex) => {
           const px = Math.max(5, Math.round((ex.volume / max) * barMaxPx));

@@ -104,8 +104,10 @@ export default function Templates() {
                   </span>
                   <h2 className="text-base font-semibold text-slate-900 dark:text-white">Creating workout</h2>
                 </div>
-                <p className="mt-2 text-sm text-slate-400">Building your session from &quot;{creating.name}&quot;…</p>
-                <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-slate-800">
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                  Building your session from &quot;{creating.name}&quot;…
+                </p>
+                <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-emerald-600 via-accent to-emerald-500 transition-[width] duration-300 ease-out motion-reduce:transition-none"
                     style={{ width: `${createProgress}%` }}
@@ -123,7 +125,7 @@ export default function Templates() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white">Workout plans</h1>
-          <p className="text-sm text-slate-400">Templates to start sessions quickly</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">Templates to start sessions quickly</p>
         </div>
         <Link
           to={appPath('templates/new')}
@@ -143,9 +145,9 @@ export default function Templates() {
               <div>
                 <p className="font-medium text-slate-900 dark:text-white">{t.name}</p>
                 {t.description ? (
-                  <p className="text-sm text-slate-400">{t.description}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">{t.description}</p>
                 ) : null}
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-500">
                   {t.items?.length || 0} exercises
                 </p>
               </div>
@@ -154,27 +156,27 @@ export default function Templates() {
                   type="button"
                   disabled={!!creating}
                   onClick={() => startFromTemplate(t)}
-                  className="min-h-12 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-11 sm:px-5"
+                  className="min-h-12 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-11 sm:px-5"
                 >
                   {creating?.id === t._id ? 'Starting…' : 'Start workout'}
                 </button>
                 <Link
                   to={appPath(`templates/${t._id}`)}
-                  className="flex min-h-12 items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-surface/50 px-4 py-3 text-center text-sm font-semibold text-slate-200 transition-colors hover:border-slate-500 hover:bg-surface-elevated/80 sm:min-h-11 sm:px-5"
+                  className="flex min-h-12 items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 px-4 py-3 text-center text-sm font-semibold text-slate-800 transition-colors hover:border-slate-400 hover:bg-slate-100 dark:bg-surface/50 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:bg-surface-elevated/80 sm:min-h-11 sm:px-5"
                 >
                   Edit
                 </Link>
                 <button
                   type="button"
                   onClick={() => sharePlan(t._id)}
-                  className="min-h-12 rounded-xl border border-slate-300 dark:border-slate-600 bg-surface/50 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors hover:border-slate-500 hover:bg-surface-elevated/80 sm:min-h-11 sm:px-5"
+                  className="min-h-12 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 transition-colors hover:border-slate-400 hover:bg-slate-100 dark:bg-surface/50 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:bg-surface-elevated/80 sm:min-h-11 sm:px-5"
                 >
                   Share
                 </button>
                 <button
                   type="button"
                   onClick={() => remove(t._id)}
-                  className="min-h-12 rounded-xl border border-red-900/60 bg-red-950/20 px-4 py-3 text-sm font-semibold text-red-300 transition-colors hover:bg-red-950/35 sm:min-h-11 sm:px-5"
+                  className="min-h-12 rounded-xl border border-red-300/90 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800 transition-colors hover:bg-red-100 dark:border-red-900/60 dark:bg-red-950/20 dark:text-red-300 dark:hover:bg-red-950/35 sm:min-h-11 sm:px-5"
                 >
                   Delete
                 </button>

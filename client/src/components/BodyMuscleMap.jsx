@@ -31,7 +31,7 @@ export default function BodyMuscleMap({ intensity = {} }) {
   return (
     <div className="flex flex-wrap items-start justify-center gap-6 md:gap-10">
       <div className="text-center">
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">Front</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-500">Front</p>
         <svg
           viewBox="0 0 100 220"
           className="mx-auto h-[min(55vw,280px)] w-auto max-w-[200px]"
@@ -68,7 +68,7 @@ export default function BodyMuscleMap({ intensity = {} }) {
       </div>
 
       <div className="text-center">
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">Back</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-500">Back</p>
         <svg
           viewBox="0 0 100 220"
           className="mx-auto h-[min(55vw,280px)] w-auto max-w-[200px]"

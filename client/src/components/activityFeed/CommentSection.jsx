@@ -52,7 +52,7 @@ export default function CommentSection({ workoutId, initialCount, onCountChange 
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-400 ring-1 ring-slate-200/60 dark:ring-slate-700/60 transition-all duration-motion ease-motion-standard hover:bg-slate-800/50 hover:text-slate-200 active:scale-[0.98]"
+        className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-300/80 transition-all duration-motion ease-motion-standard hover:bg-slate-200/90 hover:text-slate-900 active:scale-[0.98] dark:text-slate-400 dark:ring-slate-700/60 dark:hover:bg-slate-800/50 dark:hover:text-slate-200"
         aria-expanded={open}
       >
         <MessageCircle className="h-5 w-5 shrink-0" strokeWidth={2} aria-hidden />
@@ -76,9 +76,9 @@ export default function CommentSection({ workoutId, initialCount, onCountChange 
               <ul className="max-h-48 space-y-2 overflow-y-auto">
                 {comments.map((c) => (
                   <li key={c.id} className="text-sm">
-                    <span className="font-semibold text-slate-200">{c.user.name}</span>
+                    <span className="font-semibold text-slate-900 dark:text-slate-200">{c.user.name}</span>
                     <span className="text-slate-500"> · </span>
-                    <span className="text-slate-400">{c.body}</span>
+                    <span className="text-slate-600 dark:text-slate-400">{c.body}</span>
                   </li>
                 ))}
                 {!loading && comments.length === 0 ? (

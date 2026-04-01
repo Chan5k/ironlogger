@@ -13,7 +13,9 @@ export default function FeedTabs({ value, onChange }) {
             type="button"
             onClick={() => onChange(t.id)}
             className={`relative pb-3 text-sm font-semibold transition-colors duration-motion ease-motion-standard ${
-              active ? 'text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-300'
+              active
+                ? 'text-slate-900 dark:text-white'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-500 dark:hover:text-slate-300'
             }`}
           >
             {t.label}

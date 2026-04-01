@@ -59,9 +59,9 @@ function SeasonRankGuide({ ladderFromParent }) {
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left transition-colors duration-motion ease-motion-standard hover:bg-slate-800/35 motion-reduce:transition-none"
+        className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left transition-colors duration-motion ease-motion-standard hover:bg-slate-200/70 dark:hover:bg-slate-800/35 motion-reduce:transition-none"
       >
-        <span className="text-sm font-medium text-slate-200">How to earn points &amp; rank up</span>
+        <span className="text-sm font-medium text-slate-900 dark:text-slate-200">How to earn points &amp; rank up</span>
         <span
           className={`shrink-0 text-slate-500 transition-transform duration-motion-out ease-motion-emphasized motion-reduce:transition-none ${
             open ? 'rotate-180' : ''
@@ -81,60 +81,68 @@ function SeasonRankGuide({ ladderFromParent }) {
       >
         <div className="min-h-0 overflow-hidden" aria-hidden={!open}>
           <div
-            className={`space-y-4 border-t border-slate-200/80 dark:border-slate-800/80 px-4 pb-4 pt-3 text-sm text-slate-400 transition-[opacity,transform] duration-motion ease-motion-standard motion-reduce:transition-none ${
+            className={`space-y-4 border-t border-slate-200/80 dark:border-slate-800/80 px-4 pb-4 pt-3 text-sm text-slate-600 transition-[opacity,transform] duration-motion ease-motion-standard motion-reduce:transition-none dark:text-slate-400 ${
               open ? 'translate-y-0 opacity-100 delay-75 motion-reduce:delay-0' : '-translate-y-1 opacity-0 delay-0'
             }`}
           >
             <section className="space-y-2">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Earning points</h3>
-              <ul className="list-inside list-disc space-y-1.5 text-slate-400 marker:text-slate-600">
+              <ul className="list-inside list-disc space-y-1.5 text-slate-600 marker:text-slate-500 dark:text-slate-400 dark:marker:text-slate-600">
                 <li>
-                  <span className="text-slate-300">Complete a workout in IronLog</span> — points are granted once when you mark
-                  a session finished. It must include at least one{' '}
-                  <strong className="font-medium text-slate-300">non-warmup</strong> set with{' '}
-                  <strong className="font-medium text-slate-300">at least one rep</strong>. Warmup-only sessions do not count.
+                  <span className="font-medium text-slate-800 dark:text-slate-300">Complete a workout in IronLog</span> — points
+                  are granted once when you mark a session finished. It must include at least one{' '}
+                  <strong className="font-medium text-slate-800 dark:text-slate-300">non-warmup</strong> set with{' '}
+                  <strong className="font-medium text-slate-800 dark:text-slate-300">at least one rep</strong>. Warmup-only
+                  sessions do not count.
                 </li>
                 <li>
-                  <span className="text-slate-300">+24</span> base points per qualifying session.
+                  <span className="font-medium text-slate-800 dark:text-slate-300">+24</span> base points per qualifying session.
                 </li>
                 <li>
-                  <span className="text-slate-300">Volume bonus:</span> +1 point per{' '}
-                  <strong className="font-medium text-slate-300">400 kg×reps</strong> of non-warmup volume in that session
-                  (weights are stored in kg), up to <strong className="font-medium text-slate-300">+40</strong> per session.
+                  <span className="font-medium text-slate-800 dark:text-slate-300">Volume bonus:</span> +1 point per{' '}
+                  <strong className="font-medium text-slate-800 dark:text-slate-300">400 kg×reps</strong> of non-warmup volume
+                  in that session (weights are stored in kg), up to{' '}
+                  <strong className="font-medium text-slate-800 dark:text-slate-300">+40</strong> per session.
                 </li>
                 <li>
-                  <span className="text-slate-300">Daily bonus:</span> the first qualifying session on each{' '}
-                  <strong className="font-medium text-slate-300">calendar day</strong> in your account timezone (Settings) earns{' '}
-                  <strong className="font-medium text-slate-300">+12</strong>. Later sessions that day still get base + volume,
-                  not another daily bonus.
+                  <span className="font-medium text-slate-800 dark:text-slate-300">Daily bonus:</span> the first qualifying
+                  session on each <strong className="font-medium text-slate-800 dark:text-slate-300">calendar day</strong> in your
+                  account timezone (Settings) earns <strong className="font-medium text-slate-800 dark:text-slate-300">+12</strong>
+                  . Later sessions that day still get base + volume, not another daily bonus.
                 </li>
                 <li>
-                  Each session can award points <strong className="font-medium text-slate-300">at most once</strong>, even if
-                  you edit it later.
+                  Each session can award points{' '}
+                  <strong className="font-medium text-slate-800 dark:text-slate-300">at most once</strong>, even if you edit it
+                  later.
                 </li>
               </ul>
             </section>
 
             <section className="space-y-2">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Hevy imports</h3>
-              <ul className="list-inside list-disc space-y-1.5 text-slate-400 marker:text-slate-600">
+              <ul className="list-inside list-disc space-y-1.5 text-slate-600 marker:text-slate-500 dark:text-slate-400 dark:marker:text-slate-600">
                 <li>
-                  Under <strong className="font-medium text-slate-300">Settings → Import from Hevy</strong>, upload your Hevy
-                  CSV export. Each <strong className="font-medium text-slate-300">new</strong> workout (by UTC date + title) is
-                  saved as a completed session and earns the <strong className="font-medium text-slate-300">same</strong> season
-                  points as logging it manually: base, volume bonus, and daily bonus when the rules above apply.
+                  Under <strong className="font-medium text-slate-800 dark:text-slate-300">Settings → Import from Hevy</strong>,
+                  upload your Hevy CSV export. Each{' '}
+                  <strong className="font-medium text-slate-800 dark:text-slate-300">new</strong> workout (by UTC date + title) is
+                  saved as a completed session and earns the{' '}
+                  <strong className="font-medium text-slate-800 dark:text-slate-300">same</strong> season points as logging it
+                  manually: base, volume bonus, and daily bonus when the rules above apply.
                 </li>
                 <li>
-                  Imports are processed in <strong className="font-medium text-slate-300">chronological order</strong> so the
-                  daily +12 lines up with each session&apos;s calendar day in your timezone.
+                  Imports are processed in{' '}
+                  <strong className="font-medium text-slate-800 dark:text-slate-300">chronological order</strong> so the daily +12
+                  lines up with each session&apos;s calendar day in your timezone.
                 </li>
                 <li>
-                  <strong className="font-medium text-slate-300">Duplicates</strong> (same date + workout name as an import you
-                  already have) are skipped and earn no points. Re-uploading the same file within 24 hours is blocked.
+                  <strong className="font-medium text-slate-800 dark:text-slate-300">Duplicates</strong> (same date + workout name
+                  as an import you already have) are skipped and earn no points. Re-uploading the same file within 24 hours is
+                  blocked.
                 </li>
                 <li>
-                  Points from imports go to the <strong className="font-medium text-slate-300">current UTC month</strong> season,
-                  same as in-app completions.
+                  Points from imports go to the{' '}
+                  <strong className="font-medium text-slate-800 dark:text-slate-300">current UTC month</strong> season, same as
+                  in-app completions.
                 </li>
               </ul>
             </section>
@@ -142,23 +150,23 @@ function SeasonRankGuide({ ladderFromParent }) {
             <section className="space-y-2">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Seasons</h3>
               <p>
-                Seasons use <strong className="font-medium text-slate-300">UTC calendar months</strong> (e.g. 1–31 March UTC).
-                When a new month starts, your displayed season score resets to{' '}
-                <strong className="font-medium text-slate-300">0</strong> until you earn points again. Leaderboards rank by
-                points in the current month.
+                Seasons use <strong className="font-medium text-slate-800 dark:text-slate-300">UTC calendar months</strong> (e.g.
+                1–31 March UTC). When a new month starts, your displayed season score resets to{' '}
+                <strong className="font-medium text-slate-800 dark:text-slate-300">0</strong> until you earn points again.
+                Leaderboards rank by points in the current month.
               </p>
             </section>
 
             <section className="space-y-2">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Ranks (45 steps)</h3>
               <p>
-                There are <strong className="font-medium text-slate-300">45 ranks</strong>:{' '}
-                <strong className="font-medium text-slate-300">15 tiers</strong>, each with{' '}
-                <strong className="font-medium text-slate-300">3 divisions</strong> (division 3 is the top of that tier). After
-                Ultimate Champion, six prestige tiers continue the climb: Astral, Mythic, Celestial, Eternal, Transcendent, and
-                Sovereign.                 Your rank follows only <strong className="font-medium text-slate-300">season points</strong> this
-                month. Point thresholds are set so tiers unlock a bit sooner than before. The rank ladder below highlights
-                your current step.
+                There are <strong className="font-medium text-slate-800 dark:text-slate-300">45 ranks</strong>:{' '}
+                <strong className="font-medium text-slate-800 dark:text-slate-300">15 tiers</strong>, each with{' '}
+                <strong className="font-medium text-slate-800 dark:text-slate-300">3 divisions</strong> (division 3 is the top of
+                that tier). After Ultimate Champion, six prestige tiers continue the climb: Astral, Mythic, Celestial, Eternal,
+                Transcendent, and Sovereign. Your rank follows only{' '}
+                <strong className="font-medium text-slate-800 dark:text-slate-300">season points</strong> this month. Point
+                thresholds are set so tiers unlock a bit sooner than before. The rank ladder below highlights your current step.
               </p>
             </section>
 
@@ -167,9 +175,9 @@ function SeasonRankGuide({ ladderFromParent }) {
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Point thresholds (lowest → highest rank)
                 </h3>
-                <div className="max-h-[min(22rem,60dvh)] overflow-y-auto overscroll-contain rounded-lg border border-slate-200/90 dark:border-slate-800/90 bg-slate-950/40">
-                  <table className="w-full text-left text-xs text-slate-400">
-                    <thead className="sticky top-0 z-[1] border-b border-slate-200 dark:border-slate-800 bg-app-panel text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                <div className="max-h-[min(22rem,60dvh)] overflow-y-auto overscroll-contain rounded-lg border border-slate-200/90 dark:border-slate-800/90 bg-slate-50 dark:bg-slate-950/40">
+                  <table className="w-full text-left text-xs text-slate-600 dark:text-slate-400">
+                    <thead className="sticky top-0 z-[1] border-b border-slate-200 dark:border-slate-800 bg-app-panel text-[10px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-500">
                       <tr>
                         <th className="px-3 py-2">Rank</th>
                         <th className="px-3 py-2 text-right tabular-nums">Min. pts</th>
@@ -177,9 +185,9 @@ function SeasonRankGuide({ ladderFromParent }) {
                     </thead>
                     <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80">
                       {ladderRows.map((step) => (
-                        <tr key={step.index} className="hover:bg-slate-800/30">
-                          <td className="px-3 py-1.5 text-slate-300">{step.label}</td>
-                          <td className="px-3 py-1.5 text-right tabular-nums text-slate-500">
+                        <tr key={step.index} className="hover:bg-slate-200/80 dark:hover:bg-slate-800/30">
+                          <td className="px-3 py-1.5 text-slate-800 dark:text-slate-300">{step.label}</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums text-slate-600 dark:text-slate-500">
                             {step.minPoints.toLocaleString()}
                           </td>
                         </tr>
@@ -226,8 +234,8 @@ function SeasonLadderPanel({ ladder, viewerRankIndex, viewerSeasonPoints, viewer
           Highest ranks at the top. Season points (this UTC month) must reach at least the threshold to unlock each rank.
         </p>
         {viewerRankLabel != null ? (
-          <p className="mt-2 text-xs text-slate-400">
-            <span className="font-medium text-slate-300">Your placement:</span>{' '}
+          <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+            <span className="font-medium text-slate-800 dark:text-slate-300">Your placement:</span>{' '}
             {viewerRankLabel}
             <span className="text-slate-600"> · </span>
             {(Number(viewerSeasonPoints) || 0).toLocaleString()} pts this season
@@ -249,16 +257,18 @@ function SeasonLadderPanel({ ladder, viewerRankIndex, viewerSeasonPoints, viewer
               >
                 <RankIcon iconId={step.iconId} className="h-8 w-8 shrink-0" title={step.label} />
                 <div className="min-w-0 flex-1">
-                  <p className={`text-sm font-medium ${isYou ? 'text-slate-900 dark:text-white' : 'text-slate-200'}`}>
+                  <p
+                    className={`text-sm font-medium ${isYou ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-200'}`}
+                  >
                     {step.label}
                     {isYou ? (
-                      <span className="ml-2 rounded-md bg-blue-600/25 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-300">
+                      <span className="ml-2 rounded-md bg-blue-600 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white dark:bg-blue-600/25 dark:text-blue-200">
                         You
                       </span>
                     ) : null}
                   </p>
                 </div>
-                <p className="shrink-0 text-xs tabular-nums text-slate-500">
+                <p className="shrink-0 text-xs tabular-nums text-slate-600 dark:text-slate-500">
                   ≥ {step.minPoints.toLocaleString()} pts
                 </p>
               </li>
@@ -360,7 +370,7 @@ export default function Leaderboards() {
             className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-motion ease-motion-standard ${
               metric === m.id
                 ? 'bg-blue-600/15 text-slate-900 dark:text-white ring-1 ring-blue-500/30'
-                : 'text-slate-500 hover:bg-slate-800/50 hover:text-slate-200'
+                : 'text-slate-600 hover:bg-slate-200/90 hover:text-slate-900 dark:text-slate-500 dark:hover:bg-slate-800/50 dark:hover:text-slate-200'
             }`}
           >
             {m.label}
@@ -377,8 +387,8 @@ export default function Leaderboards() {
             <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Your season</p>
               <p className="text-sm font-medium text-slate-900 dark:text-white">{seasonCard.seasonLabel ?? ''}</p>
-              <p className="mt-0.5 text-sm text-slate-400">
-                <span className="text-slate-200">{seasonCard.rankLabel}</span>
+              <p className="mt-0.5 text-sm text-slate-700 dark:text-slate-400">
+                <span className="font-medium text-slate-900 dark:font-normal dark:text-slate-200">{seasonCard.rankLabel}</span>
                 <span className="mx-1.5 text-slate-600">·</span>
                 {(Number(seasonCard.seasonPoints) || 0).toLocaleString()} pts
                 {!seasonCard.isMaxRank && seasonCard.nextRankLabel ? (
@@ -416,8 +426,8 @@ export default function Leaderboards() {
             onClick={() => setScope(s.id)}
             className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-motion ease-motion-standard ${
               scope === s.id
-                ? 'bg-slate-800 text-slate-900 dark:text-white ring-1 ring-slate-600/50'
-                : 'text-slate-500 hover:bg-slate-800/40 hover:text-slate-200'
+                ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-900/15 dark:bg-slate-800 dark:text-white dark:ring-slate-600/50'
+                : 'text-slate-600 hover:bg-slate-200/90 hover:text-slate-900 dark:text-slate-500 dark:hover:bg-slate-800/40 dark:hover:text-slate-200'
             }`}
           >
             {s.label}
@@ -426,8 +436,8 @@ export default function Leaderboards() {
       </div>
 
       {isSeason && data?.seasonLabel ? (
-        <p className="text-sm text-slate-400">
-          <span className="font-medium text-slate-300">{data.seasonLabel}</span>
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          <span className="font-medium text-slate-900 dark:text-slate-300">{data.seasonLabel}</span>
           {data.seasonEndsAt ? (
             <span className="text-slate-600"> · ends {formatSeasonEnd(data.seasonEndsAt)} UTC</span>
           ) : null}
@@ -451,7 +461,7 @@ export default function Leaderboards() {
 
       {!loading && data?.entries?.length ? (
         <div className="overflow-hidden rounded-xl border border-slate-200/90 dark:border-slate-800/90 bg-app-panel/95">
-          <div className="border-b border-slate-200/80 dark:border-slate-800/80 px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          <div className="border-b border-slate-200/80 dark:border-slate-800/80 px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-500">
             {metricMeta?.label}
             {metricMeta?.unit ? (
               <span className="ml-2 font-normal normal-case text-slate-600">· {metricMeta.unit}</span>
@@ -465,7 +475,7 @@ export default function Leaderboards() {
                   row.isViewer ? 'bg-blue-600/10' : ''
                 }`}
               >
-                <span className="w-8 shrink-0 text-center text-sm font-semibold tabular-nums text-slate-500">
+                <span className="w-8 shrink-0 text-center text-sm font-semibold tabular-nums text-slate-600 dark:text-slate-500">
                   {row.rank}
                 </span>
                 {isSeason && row.rankIconId ? (
@@ -478,8 +488,8 @@ export default function Leaderboards() {
                   <div
                     className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
                       row.isViewer
-                        ? 'bg-blue-600/30 text-blue-100 ring-1 ring-blue-500/40'
-                        : 'bg-slate-700/80 text-slate-200 ring-1 ring-slate-600/50'
+                        ? 'bg-blue-600 text-white ring-1 ring-blue-500/50 dark:bg-blue-600/30 dark:text-blue-100 dark:ring-blue-500/40'
+                        : 'bg-slate-200 text-slate-800 ring-1 ring-slate-400/40 dark:bg-slate-700/80 dark:text-slate-200 dark:ring-slate-600/50'
                     }`}
                   >
                     {row.initials}
@@ -489,14 +499,14 @@ export default function Leaderboards() {
                   <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
                     {row.name}
                     {row.isViewer ? (
-                      <span className="ml-2 text-xs font-normal text-blue-400/90">You</span>
+                      <span className="ml-2 text-xs font-semibold text-blue-700 dark:font-normal dark:text-blue-400/90">You</span>
                     ) : null}
                   </p>
                   {isSeason && row.rankLabel ? (
                     <p className="truncate text-xs text-slate-500">{row.rankLabel}</p>
                   ) : null}
                 </div>
-                <p className="shrink-0 text-sm font-medium tabular-nums text-slate-300">
+                <p className="shrink-0 text-sm font-semibold tabular-nums text-slate-900 dark:font-medium dark:text-slate-300">
                   {formatValue(row)}
                 </p>
               </li>
@@ -507,11 +517,11 @@ export default function Leaderboards() {
               type="button"
               disabled={page <= 1 || loading}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-colors duration-motion ease-motion-standard hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white disabled:opacity-40"
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors duration-motion ease-motion-standard hover:bg-slate-200 hover:text-slate-900 disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
             >
               Previous
             </button>
-            <span className="text-xs text-slate-600">
+            <span className="text-xs font-medium text-slate-700 dark:text-slate-600">
               Page {page}
               {data?.totalUsers != null ? ` · ${data.totalUsers} athletes` : ''}
             </span>
@@ -519,7 +529,7 @@ export default function Leaderboards() {
               type="button"
               disabled={!data?.hasMore || loading}
               onClick={() => setPage((p) => p + 1)}
-              className="rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-colors duration-motion ease-motion-standard hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white disabled:opacity-40"
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors duration-motion ease-motion-standard hover:bg-slate-200 hover:text-slate-900 disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
             >
               Next
             </button>

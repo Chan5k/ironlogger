@@ -430,7 +430,7 @@ export default function Layout() {
                   'border-b-2 py-3 text-sm font-semibold transition-colors duration-motion ease-motion-standard',
                   isActive
                     ? 'border-blue-600 text-slate-900 dark:text-white'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300',
+                    : 'border-transparent text-slate-600 hover:text-slate-900 dark:text-slate-500 dark:hover:text-slate-300',
                 ].join(' ')
               }
             >
@@ -443,7 +443,7 @@ export default function Layout() {
                   'border-b-2 py-3 text-sm font-semibold transition-colors duration-motion ease-motion-standard',
                   isActive
                     ? 'border-blue-600 text-slate-900 dark:text-white'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300',
+                    : 'border-transparent text-slate-600 hover:text-slate-900 dark:text-slate-500 dark:hover:text-slate-300',
                 ].join(' ')
               }
             >

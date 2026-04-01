@@ -97,7 +97,7 @@ export default function Statistics() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white md:text-[1.65rem]">Analytics</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-500">
           Muscle-group load from completed workouts. Warm-up sets are excluded; coloring is relative
           to your strongest mapped group in the selected period.
         </p>
@@ -112,7 +112,7 @@ export default function Statistics() {
             className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-motion ease-motion-standard ${
               rangeDays === days
                 ? 'bg-blue-600/15 text-slate-900 dark:text-white ring-1 ring-blue-500/30'
-                : 'text-slate-500 hover:bg-slate-800/50 hover:text-slate-200'
+                : 'text-slate-600 hover:bg-slate-200/90 hover:text-slate-900 dark:text-slate-500 dark:hover:bg-slate-800/50 dark:hover:text-slate-200'
             }`}
           >
             {label}
@@ -137,7 +137,7 @@ export default function Statistics() {
 
           <div className="rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-app-panel-muted/90 p-5 md:p-7">
             <BodyMuscleMap intensity={intensityByCategory} />
-            <div className="mx-auto mt-6 flex max-w-md items-center justify-center gap-3 rounded-lg bg-slate-900/40 px-4 py-3 text-[11px] text-slate-500 ring-1 ring-slate-200/60 dark:ring-slate-800/60">
+            <div className="mx-auto mt-6 flex max-w-md items-center justify-center gap-3 rounded-lg bg-slate-100 px-4 py-3 text-[11px] font-medium text-slate-700 ring-1 ring-slate-300/70 dark:bg-slate-900/40 dark:font-normal dark:text-slate-400 dark:ring-slate-800/60">
               <span className="h-2 w-7 shrink-0 rounded-full bg-[hsl(222,16%,11%)] ring-1 ring-slate-200/50 dark:ring-slate-700/50" />
               <span className="shrink-0">Less load</span>
               <span className="h-2 min-w-0 flex-1 rounded-full bg-gradient-to-r from-[hsl(222,16%,11%)] via-[hsl(200,28%,28%)] to-[hsl(168,52%,48%)] ring-1 ring-slate-200/40 dark:ring-slate-700/40" />
@@ -166,12 +166,12 @@ export default function Statistics() {
                 {tableRows.map((row) => (
                   <tr
                     key={row.key}
-                    className="border-b border-slate-200/80 dark:border-slate-800/80 last:border-0 text-slate-300"
+                    className="border-b border-slate-200/80 dark:border-slate-800/80 last:border-0 text-slate-800 dark:text-slate-300"
                   >
                     <td className="px-4 py-3 text-slate-900 dark:text-white">{row.label}</td>
-                    <td className="px-4 py-3">{row.sessions}</td>
-                    <td className="px-4 py-3">{row.sets}</td>
-                    <td className="px-4 py-3 text-slate-400">{fmtVol(row.volume)}</td>
+                    <td className="px-4 py-3 tabular-nums">{row.sessions}</td>
+                    <td className="px-4 py-3 tabular-nums">{row.sets}</td>
+                    <td className="px-4 py-3 tabular-nums text-slate-700 dark:text-slate-400">{fmtVol(row.volume)}</td>
                   </tr>
                 ))}
               </tbody>

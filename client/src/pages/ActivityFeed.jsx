@@ -15,15 +15,15 @@ function FeedSkeleton() {
           className="animate-pulse rounded-[11px] border border-slate-200/60 dark:border-slate-800/60 bg-app-panel/60 p-5"
         >
           <div className="flex gap-3">
-            <div className="h-10 w-10 rounded-full bg-slate-800" />
+            <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-800" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 w-36 rounded bg-slate-800" />
-              <div className="h-3 w-48 rounded bg-slate-800/80" />
+              <div className="h-4 w-36 rounded bg-slate-200 dark:bg-slate-800" />
+              <div className="h-3 w-48 rounded bg-slate-200/90 dark:bg-slate-800/80" />
             </div>
           </div>
           <div className="mt-4 space-y-2">
-            <div className="h-3 w-full rounded bg-slate-800/70" />
-            <div className="h-3 max-w-[85%] rounded bg-slate-800/70" />
+            <div className="h-3 w-full rounded bg-slate-200/90 dark:bg-slate-800/70" />
+            <div className="h-3 max-w-[85%] rounded bg-slate-200/90 dark:bg-slate-800/70" />
           </div>
         </div>
       ))}
@@ -127,7 +127,7 @@ export default function ActivityFeedPage() {
             id="feed-sort"
             value={fq.sort}
             onChange={(e) => setSort(e.target.value)}
-            className="rounded-lg border border-slate-300 dark:border-slate-700 bg-app-panel px-3 py-2 text-sm text-slate-200 transition-[border-color,box-shadow] duration-motion ease-motion-standard focus:border-blue-500/50 focus:outline-none focus:ring-1 focus:ring-blue-500/40"
+            className="rounded-lg border border-slate-300 dark:border-slate-700 bg-app-panel px-3 py-2 text-sm text-slate-900 transition-[border-color,box-shadow] duration-motion ease-motion-standard focus:border-blue-500/50 focus:outline-none focus:ring-1 focus:ring-blue-500/40 dark:text-slate-200"
           >
             <option value="latest">Latest</option>
             <option value="top">Top</option>
