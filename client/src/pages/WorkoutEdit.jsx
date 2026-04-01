@@ -530,12 +530,13 @@ export default function WorkoutEdit() {
   const sessionInProgress = !endedISO;
   const liveNow = useLiveClock(sessionInProgress);
 
-  useWorkoutLockScreenMedia({
+  const { engagePlayback } = useWorkoutLockScreenMedia({
     active: sessionInProgress,
     workoutTitle: title,
     exercises,
     restRunning,
     restSecondsLeft,
+    restTotal,
     weightUnit,
   });
 
@@ -702,6 +703,7 @@ export default function WorkoutEdit() {
 
   const toggleSetComplete = useCallback(
     (exIdx, setIdx, checked) => {
+      if (sessionInProgress) engagePlayback();
       const ex = exercises[exIdx];
       const s = ex?.sets?.[setIdx];
       if (!ex || !s) return;
@@ -747,6 +749,7 @@ export default function WorkoutEdit() {
       weightUnit,
       sessionInProgress,
       effectiveRepsForSet,
+      engagePlayback,
     ]
   );
 
@@ -1313,9 +1316,11 @@ export default function WorkoutEdit() {
             Starts when you tick <span className="text-slate-400">Done</span> on a set. Choose a
             default (10–600s), saved on this device — same control lives under{' '}
             <span className="text-slate-400">Settings</span>. Use +30s on the bar if you need more time
-            mid-set. With the screen off, many phones show this session in{' '}
+            mid-set.             Tap a set or control once after opening the workout so audio can start (browser rule). With
+            the screen off, many phones show this session in{' '}
             <span className="text-slate-400">media / lock-screen controls</span> (next set and rest
-            countdown); pause there to dismiss. Works best in the installed app (PWA).
+            countdown). If you hear a faint loop, lower media volume — pause on the lock screen to
+            stop. Works best in the installed app (PWA); iOS can be inconsistent.
           </p>
           <div className="mb-3 flex flex-wrap gap-2">
             {[60, 90, 120, 180].map((sec) => (
