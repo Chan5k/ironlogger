@@ -49,6 +49,14 @@ Full-stack app for logging exercises, sets, reps, and weight; viewing progress c
 
    To refresh only those videos after editing the JSON: `npm run seed:demos`.
 
+   After changing **season rank** point rules or thresholds, recompute everyone’s score for the current UTC month from completed workouts (verified users and staff only):
+
+   ```bash
+   npm run recalc:season-points
+   ```
+
+   Optional season (defaults to current UTC month): `cd server && npm run recalc:season-points -- 2026-03`.
+
    **Data source:** names come from the public-domain [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (mapped into IronLog categories) plus extra Hevy-style titles. This is not an official Hevy export; their site does not publish a full static list.
 
 5. **Run the API** (terminal 1):
@@ -126,7 +134,7 @@ The SPA is built with Vite `base` and React Router `basename` set from **`VITE_B
 | Progress | Line charts: max weight, total reps, volume per session; **estimated 1RM** (Epley + Brzycki from best completed set, with caveats) |
 | Reminders | Saved on your profile; **browser notifications** when the tab/app is open (interval check). Optional **Web Push** when the app is closed (`VAPID` + `CRON_SECRET` + `POST /api/cron/push-reminders` every minute from a scheduler) |
 | Activity | Manual **steps**, **active calories**, **exercise minutes** per day + small chart |
-| Rest timer | While a session is **in progress**, ticking **Done** starts a countdown (60–180s presets, custom default in local storage); optional **tone** and **vibration** at zero (where the OS allows) |
+| Rest timer | While a session is **in progress**, ticking **Done** starts a countdown (presets 60–180s or any **10–600s** default, saved per browser in Settings and the workout screen); optional **tone** and **vibration** at zero (where the OS allows) |
 | PR hints | **Weight PR** badge when a **completed** non–warm-up set beats your prior max on that exercise (completed history; current workout excluded from baseline) |
 | Warm-up sets | **Set type** warm-up (existing) plus **+ Warm-up set** shortcut; warm-ups excluded from volume/progress (unchanged) |
 | Offline queue | Failed **workout** saves (create/update/delete/complete) can be **queued** and replayed when online; header **Sync** banner inside the app |

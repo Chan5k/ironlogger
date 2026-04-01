@@ -9,7 +9,8 @@
     "seed": "node src/seed.js",
     "seed:demos": "node src/seedDemos.js",
     "backfill:hevy-imports": "node src/scripts/backfillHevyImports.js",
-    "backfill:hevy-timestamps": "node src/scripts/backfillHevyTimestamps.js"
+    "backfill:hevy-timestamps": "node src/scripts/backfillHevyTimestamps.js",
+    "recalc:season-points": "node src/scripts/recalculateSeasonLadderPoints.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

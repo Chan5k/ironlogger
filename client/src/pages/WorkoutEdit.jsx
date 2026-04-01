@@ -107,6 +107,7 @@ export default function WorkoutEdit() {
   const [restSecondsLeft, setRestSecondsLeft] = useState(0);
   const [restTotal, setRestTotal] = useState(0);
   const [restDurationPick, setRestDurationPick] = useState(() => readRestDurationSeconds());
+  const [restCustomDraft, setRestCustomDraft] = useState(() => String(readRestDurationSeconds()));
   const [restSoundEnabled, setRestSoundEnabled] = useState(() => {
     try {
       return localStorage.getItem(REST_SOUND_KEY) !== '0';
@@ -742,6 +743,14 @@ export default function WorkoutEdit() {
   function applyRestPreset(sec) {
     const v = writeRestDurationSeconds(sec);
     setRestDurationPick(v);
+    setRestCustomDraft(String(v));
+  }
+
+  function applyCustomRestDefault() {
+    const n = parseInt(String(restCustomDraft).trim(), 10);
+    const v = writeRestDurationSeconds(Number.isFinite(n) ? n : restDurationPick);
+    setRestDurationPick(v);
+    setRestCustomDraft(String(v));
   }
 
   function removeSet(exIdx, setIdx) {
@@ -1291,8 +1300,10 @@ export default function WorkoutEdit() {
         <div className="rounded-2xl border border-slate-800 bg-surface-card p-4">
           <h2 className="mb-1 text-sm font-semibold text-white">Rest timer</h2>
           <p className="mb-3 text-xs text-slate-500">
-            Starts when you tick <span className="text-slate-400">Done</span> on a set. Change the
-            default length below; use +30s on the bar if you need more time.
+            Starts when you tick <span className="text-slate-400">Done</span> on a set. Choose a
+            default (10–600s), saved on this device — same control lives under{' '}
+            <span className="text-slate-400">Settings</span>. Use +30s on the bar if you need more time
+            mid-set.
           </p>
           <div className="mb-3 flex flex-wrap gap-2">
             {[60, 90, 120, 180].map((sec) => (
@@ -1309,6 +1320,31 @@ export default function WorkoutEdit() {
                 {sec}s
               </button>
             ))}
+          </div>
+          <div className="mb-3 flex flex-wrap items-end gap-2">
+            <div className="min-w-0 flex-1 sm:max-w-[11rem]">
+              <label htmlFor="rest-custom-sec" className="mb-1 block text-xs text-slate-500">
+                Custom (seconds)
+              </label>
+              <input
+                id="rest-custom-sec"
+                type="number"
+                min={10}
+                max={600}
+                inputMode="numeric"
+                value={restCustomDraft}
+                onChange={(e) => setRestCustomDraft(e.target.value)}
+                onBlur={applyCustomRestDefault}
+                className="w-full rounded-xl border border-slate-700 bg-surface px-3 py-2 font-mono text-sm text-white outline-none focus:border-accent"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={applyCustomRestDefault}
+              className="rounded-xl border border-slate-600 bg-surface-elevated px-4 py-2 text-sm font-medium text-slate-200 ring-1 ring-slate-600/60"
+            >
+              Apply
+            </button>
           </div>
           <div className="space-y-2">
             <label className="flex items-center gap-3">

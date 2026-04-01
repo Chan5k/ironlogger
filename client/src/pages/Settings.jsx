@@ -7,6 +7,7 @@ import { appPath } from '../constants/routes.js';
 import { urlBase64ToUint8Array } from '../utils/pushSubscribe.js';
 import { siteOriginPrefix } from '../utils/siteBase.js';
 import HevyImportPanel from '../components/HevyImportPanel.jsx';
+import { readRestDurationSeconds, writeRestDurationSeconds } from '../components/RestTimerBar.jsx';
 
 const DAYS = [
   { v: 0, label: 'Sun' },
@@ -91,6 +92,8 @@ export default function Settings() {
   const [publicProfileMsg, setPublicProfileMsg] = useState('');
   const [verifyBusy, setVerifyBusy] = useState(false);
   const [verifyMsg, setVerifyMsg] = useState('');
+  const [restDefaultSec, setRestDefaultSec] = useState(() => readRestDurationSeconds());
+  const [restCustomDraft, setRestCustomDraft] = useState(() => String(readRestDurationSeconds()));
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -556,6 +559,70 @@ export default function Settings() {
             }`}
           >
             Pounds (lbs)
+          </button>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-800 bg-surface-card p-4">
+        <h2 className="mb-2 font-semibold text-white">Rest timer default</h2>
+        <p className="mb-4 text-sm text-slate-400">
+          When a workout session is in progress, ticking <span className="text-slate-200">Done</span>{' '}
+          on a set starts a rest countdown using this length (10–600 seconds). Stored only in this
+          browser; you can also change it on the workout screen during a session.
+        </p>
+        <div className="mb-3 flex flex-wrap gap-2">
+          {[60, 90, 120, 180].map((sec) => (
+            <button
+              key={sec}
+              type="button"
+              onClick={() => {
+                const v = writeRestDurationSeconds(sec);
+                setRestDefaultSec(v);
+                setRestCustomDraft(String(v));
+              }}
+              className={`rounded-xl px-4 py-2 text-sm font-medium ${
+                restDefaultSec === sec
+                  ? 'bg-accent text-white'
+                  : 'border border-slate-600 text-slate-300'
+              }`}
+            >
+              {sec}s
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="min-w-0 flex-1 sm:max-w-[11rem]">
+            <label htmlFor="settings-rest-custom" className="mb-1 block text-xs text-slate-500">
+              Custom (seconds)
+            </label>
+            <input
+              id="settings-rest-custom"
+              type="number"
+              min={10}
+              max={600}
+              inputMode="numeric"
+              value={restCustomDraft}
+              onChange={(e) => setRestCustomDraft(e.target.value)}
+              onBlur={() => {
+                const n = parseInt(String(restCustomDraft).trim(), 10);
+                const v = writeRestDurationSeconds(Number.isFinite(n) ? n : restDefaultSec);
+                setRestDefaultSec(v);
+                setRestCustomDraft(String(v));
+              }}
+              className="w-full rounded-xl border border-slate-700 bg-surface px-3 py-2 font-mono text-sm text-white outline-none focus:border-accent"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const n = parseInt(String(restCustomDraft).trim(), 10);
+              const v = writeRestDurationSeconds(Number.isFinite(n) ? n : restDefaultSec);
+              setRestDefaultSec(v);
+              setRestCustomDraft(String(v));
+            }}
+            className="rounded-xl border border-slate-600 bg-surface-elevated px-4 py-2 text-sm font-medium text-slate-200 ring-1 ring-slate-600/60"
+          >
+            Apply
           </button>
         </div>
       </section>

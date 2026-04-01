@@ -6,10 +6,10 @@ import { totalVolumeKgNonWarmup } from './workoutVolume.js';
 import { dateKeyInTimeZone } from './trainingStreak.js';
 import { isEmailVerifiedUser } from './userEmailVerified.js';
 
-const BASE_COMPLETE = 15;
-const DAILY_FIRST_BONUS = 5;
-const VOLUME_STEP = 500;
-const VOLUME_BONUS_CAP = 25;
+const BASE_COMPLETE = 24;
+const DAILY_FIRST_BONUS = 12;
+const VOLUME_STEP = 400;
+const VOLUME_BONUS_CAP = 40;
 
 /** Exported for Hevy import validation (same rules as ladder eligibility). */
 export function workoutMeetsLadderMinimum(exercises) {
@@ -26,6 +26,31 @@ export function workoutMeetsLadderMinimum(exercises) {
 function volumeBonusFromWorkout(workout) {
   const vol = totalVolumeKgNonWarmup(workout);
   return Math.min(VOLUME_BONUS_CAP, Math.floor(vol / VOLUME_STEP));
+}
+
+/**
+ * Pure tally for one completed workout (same rules as tryAwardSeasonRankPointsForWorkout).
+ * @param {string} rankDailyBonusDayKey prior state (`''` if none)
+ * @returns {{ points: number, nextRankDailyBonusDayKey: string }}
+ */
+export function seasonLadderPointsDeltaForWorkout(workoutLean, timezone, rankDailyBonusDayKey) {
+  const priorKey = rankDailyBonusDayKey == null ? '' : String(rankDailyBonusDayKey);
+  if (!workoutLean?.completedAt) {
+    return { points: 0, nextRankDailyBonusDayKey: priorKey };
+  }
+  if (!workoutMeetsLadderMinimum(workoutLean.exercises)) {
+    return { points: 0, nextRankDailyBonusDayKey: priorKey };
+  }
+  const tz = timezone && String(timezone).trim() ? timezone : 'UTC';
+  const dayKey = dateKeyInTimeZone(new Date(workoutLean.completedAt), tz);
+  let dailyBonus = 0;
+  if (priorKey !== dayKey) {
+    dailyBonus = DAILY_FIRST_BONUS;
+  }
+  const volumeBonus = volumeBonusFromWorkout(workoutLean);
+  const points = BASE_COMPLETE + volumeBonus + dailyBonus;
+  const nextRankDailyBonusDayKey = dailyBonus > 0 ? dayKey : priorKey;
+  return { points, nextRankDailyBonusDayKey };
 }
 
 /**

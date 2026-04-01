@@ -95,17 +95,17 @@ function SeasonRankGuide({ ladderFromParent }) {
                   <strong className="font-medium text-slate-300">at least one rep</strong>. Warmup-only sessions do not count.
                 </li>
                 <li>
-                  <span className="text-slate-300">+15</span> base points per qualifying session.
+                  <span className="text-slate-300">+24</span> base points per qualifying session.
                 </li>
                 <li>
                   <span className="text-slate-300">Volume bonus:</span> +1 point per{' '}
-                  <strong className="font-medium text-slate-300">500 kg×reps</strong> of non-warmup volume in that session
-                  (weights are stored in kg), up to <strong className="font-medium text-slate-300">+25</strong> per session.
+                  <strong className="font-medium text-slate-300">400 kg×reps</strong> of non-warmup volume in that session
+                  (weights are stored in kg), up to <strong className="font-medium text-slate-300">+40</strong> per session.
                 </li>
                 <li>
                   <span className="text-slate-300">Daily bonus:</span> the first qualifying session on each{' '}
                   <strong className="font-medium text-slate-300">calendar day</strong> in your account timezone (Settings) earns{' '}
-                  <strong className="font-medium text-slate-300">+5</strong>. Later sessions that day still get base + volume,
+                  <strong className="font-medium text-slate-300">+12</strong>. Later sessions that day still get base + volume,
                   not another daily bonus.
                 </li>
                 <li>
@@ -126,7 +126,7 @@ function SeasonRankGuide({ ladderFromParent }) {
                 </li>
                 <li>
                   Imports are processed in <strong className="font-medium text-slate-300">chronological order</strong> so the
-                  daily +5 lines up with each session&apos;s calendar day in your timezone.
+                  daily +12 lines up with each session&apos;s calendar day in your timezone.
                 </li>
                 <li>
                   <strong className="font-medium text-slate-300">Duplicates</strong> (same date + workout name as an import you
@@ -156,8 +156,9 @@ function SeasonRankGuide({ ladderFromParent }) {
                 <strong className="font-medium text-slate-300">15 tiers</strong>, each with{' '}
                 <strong className="font-medium text-slate-300">3 divisions</strong> (division 3 is the top of that tier). After
                 Ultimate Champion, six prestige tiers continue the climb: Astral, Mythic, Celestial, Eternal, Transcendent, and
-                Sovereign. Your rank follows only <strong className="font-medium text-slate-300">season points</strong> this
-                month. The rank ladder below highlights your current step.
+                Sovereign.                 Your rank follows only <strong className="font-medium text-slate-300">season points</strong> this
+                month. Point thresholds are set so tiers unlock a bit sooner than before. The rank ladder below highlights
+                your current step.
               </p>
             </section>
 

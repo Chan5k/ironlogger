@@ -7,6 +7,7 @@
     "dev:client": "npm run dev --prefix client",
     "seed": "npm run seed --prefix server",
     "seed:demos": "npm run seed:demos --prefix server",
+    "recalc:season-points": "npm run recalc:season-points --prefix server",
     "build": "npm install --prefix server",
     "start": "npm start --prefix server"
   }
