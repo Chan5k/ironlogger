@@ -24,7 +24,6 @@ export default function RestTimerBar({
   totalSeconds,
   onSkip,
   onAddSeconds,
-  soundEnabled,
   hapticEnabled = true,
   onBarHeightChange,
 }) {
@@ -42,22 +41,8 @@ export default function RestTimerBar({
         /* iOS may ignore */
       }
     }
-    if (!soundEnabled) return;
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.connect(g);
-      g.connect(ctx.destination);
-      o.frequency.value = 880;
-      g.gain.setValueAtTime(0.08, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
-      o.start(ctx.currentTime);
-      o.stop(ctx.currentTime + 0.26);
-    } catch {
-      /* ignore */
-    }
-  }, [secondsLeft, soundEnabled, hapticEnabled]);
+    /** Tone is played from the workout page via `playRestEndSound()` (HTMLAudio) so it works on the lock screen. */
+  }, [secondsLeft, hapticEnabled]);
 
   useLayoutEffect(() => {
     if (secondsLeft <= 0) {

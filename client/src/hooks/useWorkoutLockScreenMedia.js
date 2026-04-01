@@ -39,6 +39,19 @@ const HAS_MEDIA_SESSION =
   'mediaSession' in navigator &&
   typeof MediaMetadata !== 'undefined';
 
+const MEDIA_ACTIONS = ['play', 'pause', 'seekbackward', 'seekforward', 'previoustrack', 'nexttrack'];
+
+function clearMediaActionHandlers() {
+  if (!HAS_MEDIA_SESSION) return;
+  for (const a of MEDIA_ACTIONS) {
+    try {
+      navigator.mediaSession.setActionHandler(a, null);
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
 function applyMeta(state) {
   if (!HAS_MEDIA_SESSION) return;
   const spot = findFirstIncompleteSet(state.exercises);
@@ -48,9 +61,10 @@ function applyMeta(state) {
 
   if (state.restRunning && state.restSecondsLeft > 0) {
     title = `Rest ${fmtClock(state.restSecondsLeft)}`;
-    artist = spot
+    const nextLine = spot
       ? `Next: ${(spot.exercise.name || 'Exercise').trim()} · set ${spot.si + 1}/${spot.setCount}`
       : 'IronLog';
+    artist = `${nextLine} · >> skip rest · << +15s`;
   } else if (spot) {
     title = `${(spot.exercise.name || 'Exercise').trim()} · Set ${spot.si + 1}/${spot.setCount}`;
     artist = setLine(spot.set, state.weightUnit);
@@ -97,6 +111,8 @@ function applyMeta(state) {
 /**
  * Keeps a media session alive (lock screen / notification shade) while a workout is in progress.
  * Returns `engagePlayback` — must be called from a **user gesture** (tap) at least once.
+ *
+ * During rest, lock-screen skip / seek buttons: forward & next → skip rest; back & previous → +15s.
  */
 export function useWorkoutLockScreenMedia({
   active,
@@ -106,6 +122,8 @@ export function useWorkoutLockScreenMedia({
   restSecondsLeft,
   restTotal,
   weightUnit,
+  skipRestRef,
+  extendRestRef,
 }) {
   const audioRef = useRef(null);
   const stateRef = useRef({});
@@ -136,6 +154,18 @@ export function useWorkoutLockScreenMedia({
     return a;
   }, []);
 
+  const resumeKeepaliveAfterControl = useCallback(() => {
+    getAudio();
+    const a = audioRef.current;
+    if (!stateRef.current.active || !a) return;
+    applyMeta(stateRef.current);
+    if (HAS_MEDIA_SESSION) {
+      navigator.mediaSession.playbackState = 'playing';
+    }
+    void a.play().catch(() => {});
+    playingRef.current = true;
+  }, [getAudio]);
+
   const engagePlayback = useCallback(() => {
     if (!stateRef.current.active) return;
     const a = getAudio();
@@ -163,7 +193,7 @@ export function useWorkoutLockScreenMedia({
   }, [active, workoutTitle, exercises, restRunning, restSecondsLeft, restTotal, weightUnit]);
 
   useEffect(() => {
-    if (!active) return undefined;
+    if (!active || typeof document === 'undefined') return undefined;
 
     getAudio();
 
@@ -184,6 +214,23 @@ export function useWorkoutLockScreenMedia({
     };
     document.addEventListener('visibilitychange', onVisible);
 
+    const skipRef = skipRestRef;
+    const extRef = extendRestRef;
+
+    const forwardSkip = () => {
+      const s = stateRef.current;
+      if (!s.restRunning || s.restSecondsLeft <= 0) return;
+      skipRef?.current?.();
+      resumeKeepaliveAfterControl();
+    };
+
+    const backExtend = () => {
+      const s = stateRef.current;
+      if (!s.restRunning || s.restSecondsLeft <= 0) return;
+      extRef?.current?.();
+      resumeKeepaliveAfterControl();
+    };
+
     if (HAS_MEDIA_SESSION) {
       try {
         navigator.mediaSession.setActionHandler('play', () => {
@@ -197,6 +244,10 @@ export function useWorkoutLockScreenMedia({
           navigator.mediaSession.playbackState = 'paused';
           playingRef.current = false;
         });
+        navigator.mediaSession.setActionHandler('seekforward', forwardSkip);
+        navigator.mediaSession.setActionHandler('nexttrack', forwardSkip);
+        navigator.mediaSession.setActionHandler('seekbackward', backExtend);
+        navigator.mediaSession.setActionHandler('previoustrack', backExtend);
       } catch {
         /* ignore */
       }
@@ -209,16 +260,9 @@ export function useWorkoutLockScreenMedia({
       document.removeEventListener('visibilitychange', onVisible);
       audioRef.current?.pause();
       playingRef.current = false;
-      if (HAS_MEDIA_SESSION) {
-        try {
-          navigator.mediaSession.setActionHandler('play', null);
-          navigator.mediaSession.setActionHandler('pause', null);
-        } catch {
-          /* ignore */
-        }
-      }
+      clearMediaActionHandlers();
     };
-  }, [active, getAudio, engagePlayback]);
+  }, [active, getAudio, engagePlayback, skipRestRef, extendRestRef, resumeKeepaliveAfterControl]);
 
   useEffect(() => {
     if (active) return;
@@ -240,12 +284,7 @@ export function useWorkoutLockScreenMedia({
       if (HAS_MEDIA_SESSION) {
         navigator.mediaSession.metadata = null;
         navigator.mediaSession.playbackState = 'none';
-        try {
-          navigator.mediaSession.setActionHandler('play', null);
-          navigator.mediaSession.setActionHandler('pause', null);
-        } catch {
-          /* ignore */
-        }
+        clearMediaActionHandlers();
       }
     };
   }, []);

@@ -56,6 +56,7 @@ import ExerciseIcon from '../components/ExerciseIcon.jsx';
 import AiWorkoutReview from '../components/AiWorkoutReview.jsx';
 import PostWorkoutRecapModal from '../components/PostWorkoutRecapModal.jsx';
 import { isStandalonePwa } from '../utils/pwaDisplayMode.js';
+import { playRestEndSound } from '../utils/restEndSound.js';
 
 const emptySet = (type = 'normal') => ({
   reps: '',
@@ -109,6 +110,7 @@ export default function WorkoutEdit() {
   const [durMins, setDurMins] = useState(0);
   const [prBaselines, setPrBaselines] = useState([]);
   const [restSecondsLeft, setRestSecondsLeft] = useState(0);
+  const prevRestSecondsRef = useRef(0);
   const [restTotal, setRestTotal] = useState(0);
   const [restDurationPick, setRestDurationPick] = useState(() => readRestDurationSeconds());
   const [restCustomDraft, setRestCustomDraft] = useState(() => String(readRestDurationSeconds()));
@@ -229,6 +231,14 @@ export default function WorkoutEdit() {
     }, 1000);
     return () => clearInterval(t);
   }, [restRunning]);
+
+  useEffect(() => {
+    const prev = prevRestSecondsRef.current;
+    prevRestSecondsRef.current = restSecondsLeft;
+    if (restSecondsLeft !== 0 || prev === 0) return;
+    if (!restSoundEnabled) return;
+    playRestEndSound();
+  }, [restSecondsLeft, restSoundEnabled]);
 
   useLayoutEffect(() => {
     if (!restRunning && !restDockExit) {
@@ -552,6 +562,11 @@ export default function WorkoutEdit() {
   const sessionInProgress = !endedISO;
   const liveNow = useLiveClock(sessionInProgress);
 
+  const skipRestMediaRef = useRef(() => {});
+  const extendRestMediaRef = useRef(() => {});
+  skipRestMediaRef.current = () => setRestSecondsLeft(0);
+  extendRestMediaRef.current = () => setRestSecondsLeft((s) => (s > 0 ? s + 15 : s));
+
   const { engagePlayback } = useWorkoutLockScreenMedia({
     active: sessionInProgress,
     workoutTitle: title,
@@ -560,6 +575,8 @@ export default function WorkoutEdit() {
     restSecondsLeft,
     restTotal,
     weightUnit,
+    skipRestRef: skipRestMediaRef,
+    extendRestRef: extendRestMediaRef,
   });
 
   const primeLockScreenMedia = useCallback(() => {
@@ -1446,7 +1463,10 @@ export default function WorkoutEdit() {
                 onChange={(e) => setRestSoundEnabled(e.target.checked)}
                 className="h-5 w-5 accent-accent"
               />
-              <span className="text-sm text-slate-300">Play a short tone when rest hits zero</span>
+              <span className="text-sm text-slate-300">
+                Play a short tone when rest hits zero (in the app and on the lock screen when media
+                controls are active)
+              </span>
             </label>
             <label className="flex items-center gap-3">
               <input
@@ -1881,7 +1901,6 @@ export default function WorkoutEdit() {
         totalSeconds={restTotal}
         onSkip={() => setRestSecondsLeft(0)}
         onAddSeconds={(n) => setRestSecondsLeft((s) => s + n)}
-        soundEnabled={restSoundEnabled}
         hapticEnabled={restHapticEnabled}
         onBarHeightChange={handleRestBarHeight}
       />
