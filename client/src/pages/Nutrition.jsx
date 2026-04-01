@@ -23,6 +23,7 @@ import {
   X,
 } from 'lucide-react';
 import api from '../api/client.js';
+import { useTheme } from '../context/ThemeContext.jsx';
 import BarcodeScannerModal from '../components/nutrition/BarcodeScannerModal.jsx';
 import { appAlert, appConfirm } from '../lib/appDialogApi.js';
 import {
@@ -39,13 +40,13 @@ import {
 } from '../utils/nutritionCompute.js';
 
 const CARD =
-  'rounded-xl border border-slate-800/90 bg-[#121826]/95 p-4 shadow-sm shadow-black/20 sm:p-5';
+  'rounded-xl border border-slate-200/90 dark:border-slate-800/90 bg-app-panel/95 p-4 shadow-sm shadow-slate-400/25 dark:shadow-black/20 sm:p-5';
 const FIELD =
-  'w-full min-w-0 rounded-lg border border-slate-700 bg-surface px-3 py-2.5 text-[15px] text-white placeholder:text-slate-500';
+  'w-full min-w-0 rounded-lg border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2.5 text-[15px] text-slate-900 dark:text-white placeholder:text-slate-500';
 const BTN_PRIMARY =
   'inline-flex min-h-[48px] touch-manipulation items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500 active:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50';
 const BTN_GHOST =
-  'inline-flex min-h-[48px] touch-manipulation items-center justify-center rounded-lg border border-slate-700 bg-slate-800/40 px-4 text-sm font-medium text-slate-200 hover:bg-slate-800/70 active:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50';
+  'inline-flex min-h-[48px] touch-manipulation items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100/90 dark:bg-slate-800/40 px-4 text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-200/90 dark:hover:bg-slate-800/70 active:bg-slate-200 dark:active:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50';
 
 const MEAL_ORDER = ['breakfast', 'lunch', 'dinner', 'snack', 'other'];
 const MEAL_LABEL = {
@@ -129,18 +130,18 @@ function Sheet({ open, title, onClose, children }) {
     >
       <button
         type="button"
-        className="absolute inset-0 bg-black/70 motion-reduce:animate-none motion-reduce:opacity-100 animate-ui-backdrop-in"
+        className="absolute inset-0 bg-slate-900/70 dark:bg-black/70 motion-reduce:animate-none motion-reduce:opacity-100 animate-ui-backdrop-in"
         aria-label="Close"
         onClick={onClose}
       />
-      <div className="relative z-10 flex max-h-[min(88dvh,680px)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-800 bg-[#0f141d] shadow-2xl motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none animate-ui-nutrition-modal-in safe-pb">
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-800/90 px-4 py-3">
-          <h2 id="nutrition-sheet-title" className="min-w-0 truncate text-lg font-semibold text-white">
+      <div className="relative z-10 flex max-h-[min(88dvh,680px)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-app-panel-muted shadow-2xl motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none animate-ui-nutrition-modal-in safe-pb">
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-200/90 dark:border-slate-800/90 px-4 py-3">
+          <h2 id="nutrition-sheet-title" className="min-w-0 truncate text-lg font-semibold text-slate-900 dark:text-white">
             {title}
           </h2>
           <button
             type="button"
-            className="min-h-[44px] min-w-[44px] touch-manipulation rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white"
+            className="min-h-[44px] min-w-[44px] touch-manipulation rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
             aria-label="Close"
             onClick={onClose}
           >
@@ -158,14 +159,14 @@ function MacroBar({ label, current, target, emphasize }) {
   const pct = progressPct(current, target);
   return (
     <div className={emphasize ? 'rounded-lg ring-1 ring-blue-500/30' : ''}>
-      <div className="mb-1 flex justify-between text-xs text-slate-400">
-        <span className="font-medium text-slate-300">{label}</span>
+      <div className="mb-1 flex justify-between text-xs text-slate-500 dark:text-slate-400">
+        <span className="font-medium text-slate-700 dark:text-slate-300">{label}</span>
         <span>
           {roundMacro(current)}
           {target != null && target > 0 ? ` / ${roundMacro(target)} g` : ' g'}
         </span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+      <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
         <div
           className="h-full rounded-full bg-blue-500 transition-[width] duration-300"
           style={{ width: pct == null ? '0%' : `${Math.min(100, pct)}%` }}
@@ -176,6 +177,8 @@ function MacroBar({ label, current, target, emphasize }) {
 }
 
 export default function Nutrition() {
+  const { effectiveDark } = useTheme();
+
   useEffect(() => {
     void import('html5-qrcode');
   }, []);
@@ -781,6 +784,28 @@ export default function Nutrition() {
 
   const hasWeightSeries = chartData.some((r) => r.bodyWeight != null && r.bodyWeight > 0);
 
+  const nutritionChartTheme = useMemo(
+    () =>
+      effectiveDark
+        ? {
+            grid: '#1e293b',
+            tick: '#94a3b8',
+            axisLabel: '#64748b',
+            tooltipBg: '#0f141d',
+            tooltipBorder: '#334155',
+            tooltipLabel: '#e2e8f0',
+          }
+        : {
+            grid: '#e2e8f0',
+            tick: '#64748b',
+            axisLabel: '#475569',
+            tooltipBg: '#ffffff',
+            tooltipBorder: '#e2e8f0',
+            tooltipLabel: '#0f172a',
+          },
+    [effectiveDark]
+  );
+
   const grouped = groupFoods(log?.foods);
 
   const previewIncomplete = pick && previewFromPer100g(pick, safeNonNeg(logGrams, 0)).incomplete;
@@ -789,7 +814,7 @@ export default function Nutrition() {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-24 text-slate-400">
         <span
-          className="inline-block h-9 w-9 animate-spin rounded-full border-2 border-slate-600 border-t-accent motion-reduce:animate-none"
+          className="inline-block h-9 w-9 animate-spin rounded-full border-2 border-slate-300 dark:border-slate-600 border-t-accent motion-reduce:animate-none"
           aria-hidden
         />
         <span className="text-sm">Loading nutrition…</span>
@@ -800,7 +825,7 @@ export default function Nutrition() {
   return (
     <div className="min-w-0 space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-white">Nutrition</h1>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">Nutrition</h1>
         <p className="mt-1 text-[15px] leading-relaxed text-slate-400">
           Log calories and macros by day. Search blends Romanian dishes, common retail staples sold in RO, and
           foods you save under
@@ -832,7 +857,7 @@ export default function Nutrition() {
           </button>
           <div className="min-w-0 flex-1 text-center sm:max-w-[14rem] sm:flex-none">
             <p className="text-xs uppercase tracking-wide text-slate-500">Day (Europe/Bucharest)</p>
-            <p className="text-lg font-semibold text-white">{formatDayKeyDisplay(dayKey)}</p>
+            <p className="text-lg font-semibold text-slate-900 dark:text-white">{formatDayKeyDisplay(dayKey)}</p>
             <p className="text-xs text-slate-500">{dayKey}</p>
           </div>
           <button
@@ -902,7 +927,7 @@ export default function Nutrition() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className={`${CARD} border-blue-500/20`}>
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Calories</p>
-          <p className="mt-1 text-2xl font-bold text-white">{roundCal(totals.calories)} kcal</p>
+          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{roundCal(totals.calories)} kcal</p>
           {kcalTarget != null && kcalTarget > 0 ? (
             <>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-800">
@@ -917,7 +942,7 @@ export default function Nutrition() {
                   <span className="text-slate-300">
                     {' '}
                     · {kcalRemaining >= 0 ? 'Remaining' : 'Over'}{' '}
-                    <span className="font-semibold text-white">{Math.abs(kcalRemaining)}</span> kcal
+                    <span className="font-semibold text-slate-900 dark:text-white">{Math.abs(kcalRemaining)}</span> kcal
                   </span>
                 ) : null}
               </p>
@@ -933,16 +958,16 @@ export default function Nutrition() {
         </div>
         <div className={CARD}>
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Carbs</p>
-          <p className="mt-1 text-2xl font-bold text-white">{roundMacro(totals.carbs)} g</p>
+          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{roundMacro(totals.carbs)} g</p>
         </div>
         <div className={CARD}>
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Fat</p>
-          <p className="mt-1 text-2xl font-bold text-white">{roundMacro(totals.fats)} g</p>
+          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{roundMacro(totals.fats)} g</p>
         </div>
       </div>
 
       <div className={CARD}>
-        <h3 className="text-sm font-semibold text-white">Progress vs targets (g)</h3>
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Progress vs targets (g)</h3>
         <div className="mt-4 space-y-3">
           <MacroBar
             label="Protein"
@@ -956,7 +981,7 @@ export default function Nutrition() {
       </div>
 
       <form className={`${CARD} space-y-3`} onSubmit={saveDaySettings}>
-        <h3 className="text-sm font-semibold text-white">Weight &amp; targets (selected day)</h3>
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Weight &amp; targets (selected day)</h3>
         <p className="text-xs text-slate-500">Metric: weight in kg, energy in kcal.</p>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block text-xs text-slate-400">
@@ -1015,7 +1040,7 @@ export default function Nutrition() {
 
       <div className={CARD}>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-sm font-semibold text-white">Foods</h3>
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Foods</h3>
           <button
             type="button"
             className={`${BTN_GHOST} min-h-[44px] gap-2 touch-manipulation text-xs`}
@@ -1045,10 +1070,10 @@ export default function Nutrition() {
                     {items.map((f) => (
                       <li
                         key={f.id}
-                        className="flex flex-col gap-2 rounded-lg border border-slate-800/80 bg-surface/40 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                        className="flex flex-col gap-2 rounded-lg border border-slate-200/80 dark:border-slate-800/80 bg-surface/40 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-white">{f.name}</p>
+                          <p className="font-medium text-slate-900 dark:text-white">{f.name}</p>
                           {f.brand ? <p className="text-xs text-slate-500">{f.brand}</p> : null}
                           <p className="mt-1 text-sm text-slate-400">
                             {roundMacro(f.amount)} {f.unit}
@@ -1060,7 +1085,7 @@ export default function Nutrition() {
                         <div className="flex shrink-0 gap-2">
                           <button
                             type="button"
-                            className="rounded-lg border border-slate-700 p-2 text-slate-300 hover:bg-slate-800"
+                            className="rounded-lg border border-slate-300 dark:border-slate-700 p-2 text-slate-300 hover:bg-slate-800"
                             aria-label="Edit"
                             onClick={() => openEdit(f)}
                           >
@@ -1068,7 +1093,7 @@ export default function Nutrition() {
                           </button>
                           <button
                             type="button"
-                            className="rounded-lg border border-slate-700 p-2 text-red-300 hover:bg-red-950/40"
+                            className="rounded-lg border border-slate-300 dark:border-slate-700 p-2 text-red-300 hover:bg-red-950/40"
                             aria-label="Delete"
                             onClick={() => removeFood(f)}
                           >
@@ -1086,7 +1111,7 @@ export default function Nutrition() {
       </div>
 
       <div className={CARD}>
-        <h3 className="text-sm font-semibold text-white">Last 14 days</h3>
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Last 14 days</h3>
         <p className="mt-1 text-xs text-slate-500">Calories and weight when logged.</p>
         {chartData.length === 0 ? (
           <p className="mt-4 text-sm text-slate-500">Not enough data for the chart yet.</p>
@@ -1094,31 +1119,41 @@ export default function Nutrition() {
           <div className="mt-4 h-56 w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="label" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={nutritionChartTheme.grid} />
+                <XAxis dataKey="label" tick={{ fill: nutritionChartTheme.tick, fontSize: 11 }} />
                 <YAxis
                   yAxisId="kcal"
-                  tick={{ fill: '#94a3b8', fontSize: 11 }}
+                  tick={{ fill: nutritionChartTheme.tick, fontSize: 11 }}
                   width={36}
-                  label={{ value: 'kcal', angle: -90, position: 'insideLeft', fill: '#64748b' }}
+                  label={{
+                    value: 'kcal',
+                    angle: -90,
+                    position: 'insideLeft',
+                    fill: nutritionChartTheme.axisLabel,
+                  }}
                 />
                 {hasWeightSeries ? (
                   <YAxis
                     yAxisId="kg"
                     orientation="right"
-                    tick={{ fill: '#94a3b8', fontSize: 11 }}
+                    tick={{ fill: nutritionChartTheme.tick, fontSize: 11 }}
                     width={36}
                     domain={['auto', 'auto']}
-                    label={{ value: 'kg', angle: 90, position: 'insideRight', fill: '#64748b' }}
+                    label={{
+                      value: 'kg',
+                      angle: 90,
+                      position: 'insideRight',
+                      fill: nutritionChartTheme.axisLabel,
+                    }}
                   />
                 ) : null}
                 <Tooltip
                   contentStyle={{
-                    background: '#0f141d',
-                    border: '1px solid #334155',
+                    background: nutritionChartTheme.tooltipBg,
+                    border: `1px solid ${nutritionChartTheme.tooltipBorder}`,
                     borderRadius: '8px',
                   }}
-                  labelStyle={{ color: '#e2e8f0' }}
+                  labelStyle={{ color: nutritionChartTheme.tooltipLabel }}
                 />
                 <Area
                   yAxisId="kcal"
@@ -1177,7 +1212,7 @@ export default function Nutrition() {
                   <li key={s.name}>
                     <button
                       type="button"
-                      className="min-h-[52px] w-full touch-manipulation rounded-lg border border-slate-800 bg-surface/50 px-3 py-3 text-left text-sm text-white hover:bg-slate-800/60"
+                      className="min-h-[52px] w-full touch-manipulation rounded-lg border border-slate-200 dark:border-slate-800 bg-surface/50 px-3 py-3 text-left text-sm text-slate-900 dark:text-white hover:bg-slate-800/60"
                       onClick={() => openManualFromSuggestion(s)}
                     >
                       <span className="font-medium">{s.name}</span>
@@ -1195,7 +1230,7 @@ export default function Nutrition() {
                     <li key={`${r.name}-${i}`}>
                       <button
                         type="button"
-                        className="rounded-full border border-slate-700 bg-slate-800/50 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800"
+                        className="rounded-full border border-slate-300 dark:border-slate-700 bg-slate-800/50 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800"
                         onClick={() => {
                           setManual((m) => ({
                             ...m,
@@ -1231,10 +1266,10 @@ export default function Nutrition() {
             <li key={`${r.externalId || 'noid'}-${ri}-${r.name?.slice(0, 24) || ''}`}>
               <button
                 type="button"
-                className="min-h-[52px] w-full touch-manipulation rounded-lg border border-slate-800 bg-surface/50 px-3 py-3 text-left hover:bg-slate-800/60"
+                className="min-h-[52px] w-full touch-manipulation rounded-lg border border-slate-200 dark:border-slate-800 bg-surface/50 px-3 py-3 text-left hover:bg-slate-800/60"
                 onClick={() => openLogFromSearch(r)}
               >
-                <p className="flex flex-wrap items-center gap-2 font-medium text-white">
+                <p className="flex flex-wrap items-center gap-2 font-medium text-slate-900 dark:text-white">
                   <span>{r.name}</span>
                   {r.source === 'user_library' ? (
                     <span className="rounded bg-violet-900/45 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-200">
@@ -1293,15 +1328,15 @@ export default function Nutrition() {
         <div className="space-y-4">
           <p className="text-sm text-slate-300">
             No match in Open Food Facts, the local barcode list, or your saved foods. Try
-            <strong className="font-medium text-white"> text search </strong>
+            <strong className="font-medium text-slate-900 dark:text-white"> text search </strong>
             (Romanian dishes + retail staples), add the pack to
-            <strong className="font-medium text-white"> My foods </strong>
+            <strong className="font-medium text-slate-900 dark:text-white"> My foods </strong>
             , or enter manually.
           </p>
           {notFoundBarcode ? (
-            <div className="rounded-lg border border-slate-700 bg-slate-900/50 px-3 py-2">
+            <div className="rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-900/50 px-3 py-2">
               <p className="text-xs text-slate-500">Barcode</p>
-              <p className="font-mono text-sm text-white">{notFoundBarcode}</p>
+              <p className="font-mono text-sm text-slate-900 dark:text-white">{notFoundBarcode}</p>
             </div>
           ) : null}
           <div className="flex flex-col gap-2">
@@ -1390,14 +1425,14 @@ export default function Nutrition() {
             {myLibraryList.map((row) => (
               <li
                 key={row.externalId}
-                className="flex items-stretch gap-2 rounded-lg border border-slate-800 bg-surface/40 p-2"
+                className="flex items-stretch gap-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-surface/40 p-2"
               >
                 <button
                   type="button"
                   className="min-w-0 flex-1 touch-manipulation text-left"
                   onClick={() => openEditLibraryRow(row)}
                 >
-                  <p className="font-medium text-white">{row.name}</p>
+                  <p className="font-medium text-slate-900 dark:text-white">{row.name}</p>
                   {row.brand ? <p className="text-xs text-slate-500">{row.brand}</p> : null}
                   {row.barcode ? (
                     <p className="font-mono text-xs text-slate-500">Barcode {row.barcode}</p>
@@ -1405,7 +1440,7 @@ export default function Nutrition() {
                 </button>
                 <button
                   type="button"
-                  className="min-h-[44px] min-w-[44px] shrink-0 touch-manipulation rounded-lg border border-slate-700 p-2 text-red-300 hover:bg-red-950/30"
+                  className="min-h-[44px] min-w-[44px] shrink-0 touch-manipulation rounded-lg border border-slate-300 dark:border-slate-700 p-2 text-red-300 hover:bg-red-950/30"
                   aria-label="Delete"
                   onClick={() => deleteLibraryFood(row)}
                 >
@@ -1416,7 +1451,7 @@ export default function Nutrition() {
           </ul>
         )}
 
-        <div className="mt-4 space-y-3 border-t border-slate-800 pt-4">
+        <div className="mt-4 space-y-3 border-t border-slate-200 dark:border-slate-800 pt-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
             {editingLibraryId ? 'Edit entry' : 'Add entry'}
           </p>
@@ -1568,10 +1603,10 @@ export default function Nutrition() {
               <img
                 src={pick.imageUrl}
                 alt=""
-                className="mx-auto max-h-28 max-w-full rounded-lg border border-slate-800 object-contain"
+                className="mx-auto max-h-28 max-w-full rounded-lg border border-slate-200 dark:border-slate-800 object-contain"
               />
             ) : null}
-            <p className="text-sm text-white">{pick.name}</p>
+            <p className="text-sm text-slate-900 dark:text-white">{pick.name}</p>
             {pick.source === 'openfoodfacts' ? (
               <p className="text-xs text-slate-500">Source: Open Food Facts (values per 100 g unless adjusted).</p>
             ) : null}

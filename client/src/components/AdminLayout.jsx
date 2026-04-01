@@ -5,19 +5,19 @@ const tabClass = ({ isActive }) =>
   [
     'rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-motion ease-motion-standard',
     isActive
-      ? 'bg-blue-600/20 text-white ring-1 ring-blue-500/30'
-      : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200',
+      ? 'bg-blue-600/20 text-slate-900 dark:text-white ring-1 ring-blue-500/30'
+      : 'text-slate-600 hover:bg-slate-200/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200',
   ].join(' ');
 
 export default function AdminLayout() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-white">Admin</h1>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">Admin</h1>
         <p className="text-sm text-slate-400">Overview, users, built-in exercise demos, and audit trail</p>
       </div>
 
-      <nav className="flex flex-wrap gap-2 border-b border-slate-800 pb-3" aria-label="Admin sections">
+      <nav className="flex flex-wrap gap-2 border-b border-slate-200 dark:border-slate-800 pb-3" aria-label="Admin sections">
         <NavLink to={appPath('admin')} end className={tabClass}>
           Overview
         </NavLink>

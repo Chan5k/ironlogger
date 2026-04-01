@@ -156,7 +156,7 @@ export default function UserMenu({ onSignOut }) {
 
       {menuMounted ? (
         <div
-          className={`absolute right-0 z-[60] mt-2 w-52 origin-top-right rounded-[10px] border border-slate-700/80 bg-surface-card py-1 shadow-xl ring-1 ring-black/20 transition-[opacity,transform] duration-motion-slow ease-motion-standard motion-reduce:duration-0 ${
+          className={`absolute right-0 z-[60] mt-2 w-52 origin-top-right rounded-[10px] border border-slate-200/80 dark:border-slate-700/80 bg-surface-card py-1 shadow-xl ring-1 ring-black/20 transition-[opacity,transform] duration-motion-slow ease-motion-standard motion-reduce:duration-0 ${
             menuVisible
               ? 'pointer-events-auto translate-y-0 scale-100 opacity-100'
               : 'pointer-events-none -translate-y-2 scale-[0.98] opacity-0'
@@ -182,7 +182,7 @@ export default function UserMenu({ onSignOut }) {
             <Settings className="h-4 w-4 shrink-0 text-slate-500" strokeWidth={1.75} aria-hidden />
             Settings
           </Link>
-          <div className="my-1 border-t border-slate-800/90" />
+          <div className="my-1 border-t border-slate-200/90 dark:border-slate-800/90" />
           <button
             type="button"
             role="menuitem"
@@ -205,7 +205,7 @@ export default function UserMenu({ onSignOut }) {
                 type="button"
                 tabIndex={-1}
                 aria-hidden
-                className={`absolute inset-0 bg-black/65 backdrop-blur-[3px] transition-opacity duration-motion-slow ease-motion-standard motion-reduce:transition-none motion-reduce:opacity-100 ${
+                className={`absolute inset-0 bg-slate-900/65 dark:bg-black/65 backdrop-blur-[3px] transition-opacity duration-motion-slow ease-motion-standard motion-reduce:transition-none motion-reduce:opacity-100 ${
                   signOutLayerVisible ? 'opacity-100' : 'opacity-0'
                 }`}
                 onClick={() => dismissSignOutConfirm()}
@@ -215,7 +215,7 @@ export default function UserMenu({ onSignOut }) {
                 aria-modal="true"
                 aria-labelledby="sign-out-dialog-title"
                 aria-describedby="sign-out-dialog-desc"
-                className={`relative z-10 w-full max-w-[min(100%,22rem)] rounded-2xl border border-slate-600/80 bg-surface-card px-5 pb-5 pt-4 shadow-2xl shadow-black/50 ring-1 ring-white/5 transition-[opacity,transform] duration-motion-slow ease-motion-standard motion-reduce:transition-none ${
+                className={`relative z-10 w-full max-w-[min(100%,22rem)] rounded-2xl border border-slate-300/80 dark:border-slate-600/80 bg-surface-card px-5 pb-5 pt-4 shadow-2xl shadow-slate-400/25 dark:shadow-black/50 ring-1 ring-white/5 transition-[opacity,transform] duration-motion-slow ease-motion-standard motion-reduce:transition-none ${
                   signOutLayerVisible
                     ? 'translate-y-0 scale-100 opacity-100'
                     : 'translate-y-3 scale-[0.96] opacity-0'
@@ -235,7 +235,7 @@ export default function UserMenu({ onSignOut }) {
                   <div className="min-w-0 pt-0.5">
                     <h2
                       id="sign-out-dialog-title"
-                      className="text-base font-semibold tracking-tight text-white"
+                      className="text-base font-semibold tracking-tight text-slate-900 dark:text-white"
                     >
                       Sign out?
                     </h2>
@@ -248,14 +248,14 @@ export default function UserMenu({ onSignOut }) {
                   <button
                     ref={signOutCancelRef}
                     type="button"
-                    className="rounded-xl border border-slate-600/80 bg-slate-800/40 px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                    className="rounded-xl border border-slate-300/80 dark:border-slate-600/80 bg-slate-800/40 px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                     onClick={() => dismissSignOutConfirm()}
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
-                    className="rounded-xl bg-rose-600/90 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-950/40 transition-colors duration-motion ease-motion-standard hover:bg-rose-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+                    className="rounded-xl bg-rose-600/90 px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-white shadow-lg shadow-rose-950/40 transition-colors duration-motion ease-motion-standard hover:bg-rose-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
                     onClick={() => confirmSignOut()}
                   >
                     Sign out

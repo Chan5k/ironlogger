@@ -72,7 +72,7 @@ export default function AdminExercises() {
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="rounded-xl border border-slate-700 bg-surface-card px-3 py-2 text-sm text-white outline-none focus:border-accent"
+          className="rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-accent"
         >
           <option value="">All categories</option>
           {CATEGORIES.map((c) => (
@@ -86,7 +86,7 @@ export default function AdminExercises() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Filter by name…"
-          className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-surface-card px-3 py-2 text-sm text-white outline-none focus:border-accent sm:max-w-xs"
+          className="min-w-0 flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-accent sm:max-w-xs"
         />
       </div>
 
@@ -97,12 +97,12 @@ export default function AdminExercises() {
           {globals.map((ex) => (
             <li
               key={ex._id}
-              className="flex flex-col gap-2 rounded-2xl border border-slate-800 bg-surface-card p-3 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-3 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <ExerciseIcon name={ex.name} category={ex.category} boxed className="h-5 w-5 text-slate-300" />
                 <div className="min-w-0">
-                  <p className="font-medium text-white">{ex.name}</p>
+                  <p className="font-medium text-slate-900 dark:text-white">{ex.name}</p>
                   <p className="text-xs text-slate-500">{ex.category}</p>
                   {ex.videoUrl ? (
                     <p className="mt-1 truncate text-xs text-slate-400" title={ex.videoUrl}>
@@ -117,7 +117,7 @@ export default function AdminExercises() {
                 <button
                   type="button"
                   onClick={() => setEditing({ ...ex })}
-                  className="shrink-0 rounded-xl border border-slate-600 px-3 py-2 text-sm text-white hover:bg-slate-800/50"
+                  className="shrink-0 rounded-xl border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm text-slate-900 dark:text-white hover:bg-slate-800/50"
                 >
                   Edit demo URL
                 </button>
@@ -133,13 +133,13 @@ export default function AdminExercises() {
 
       {editing ? (
         <div
-          className="fixed inset-0 z-[300] flex items-end justify-center bg-black/70 p-4 sm:items-center"
+          className="fixed inset-0 z-[300] flex items-end justify-center bg-slate-900/70 dark:bg-black/70 p-4 sm:items-center"
           role="dialog"
           aria-modal="true"
           aria-labelledby="admin-ex-video-title"
         >
-          <div className="w-full max-w-md rounded-2xl border border-slate-700 bg-[#121826] p-5 shadow-xl">
-            <h2 id="admin-ex-video-title" className="text-lg font-semibold text-white">
+          <div className="w-full max-w-md rounded-2xl border border-slate-300 dark:border-slate-700 bg-app-panel p-5 shadow-xl">
+            <h2 id="admin-ex-video-title" className="text-lg font-semibold text-slate-900 dark:text-white">
               Demo video URL
             </h2>
             <p className="mt-1 text-xs text-slate-500">{editing.name}</p>
@@ -148,7 +148,7 @@ export default function AdminExercises() {
               value={editing.videoUrl ?? ''}
               onChange={(e) => setEditing({ ...editing, videoUrl: e.target.value })}
               placeholder="https://…"
-              className="mt-4 w-full rounded-xl border border-slate-700 bg-[#0b0e14] px-3 py-3 text-sm text-white outline-none focus:border-accent"
+              className="mt-4 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-app-canvas px-3 py-3 text-sm text-slate-900 dark:text-white outline-none focus:border-accent"
             />
             <p className="mt-2 text-xs text-slate-500">Must be https or empty.</p>
             <div className="mt-4 flex justify-end gap-2">
@@ -156,7 +156,7 @@ export default function AdminExercises() {
                 type="button"
                 disabled={busy}
                 onClick={() => setEditing(null)}
-                className="rounded-xl border border-slate-600 px-4 py-2 text-sm text-slate-200"
+                className="rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm text-slate-200"
               >
                 Cancel
               </button>

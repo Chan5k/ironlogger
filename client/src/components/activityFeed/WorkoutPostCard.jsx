@@ -11,7 +11,7 @@ export default function WorkoutPostCard({ post, style }) {
 
   return (
     <article
-      className="animate-feed-post rounded-[11px] border border-slate-800/90 bg-[#121826]/95 p-4 shadow-sm shadow-black/15 transition-[transform,box-shadow] duration-motion-slow ease-motion-standard hover:-translate-y-0.5 hover:border-slate-700/80 hover:shadow-md hover:shadow-black/25 md:p-5"
+      className="animate-feed-post rounded-[11px] border border-slate-200/90 dark:border-slate-800/90 bg-app-panel/95 p-4 shadow-sm shadow-slate-400/25 dark:shadow-black/15 transition-[transform,box-shadow] duration-motion-slow ease-motion-standard hover:-translate-y-0.5 hover:border-slate-200/80 dark:border-slate-700/80 hover:shadow-md hover:shadow-slate-400/25 dark:shadow-black/25 md:p-5"
       style={style}
     >
       <header className="flex items-start gap-3">
@@ -26,12 +26,12 @@ export default function WorkoutPostCard({ post, style }) {
             {user.slug ? (
               <Link
                 to={`/u/${encodeURIComponent(user.slug)}`}
-                className="font-semibold text-white hover:text-blue-200"
+                className="font-semibold text-slate-900 dark:text-white hover:text-blue-200"
               >
                 {user.name}
               </Link>
             ) : (
-              <span className="font-semibold text-white">{user.name}</span>
+              <span className="font-semibold text-slate-900 dark:text-white">{user.name}</span>
             )}
             <p className="mt-0.5 text-xs text-slate-500">
               {workout.type} · {workout.title} · {workout.duration}
@@ -71,7 +71,7 @@ export default function WorkoutPostCard({ post, style }) {
         <VolumeMiniChart volumeByExercise={workout.volumeByExercise} />
       </div>
 
-      <footer className="mt-4 border-t border-slate-800/80 pt-4">
+      <footer className="mt-4 border-t border-slate-200/80 dark:border-slate-800/80 pt-4">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-500">
           <span>
             <span className="text-slate-600">Volume </span>

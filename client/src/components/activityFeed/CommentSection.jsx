@@ -52,7 +52,7 @@ export default function CommentSection({ workoutId, initialCount, onCountChange 
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-400 ring-1 ring-slate-700/60 transition-all duration-motion ease-motion-standard hover:bg-slate-800/50 hover:text-slate-200 active:scale-[0.98]"
+        className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-400 ring-1 ring-slate-200/60 dark:ring-slate-700/60 transition-all duration-motion ease-motion-standard hover:bg-slate-800/50 hover:text-slate-200 active:scale-[0.98]"
         aria-expanded={open}
       >
         <MessageCircle className="h-5 w-5 shrink-0" strokeWidth={2} aria-hidden />
@@ -70,7 +70,7 @@ export default function CommentSection({ workoutId, initialCount, onCountChange 
           }`}
         >
           <div className="overflow-hidden">
-            <div className="space-y-3 rounded-xl border border-slate-800/80 bg-[#0c1018]/90 p-3">
+            <div className="space-y-3 rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-app-panel-muted/90 p-3">
               {loading ? <p className="text-xs text-slate-500">Loading comments…</p> : null}
               {err ? <p className="text-xs text-rose-400">{err}</p> : null}
               <ul className="max-h-48 space-y-2 overflow-y-auto">
@@ -92,7 +92,7 @@ export default function CommentSection({ workoutId, initialCount, onCountChange 
                   onChange={(e) => setText(e.target.value)}
                   placeholder="Write a comment…"
                   maxLength={800}
-                  className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-surface px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:border-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500/40"
+                  className="min-w-0 flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-600 focus:border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500/40"
                 />
                 <button
                   type="submit"

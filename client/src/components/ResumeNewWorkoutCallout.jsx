@@ -41,7 +41,7 @@ export default function ResumeNewWorkoutCallout({ className = '' }) {
             Not saved yet — it won&apos;t appear in your list until you tap{' '}
             <span className="text-slate-300">Save workout</span>.
           </p>
-          <p className="mt-2 truncate text-sm text-white">
+          <p className="mt-2 truncate text-sm text-slate-900 dark:text-white">
             {preview.title}
             <span className="text-slate-500">
               {' '}

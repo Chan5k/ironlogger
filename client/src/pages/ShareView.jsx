@@ -61,17 +61,17 @@ export default function ShareView() {
   const snap = data?.snapshot;
 
   return (
-    <div className="min-h-screen bg-surface px-4 py-8 text-white">
+    <div className="min-h-screen bg-surface px-4 py-8 text-slate-900 dark:text-white">
       <div className="mx-auto max-w-lg space-y-6">
         <Link
           to="/"
-          className="-ml-2 inline-flex min-h-11 min-w-11 items-center rounded-xl px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-white"
+          className="-ml-2 inline-flex min-h-11 min-w-11 items-center rounded-xl px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white"
         >
           ← IronLog home
         </Link>
 
         {err ? (
-          <div className="rounded-2xl border border-slate-800 bg-surface-card p-6">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-6">
             <p className="text-slate-300">{err}</p>
           </div>
         ) : null}
@@ -79,9 +79,9 @@ export default function ShareView() {
         {!err && !data ? <p className="text-slate-500">Loading…</p> : null}
 
         {data?.kind === 'workout' && snap ? (
-          <div className="rounded-2xl border border-slate-800 bg-surface-card p-6">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-6">
             <p className="text-xs font-semibold uppercase tracking-wide text-accent-muted">Shared workout</p>
-            <h1 className="mt-1 text-xl font-bold text-white">{snap.title}</h1>
+            <h1 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">{snap.title}</h1>
             {snap.notes ? <p className="mt-2 text-sm text-slate-400">{snap.notes}</p> : null}
             <p className="mt-4 text-sm text-slate-500">
               {(snap.exercises || []).length} exercise{(snap.exercises || []).length !== 1 ? 's' : ''} · sets
@@ -120,14 +120,14 @@ export default function ShareView() {
         ) : null}
 
         {data?.kind === 'template' && snap ? (
-          <div className="rounded-2xl border border-slate-800 bg-surface-card p-6">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-6">
             <p className="text-xs font-semibold uppercase tracking-wide text-accent-muted">Shared plan</p>
-            <h1 className="mt-1 text-xl font-bold text-white">{snap.name}</h1>
+            <h1 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">{snap.name}</h1>
             {snap.description ? <p className="mt-2 text-sm text-slate-400">{snap.description}</p> : null}
             <ul className="mt-4 max-h-56 space-y-2 overflow-y-auto text-sm">
               {(snap.items || []).map((it, i) => (
-                <li key={i} className="border-b border-slate-800/80 pb-2 text-slate-300">
-                  <span className="font-medium text-white">{it.exerciseName}</span>
+                <li key={i} className="border-b border-slate-200/80 dark:border-slate-800/80 pb-2 text-slate-300">
+                  <span className="font-medium text-slate-900 dark:text-white">{it.exerciseName}</span>
                   <span className="text-slate-600"> · {it.category}</span>
                   <span className="block text-xs text-slate-500">
                     {it.defaultSets}×{it.defaultReps} @ {it.defaultWeight} kg template defaults

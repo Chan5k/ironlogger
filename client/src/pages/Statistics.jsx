@@ -96,7 +96,7 @@ export default function Statistics() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-white md:text-[1.65rem]">Analytics</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white md:text-[1.65rem]">Analytics</h1>
         <p className="mt-1 text-sm text-slate-500">
           Muscle-group load from completed workouts. Warm-up sets are excluded; coloring is relative
           to your strongest mapped group in the selected period.
@@ -111,7 +111,7 @@ export default function Statistics() {
             onClick={() => setRangeDays(days)}
             className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-motion ease-motion-standard ${
               rangeDays === days
-                ? 'bg-blue-600/15 text-white ring-1 ring-blue-500/30'
+                ? 'bg-blue-600/15 text-slate-900 dark:text-white ring-1 ring-blue-500/30'
                 : 'text-slate-500 hover:bg-slate-800/50 hover:text-slate-200'
             }`}
           >
@@ -135,12 +135,12 @@ export default function Statistics() {
             <p className="text-xs text-slate-500">All logged history</p>
           )}
 
-          <div className="rounded-xl border border-slate-800/80 bg-[#0f141d]/90 p-5 md:p-7">
+          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-app-panel-muted/90 p-5 md:p-7">
             <BodyMuscleMap intensity={intensityByCategory} />
-            <div className="mx-auto mt-6 flex max-w-md items-center justify-center gap-3 rounded-lg bg-slate-900/40 px-4 py-3 text-[11px] text-slate-500 ring-1 ring-slate-800/60">
-              <span className="h-2 w-7 shrink-0 rounded-full bg-[hsl(222,16%,11%)] ring-1 ring-slate-700/50" />
+            <div className="mx-auto mt-6 flex max-w-md items-center justify-center gap-3 rounded-lg bg-slate-900/40 px-4 py-3 text-[11px] text-slate-500 ring-1 ring-slate-200/60 dark:ring-slate-800/60">
+              <span className="h-2 w-7 shrink-0 rounded-full bg-[hsl(222,16%,11%)] ring-1 ring-slate-200/50 dark:ring-slate-700/50" />
               <span className="shrink-0">Less load</span>
-              <span className="h-2 min-w-0 flex-1 rounded-full bg-gradient-to-r from-[hsl(222,16%,11%)] via-[hsl(200,28%,28%)] to-[hsl(168,52%,48%)] ring-1 ring-slate-700/40" />
+              <span className="h-2 min-w-0 flex-1 rounded-full bg-gradient-to-r from-[hsl(222,16%,11%)] via-[hsl(200,28%,28%)] to-[hsl(168,52%,48%)] ring-1 ring-slate-200/40 dark:ring-slate-700/40" />
               <span className="shrink-0">More</span>
               <span className="h-2 w-7 shrink-0 rounded-full bg-[hsl(168,52%,48%)] ring-1 ring-teal-800/40" />
             </div>
@@ -152,10 +152,10 @@ export default function Statistics() {
             </p>
           ) : null}
 
-          <div className="overflow-hidden rounded-2xl border border-slate-800 bg-surface-card">
+          <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-slate-800 text-xs text-slate-500">
+                <tr className="border-b border-slate-200 dark:border-slate-800 text-xs text-slate-500">
                   <th className="px-4 py-3 font-medium">Group</th>
                   <th className="px-4 py-3 font-medium">Sessions</th>
                   <th className="px-4 py-3 font-medium">Sets</th>
@@ -166,9 +166,9 @@ export default function Statistics() {
                 {tableRows.map((row) => (
                   <tr
                     key={row.key}
-                    className="border-b border-slate-800/80 last:border-0 text-slate-300"
+                    className="border-b border-slate-200/80 dark:border-slate-800/80 last:border-0 text-slate-300"
                   >
-                    <td className="px-4 py-3 text-white">{row.label}</td>
+                    <td className="px-4 py-3 text-slate-900 dark:text-white">{row.label}</td>
                     <td className="px-4 py-3">{row.sessions}</td>
                     <td className="px-4 py-3">{row.sets}</td>
                     <td className="px-4 py-3 text-slate-400">{fmtVol(row.volume)}</td>

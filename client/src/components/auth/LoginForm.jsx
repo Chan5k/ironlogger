@@ -48,7 +48,7 @@ export default function LoginForm({ idPrefix = 'login', className = '', footer =
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-xl border border-slate-700 bg-surface-card px-4 py-3 text-white outline-none focus:border-accent"
+            className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card px-4 py-3 text-slate-900 dark:text-white outline-none focus:border-accent"
             required
           />
         </div>
@@ -62,7 +62,7 @@ export default function LoginForm({ idPrefix = 'login', className = '', footer =
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-xl border border-slate-700 bg-surface-card px-4 py-3 text-white outline-none focus:border-accent"
+            className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card px-4 py-3 text-slate-900 dark:text-white outline-none focus:border-accent"
             required
           />
         </div>

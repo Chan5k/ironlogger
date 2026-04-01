@@ -77,7 +77,7 @@ export default function AdminUsers() {
           value={inputQ}
           onChange={(e) => setInputQ(e.target.value)}
           placeholder="Search email or username…"
-          className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-surface-card px-4 py-2.5 text-white outline-none focus:border-accent"
+          className="min-w-0 flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card px-4 py-2.5 text-slate-900 dark:text-white outline-none focus:border-accent"
         />
         <button
           type="submit"
@@ -87,7 +87,7 @@ export default function AdminUsers() {
         </button>
       </form>
 
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-surface-card/40 p-4 sm:flex-row sm:flex-wrap sm:items-end">
+      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card/40 p-4 sm:flex-row sm:flex-wrap sm:items-end">
         <label className="flex min-w-[10rem] flex-col gap-1 text-xs text-slate-500">
           Sort
           <select
@@ -96,7 +96,7 @@ export default function AdminUsers() {
               setSort(e.target.value);
               setSkip(0);
             }}
-            className="rounded-xl border border-slate-700 bg-surface-card px-3 py-2 text-sm text-white outline-none focus:border-accent"
+            className="rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-accent"
           >
             <option value="joined_desc">Newest join</option>
             <option value="joined_asc">Oldest join</option>
@@ -111,7 +111,7 @@ export default function AdminUsers() {
               setAdminsOnly(e.target.checked);
               setSkip(0);
             }}
-            className="rounded border-slate-600"
+            className="rounded border-slate-300 dark:border-slate-600"
           />
           Admins only
         </label>
@@ -123,7 +123,7 @@ export default function AdminUsers() {
               setActiveDays(e.target.value);
               setSkip(0);
             }}
-            className="rounded-xl border border-slate-700 bg-surface-card px-3 py-2 text-sm text-white outline-none focus:border-accent"
+            className="rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-accent"
           >
             <option value="">Any time</option>
             <option value="7">7 days (logged in)</option>
@@ -139,10 +139,10 @@ export default function AdminUsers() {
         <p className="text-slate-500">Loading users…</p>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-surface-card">
+          <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-slate-800 text-xs text-slate-500">
+                <tr className="border-b border-slate-200 dark:border-slate-800 text-xs text-slate-500">
                   <th className="px-3 py-2 font-medium">User</th>
                   <th className="hidden px-3 py-2 font-medium sm:table-cell">Email</th>
                   <th className="px-3 py-2 font-medium text-center text-slate-500" title="In-app verified badge">
@@ -156,9 +156,9 @@ export default function AdminUsers() {
               </thead>
               <tbody>
                 {users.map((u) => (
-                  <tr key={u._id} className="border-b border-slate-800/80 text-slate-300 last:border-0">
+                  <tr key={u._id} className="border-b border-slate-200/80 dark:border-slate-800/80 text-slate-300 last:border-0">
                     <td className="px-3 py-2">
-                      <span className="font-medium text-white">{u.name || '—'}</span>
+                      <span className="font-medium text-slate-900 dark:text-white">{u.name || '—'}</span>
                       {u.isAdmin ? (
                         <span className="ml-2 rounded bg-amber-950/60 px-1.5 py-0.5 text-[10px] text-amber-200">
                           admin
@@ -217,7 +217,7 @@ export default function AdminUsers() {
                 <select
                   value={page}
                   onChange={(e) => setSkip((Number(e.target.value) - 1) * limit)}
-                  className="rounded-lg border border-slate-600 bg-surface-card px-2 py-1 text-white"
+                  className="rounded-lg border border-slate-300 dark:border-slate-600 bg-surface-card px-2 py-1 text-slate-900 dark:text-white"
                 >
                   {pageSelectOptions.map((p) => (
                     <option key={p} value={p}>
@@ -230,7 +230,7 @@ export default function AdminUsers() {
                 type="button"
                 disabled={skip <= 0}
                 onClick={() => setSkip((s) => Math.max(0, s - limit))}
-                className="rounded-lg border border-slate-600 px-3 py-1 text-white disabled:opacity-40"
+                className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-1 text-slate-900 dark:text-white disabled:opacity-40"
               >
                 Previous
               </button>
@@ -238,7 +238,7 @@ export default function AdminUsers() {
                 type="button"
                 disabled={skip + limit >= total}
                 onClick={() => setSkip((s) => s + limit)}
-                className="rounded-lg border border-slate-600 px-3 py-1 text-white disabled:opacity-40"
+                className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-1 text-slate-900 dark:text-white disabled:opacity-40"
               >
                 Next
               </button>

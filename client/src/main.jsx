@@ -5,6 +5,7 @@ import { BrowserRouter, useLocation } from 'react-router-dom';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { registerSW } from 'virtual:pwa-register';
 import { AuthProvider } from './context/AuthContext.jsx';
+import { ThemeProvider } from './context/ThemeContext.jsx';
 import AppDialogProvider from './components/AppDialogProvider.jsx';
 import App from './App.jsx';
 import './index.css';
@@ -26,11 +27,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter basename={routerBasename()}>
       <SpeedInsightsRouteBridge />
-      <AuthProvider>
-        <AppDialogProvider>
-          <App />
-        </AppDialogProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppDialogProvider>
+            <App />
+          </AppDialogProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

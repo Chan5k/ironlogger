@@ -2,6 +2,30 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      (function () {
+        try {
+          var k = 'ironlog_theme';
+          var t = localStorage.getItem(k);
+          var dark = true;
+          if (t === 'light') dark = false;
+          else if (t === 'dark') dark = true;
+          else if (t === 'system') {
+            dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          }
+          var el = document.documentElement;
+          el.classList.toggle('dark', dark);
+          el.style.colorScheme = dark ? 'dark' : 'light';
+          var tc = dark ? '#0b0e14' : '#f8fafc';
+          var mt = document.querySelector('meta[name="theme-color"]');
+          if (mt) mt.setAttribute('content', tc);
+          var ap = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+          if (ap) ap.setAttribute('content', dark ? 'black-translucent' : 'default');
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180.png" />
@@ -15,7 +39,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>IronLog — Workouts</title>
   </head>
-  <body class="bg-[#0b0e14] text-slate-100 antialiased min-h-screen">
+  <body class="bg-app-canvas text-slate-900 antialiased min-h-screen dark:text-slate-100">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

@@ -162,7 +162,7 @@ export default function Progress() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-white">Progress</h1>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">Progress</h1>
         <p className="text-sm text-slate-400">
           Completed workouts only. Max weight, reps, and volume ignore warm-up sets; normal and
           failure sets count.
@@ -175,12 +175,12 @@ export default function Progress() {
         </label>
 
         {selected ? (
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-700 bg-surface-card px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card px-4 py-3">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <ExerciseIcon name={selected.name} category={selected.category} boxed className="h-5 w-5 text-slate-300" />
               <div className="min-w-0 flex-1">
               <p className="text-xs text-slate-500">Selected</p>
-              <p className="truncate font-medium text-white">
+              <p className="truncate font-medium text-slate-900 dark:text-white">
                 {selected.name}{' '}
                 <span className="font-normal text-slate-500">({selected.category})</span>
               </p>
@@ -189,7 +189,7 @@ export default function Progress() {
             <button
               type="button"
               onClick={clearSelection}
-              className="shrink-0 rounded-lg border border-slate-600 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
+              className="shrink-0 rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
             >
               Clear
             </button>
@@ -225,7 +225,7 @@ export default function Progress() {
             }}
             onFocus={() => setPickerOpen(true)}
             onKeyDown={onSearchKeyDown}
-            className="min-h-[48px] w-full rounded-xl border border-slate-700 bg-surface-card px-4 py-3 text-base text-white placeholder:text-slate-500 outline-none focus:border-accent"
+            className="min-h-[48px] w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card px-4 py-3 text-base text-slate-900 dark:text-white placeholder:text-slate-500 outline-none focus:border-accent"
           />
 
           {searchQuery.trim() ? (
@@ -238,7 +238,7 @@ export default function Progress() {
           <div
             id={LISTBOX_ID}
             role="listbox"
-            className="absolute left-0 right-0 top-full z-30 mt-1 max-h-[min(50vh,22rem)] overflow-y-auto overscroll-contain rounded-xl border border-slate-700 bg-surface-card py-2 shadow-xl"
+            className="absolute left-0 right-0 top-full z-30 mt-1 max-h-[min(50vh,22rem)] overflow-y-auto overscroll-contain rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card py-2 shadow-xl"
           >
             {filtered.length === 0 ? (
               <p className="px-4 py-6 text-center text-sm text-slate-500">
@@ -264,7 +264,7 @@ export default function Progress() {
                               role="option"
                               id={`progress-ex-opt-${e._id}`}
                               aria-selected={isActive}
-                              className={`flex w-full items-center rounded-lg px-3 py-3 text-left text-sm text-white sm:py-2.5 ${
+                              className={`flex w-full items-center rounded-lg px-3 py-3 text-left text-sm text-slate-900 dark:text-white sm:py-2.5 ${
                                 isActive ? 'bg-surface-elevated ring-1 ring-slate-600/60' : 'hover:bg-surface-elevated/80'
                               }`}
                               onMouseEnter={() => setActiveIndex(idx)}
@@ -297,7 +297,7 @@ export default function Progress() {
           {estimatedOneRM ? (
             <div className="rounded-2xl border border-amber-900/40 bg-amber-950/20 p-4 text-sm">
               <p className="font-medium text-amber-200/90">Estimated 1RM (from your best logged set)</p>
-              <p className="mt-2 font-mono text-lg text-white">
+              <p className="mt-2 font-mono text-lg text-slate-900 dark:text-white">
                 Epley ≈ {fmtWt(weightUnit === 'kg' ? estimatedOneRM.epley : kgToLbs(estimatedOneRM.epley))}
                 {estimatedOneRM.brzycki != null ? (
                   <>
@@ -316,7 +316,7 @@ export default function Progress() {
             </div>
           ) : null}
 
-          <div className="h-64 w-full rounded-2xl border border-slate-800 bg-surface-card p-2">
+          <div className="h-64 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-2">
             <p className="mb-2 px-2 text-xs font-medium text-slate-400">
               Max weight ({weightUnit})
             </p>
@@ -336,7 +336,7 @@ export default function Progress() {
             </ResponsiveContainer>
           </div>
 
-          <div className="h-64 w-full rounded-2xl border border-slate-800 bg-surface-card p-2">
+          <div className="h-64 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-2">
             <p className="mb-2 px-2 text-xs font-medium text-slate-400">Total reps (session)</p>
             <ResponsiveContainer width="100%" height="90%">
               <LineChart data={chartPoints} margin={{ top: 5, right: 8, left: 0, bottom: 0 }}>
@@ -353,7 +353,7 @@ export default function Progress() {
             </ResponsiveContainer>
           </div>
 
-          <div className="h-64 w-full rounded-2xl border border-slate-800 bg-surface-card p-2">
+          <div className="h-64 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-2">
             <p className="mb-2 px-2 text-xs font-medium text-slate-400">
               Volume ({weightUnit} × reps)
             </p>

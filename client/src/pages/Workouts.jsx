@@ -60,7 +60,7 @@ export default function Workouts() {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white">Workouts</h1>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white">Workouts</h1>
           <p className="text-sm text-slate-400">{total} total</p>
         </div>
         <NewWorkoutLink className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white touch-manipulation transition-opacity duration-motion ease-motion-standard hover:opacity-90 sm:min-h-0 sm:py-2">
@@ -75,13 +75,13 @@ export default function Workouts() {
           {workouts.map((w) => (
             <li
               key={w._id}
-              className="flex flex-col gap-3 rounded-xl border border-slate-800 bg-surface-card p-3 sm:flex-row sm:items-stretch sm:gap-3 sm:p-3"
+              className="flex flex-col gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-surface-card p-3 sm:flex-row sm:items-stretch sm:gap-3 sm:p-3"
             >
               <Link
                 to={appPath(`workouts/${w._id}`)}
                 className="min-w-0 flex-1 rounded-lg outline-none ring-blue-500/0 transition-shadow duration-motion ease-motion-standard focus-visible:ring-2 sm:py-0.5"
               >
-                <p className="truncate font-medium text-white">{w.title}</p>
+                <p className="truncate font-medium text-slate-900 dark:text-white">{w.title}</p>
                 <p className="text-xs text-slate-500">{fmt(w.startedAt)}</p>
                 <p className="font-mono text-xs text-slate-400">
                   {formatWorkoutDuration(w.startedAt, w.completedAt, {
@@ -103,7 +103,7 @@ export default function Workouts() {
                 <button
                   type="button"
                   onClick={() => shareWorkout(w._id)}
-                  className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-slate-600/80 bg-slate-800/40 px-3 text-sm font-semibold text-slate-200 touch-manipulation transition-colors duration-motion ease-motion-standard hover:border-slate-500 hover:bg-slate-800 active:bg-slate-800/80 sm:min-h-10 sm:min-w-[7.5rem] sm:px-3 sm:text-xs sm:font-medium"
+                  className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-slate-300/80 dark:border-slate-600/80 bg-slate-800/40 px-3 text-sm font-semibold text-slate-200 touch-manipulation transition-colors duration-motion ease-motion-standard hover:border-slate-500 hover:bg-slate-800 active:bg-slate-800/80 sm:min-h-10 sm:min-w-[7.5rem] sm:px-3 sm:text-xs sm:font-medium"
                 >
                   <Share2 className="h-4 w-4 shrink-0 opacity-90" strokeWidth={2} aria-hidden />
                   Share

@@ -97,7 +97,7 @@ export default function NotificationBell() {
             return next;
           });
         }}
-        className="relative rounded-lg p-2 text-slate-400 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/60 hover:text-white"
+        className="relative rounded-lg p-2 text-slate-400 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white"
         aria-expanded={open}
         aria-label="Notifications"
       >
@@ -111,14 +111,14 @@ export default function NotificationBell() {
 
       {panelMounted ? (
         <div
-          className={`z-[60] rounded-xl border border-slate-800/90 bg-[#121826] py-2 shadow-xl ring-1 ring-black/30 transition-[opacity,transform] duration-motion-slow ease-motion-standard will-change-[opacity,transform] max-md:fixed max-md:left-3 max-md:right-3 max-md:top-[calc(env(safe-area-inset-top,0px)+4rem)] max-md:mt-0 max-md:max-h-[min(70vh,24rem)] max-md:w-auto max-md:origin-top md:absolute md:right-0 md:top-full md:mt-2 md:max-h-none md:w-[min(100vw-2rem,22rem)] md:origin-top-right ${
+          className={`z-[60] rounded-xl border border-slate-200/90 dark:border-slate-800/90 bg-app-panel py-2 shadow-xl ring-1 ring-black/30 transition-[opacity,transform] duration-motion-slow ease-motion-standard will-change-[opacity,transform] max-md:fixed max-md:left-3 max-md:right-3 max-md:top-[calc(env(safe-area-inset-top,0px)+4rem)] max-md:mt-0 max-md:max-h-[min(70vh,24rem)] max-md:w-auto max-md:origin-top md:absolute md:right-0 md:top-full md:mt-2 md:max-h-none md:w-[min(100vw-2rem,22rem)] md:origin-top-right ${
             panelVisible
               ? 'pointer-events-auto translate-y-0 scale-100 opacity-100'
               : 'pointer-events-none -translate-y-1 scale-[0.98] opacity-0'
           }`}
         >
-          <div className="flex min-w-0 items-center justify-between gap-2 border-b border-slate-800/80 px-3 pb-2">
-            <span className="min-w-0 shrink text-sm font-semibold text-white">Notifications</span>
+          <div className="flex min-w-0 items-center justify-between gap-2 border-b border-slate-200/80 dark:border-slate-800/80 px-3 pb-2">
+            <span className="min-w-0 shrink text-sm font-semibold text-slate-900 dark:text-white">Notifications</span>
             {unread > 0 ? (
               <button
                 type="button"

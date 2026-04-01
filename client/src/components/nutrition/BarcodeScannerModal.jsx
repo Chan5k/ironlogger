@@ -8,8 +8,8 @@ const HIDDEN_READER_ID = 'ironlog-barcode-hidden-slot';
 const BTN_PRIMARY =
   'inline-flex min-h-[48px] touch-manipulation items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500 active:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50';
 const BTN_GHOST =
-  'inline-flex min-h-[48px] touch-manipulation items-center justify-center rounded-lg border border-slate-700 bg-slate-800/40 px-4 text-sm font-medium text-slate-200 hover:bg-slate-800/70 active:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50';
-const TAB_ACTIVE = 'border-blue-500 text-white';
+  'inline-flex min-h-[48px] touch-manipulation items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-800/40 px-4 text-sm font-medium text-slate-200 hover:bg-slate-800/70 active:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50';
+const TAB_ACTIVE = 'border-blue-500 text-slate-900 dark:text-white';
 const TAB_IDLE = 'border-transparent text-slate-400 hover:text-slate-200';
 
 async function getHtml5Formats() {
@@ -402,15 +402,15 @@ export default function BarcodeScannerModal({ open, onClose, onBarcodeScanned })
     >
       <button
         type="button"
-        className="absolute inset-0 bg-black/75 motion-reduce:animate-none motion-reduce:opacity-100 animate-ui-backdrop-in"
+        className="absolute inset-0 bg-slate-900/75 dark:bg-black/75 motion-reduce:animate-none motion-reduce:opacity-100 animate-ui-backdrop-in"
         aria-label="Close"
         onClick={processing ? undefined : onClose}
         disabled={processing}
       />
-      <div className="relative z-10 flex max-h-[min(92dvh,720px)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-800 bg-[#0a0e14] shadow-2xl motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none animate-ui-nutrition-modal-in safe-pb">
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-800/90 px-4 py-3 safe-pt">
+      <div className="relative z-10 flex max-h-[min(92dvh,720px)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-app-panel-deep shadow-2xl motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none animate-ui-nutrition-modal-in safe-pb">
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-200/90 dark:border-slate-800/90 px-4 py-3 safe-pt">
           <div className="min-w-0">
-            <h2 id="barcode-scanner-title" className="text-lg font-semibold text-white">
+            <h2 id="barcode-scanner-title" className="text-lg font-semibold text-slate-900 dark:text-white">
               Scan food barcode
             </h2>
             <p className="mt-0.5 text-xs text-slate-500">
@@ -419,7 +419,7 @@ export default function BarcodeScannerModal({ open, onClose, onBarcodeScanned })
           </div>
           <button
             type="button"
-            className="min-h-[48px] min-w-[48px] touch-manipulation rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white disabled:opacity-40"
+            className="min-h-[48px] min-w-[48px] touch-manipulation rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white disabled:opacity-40"
             aria-label="Close"
             onClick={onClose}
             disabled={processing}
@@ -428,7 +428,7 @@ export default function BarcodeScannerModal({ open, onClose, onBarcodeScanned })
           </button>
         </div>
 
-        <div className="flex shrink-0 gap-1 border-b border-slate-800/80 px-2 pt-2">
+        <div className="flex shrink-0 gap-1 border-b border-slate-200/80 dark:border-slate-800/80 px-2 pt-2">
           <button
             type="button"
             className={`min-h-[48px] flex-1 touch-manipulation rounded-t-lg border-b-2 px-2 text-sm font-medium transition-colors ${scanMode === 'live' ? TAB_ACTIVE : TAB_IDLE}`}
@@ -463,7 +463,7 @@ export default function BarcodeScannerModal({ open, onClose, onBarcodeScanned })
           {processing ? (
             <div className="flex flex-col items-center justify-center gap-3 py-12 text-slate-300">
               <span
-                className="inline-block h-10 w-10 animate-spin rounded-full border-2 border-slate-600 border-t-blue-500 motion-reduce:animate-none"
+                className="inline-block h-10 w-10 animate-spin rounded-full border-2 border-slate-300 dark:border-slate-600 border-t-blue-500 motion-reduce:animate-none"
                 aria-hidden
               />
               <p className="text-sm">{processNote || 'Working…'}</p>
@@ -519,7 +519,7 @@ export default function BarcodeScannerModal({ open, onClose, onBarcodeScanned })
               </p>
               <div
                 id={READER_ID}
-                className="mx-auto w-full max-w-md overflow-hidden rounded-xl border border-slate-800 bg-black/50"
+                className="mx-auto w-full max-w-md overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-900/50 dark:bg-black/50"
               />
               <button
                 type="button"

@@ -41,7 +41,7 @@ export default function VerifyEmail() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-8 motion-reduce:animate-none animate-ui-page-in">
-      <h1 className="mb-2 text-2xl font-bold text-white">Email verification</h1>
+      <h1 className="mb-2 text-2xl font-bold text-slate-900 dark:text-white">Email verification</h1>
       {status === 'working' ? (
         <p className="text-sm text-slate-400">Confirming your address…</p>
       ) : (

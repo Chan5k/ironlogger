@@ -81,7 +81,7 @@ export default function AiProgressReview() {
     (data.deeperInsight || data.progressWins?.length || data.concerns?.length || data.coaching?.length || data.nextFocus);
 
   return (
-    <div className="space-y-3 rounded-xl border border-slate-800/90 bg-[#0f141d]/90 p-4">
+    <div className="space-y-3 rounded-xl border border-slate-200/90 dark:border-slate-800/90 bg-app-panel-muted/90 p-4">
       {/* header */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
@@ -124,7 +124,7 @@ export default function AiProgressReview() {
       {loading ? (
         <div className="animate-ai-stagger-in flex items-center gap-3 py-3">
           <span
-            className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-600 border-t-violet-400"
+            className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 dark:border-slate-600 border-t-violet-400"
             aria-hidden
           />
           <p className="text-sm text-slate-400">Analysing your training…</p>
@@ -183,7 +183,7 @@ export default function AiProgressReview() {
                 <div className="overflow-hidden">
                   <div className="space-y-3 pt-1 pb-0.5">
                     {data.deeperInsight ? (
-                      <div className="animate-ai-stagger-in rounded-lg border border-slate-800/80 bg-slate-900/40 px-3 py-2">
+                      <div className="animate-ai-stagger-in rounded-lg border border-slate-200/80 dark:border-slate-800/80 bg-slate-900/40 px-3 py-2">
                         <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                           Pattern insight
                         </p>

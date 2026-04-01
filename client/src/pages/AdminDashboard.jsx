@@ -48,10 +48,10 @@ export default function AdminDashboard() {
         {cards.map((c) => (
           <div
             key={c.label}
-            className="rounded-2xl border border-slate-800 bg-surface-card px-4 py-4"
+            className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card px-4 py-4"
           >
             <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{c.label}</p>
-            <p className="mt-2 text-2xl font-semibold tabular-nums text-white">{c.value}</p>
+            <p className="mt-2 text-2xl font-semibold tabular-nums text-slate-900 dark:text-white">{c.value}</p>
           </div>
         ))}
       </div>
@@ -65,7 +65,7 @@ export default function AdminDashboard() {
         </Link>
         <Link
           to={appPath('admin/audit')}
-          className="rounded-xl border border-slate-600 px-4 py-2.5 font-medium text-slate-200 hover:bg-slate-800/40"
+          className="rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-2.5 font-medium text-slate-200 hover:bg-slate-800/40"
         >
           View audit log
         </Link>

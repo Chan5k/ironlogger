@@ -31,6 +31,7 @@ import {
 import { appAlert } from '../lib/appDialogApi.js';
 import ResumeNewWorkoutCallout from './ResumeNewWorkoutCallout.jsx';
 import EmailVerificationBanner from './EmailVerificationBanner.jsx';
+import ThemeToggle from './ThemeToggle.jsx';
 
 /** Lucide defaults to outline strokes; keep nav glyphs uniform at 20px. */
 const NAV_ICON_STROKE = 1.75;
@@ -68,10 +69,10 @@ const IconAdmin = makeNavIcon(Shield);
 function mobileNavLinkClass(isActive) {
   return [
     'group relative flex w-full items-center gap-3 rounded-lg px-3 py-3 text-[15px] font-medium transition-[background-color,color] duration-motion ease-motion-standard',
-    'active:bg-slate-800/55',
+    'active:bg-slate-300/70 dark:active:bg-slate-800/55',
     isActive
-      ? 'bg-slate-800/50 text-white'
-      : 'text-slate-300 hover:bg-slate-800/35 hover:text-white',
+      ? 'bg-slate-200/90 dark:bg-slate-800/50 text-slate-900 dark:text-white'
+      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800/35 hover:text-slate-900 dark:hover:text-white',
   ].join(' ');
 }
 
@@ -79,8 +80,8 @@ function railNavLinkClass(isActive) {
   return [
     'group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium transition-colors duration-motion ease-motion-standard',
     isActive
-      ? 'bg-blue-600/15 text-white ring-1 ring-blue-500/25'
-      : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-100',
+      ? 'bg-blue-600/15 text-slate-900 dark:text-white ring-1 ring-blue-500/25'
+      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/90 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-slate-100',
   ].join(' ');
 }
 
@@ -106,7 +107,7 @@ function NavSectionsList({ navSections, onNavClick, variant = 'drawer' }) {
                     <>
                       {variant === 'drawer' ? (
                         <span
-                          className="pointer-events-none absolute left-0 top-2 bottom-2 w-[3px] rounded-r-sm bg-white/90 transition-opacity duration-motion ease-motion-standard"
+                          className="pointer-events-none absolute left-0 top-2 bottom-2 w-[3px] rounded-r-sm bg-slate-700/90 dark:bg-white/90 transition-opacity duration-motion ease-motion-standard"
                           style={{ opacity: isActive ? 1 : 0 }}
                           aria-hidden
                         />
@@ -115,7 +116,7 @@ function NavSectionsList({ navSections, onNavClick, variant = 'drawer' }) {
                         className={
                           isActive
                             ? 'text-blue-400/95'
-                            : 'text-slate-500 transition-colors duration-motion ease-motion-standard group-hover:text-slate-300'
+                            : 'text-slate-500 transition-colors duration-motion ease-motion-standard group-hover:text-slate-700 dark:group-hover:text-slate-300'
                         }
                       />
                       <span className="relative min-w-0 flex-1">{label}</span>
@@ -279,12 +280,12 @@ export default function Layout() {
     location.pathname === appPath('statistics');
 
   return (
-    <div className="flex min-h-svh flex-col overflow-x-hidden bg-[#0b0e14]">
-      <header className="sticky top-0 z-50 flex shrink-0 items-center justify-between gap-3 border-b border-slate-800/60 bg-[#0b0e14]/95 px-4 pb-3 pt-3 backdrop-blur-md safe-pt">
+    <div className="flex min-h-svh flex-col overflow-x-hidden bg-app-canvas">
+      <header className="sticky top-0 z-50 flex shrink-0 items-center justify-between gap-3 border-b border-slate-200/60 dark:border-slate-800/60 bg-app-canvas/95 px-4 pb-3 pt-3 backdrop-blur-md safe-pt">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <button
             type="button"
-            className="-ml-1 rounded-lg p-2 text-slate-300 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/60 hover:text-white active:scale-[0.97] md:hidden"
+            className="-ml-1 rounded-lg p-2 text-slate-600 transition-colors duration-motion ease-motion-standard hover:bg-slate-200/80 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white active:scale-[0.97] md:hidden"
             aria-expanded={menuOpen}
             aria-controls="mobile-navigation"
             aria-label="Open menu"
@@ -309,7 +310,8 @@ export default function Layout() {
             />
           </Link>
         </div>
-        <div className="flex shrink-0 items-center gap-0.5">
+        <div className="flex shrink-0 items-center gap-1.5">
+          <ThemeToggle />
           <NotificationBell />
           <UserMenu onSignOut={handleSignOut} />
         </div>
@@ -318,7 +320,7 @@ export default function Layout() {
       <div className="flex min-h-0 min-w-0 flex-1">
       {/* Desktop / tablet: persistent sidebar */}
       <aside
-        className="sticky top-0 z-30 hidden h-svh min-h-0 w-[15rem] shrink-0 flex-col border-r border-slate-800/70 bg-[#0b0e14] md:flex"
+        className="sticky top-0 z-30 hidden h-svh min-h-0 w-[15rem] shrink-0 flex-col border-r border-slate-200/70 dark:border-slate-800/70 bg-app-canvas md:flex"
         aria-label="Main navigation"
       >
         <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 pb-6 pt-5" aria-label="App sections">
@@ -326,11 +328,11 @@ export default function Layout() {
         </nav>
       </aside>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#0b0e14]">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-app-canvas">
       {/* Mobile drawer + backdrop */}
       <div className="md:hidden" aria-hidden={!menuOpen}>
         <div
-          className={`fixed inset-0 z-[55] bg-black/60 transition-opacity duration-motion ease-motion-standard ${
+          className={`fixed inset-0 z-[55] bg-slate-900/60 dark:bg-black/60 transition-opacity duration-motion ease-motion-standard ${
             menuOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
           }`}
           onClick={() => setMenuOpen(false)}
@@ -338,23 +340,23 @@ export default function Layout() {
         />
         <aside
           id="mobile-navigation"
-          className={`fixed left-0 top-0 z-[56] flex h-full w-[min(19rem,88vw)] max-w-full flex-col border-r border-slate-800/90 bg-surface-card shadow-[4px_0_24px_rgba(0,0,0,0.35)] transition-transform duration-motion-slow ease-motion-emphasized safe-pt safe-pb ${
+          className={`fixed left-0 top-0 z-[56] flex h-full w-[min(19rem,88vw)] max-w-full flex-col border-r border-slate-200/90 dark:border-slate-800/90 bg-surface-card shadow-[4px_0_24px_rgba(0,0,0,0.35)] transition-transform duration-motion-slow ease-motion-emphasized safe-pt safe-pb ${
             menuOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'
           }`}
           aria-label="Main navigation"
           aria-hidden={!menuOpen}
         >
-          <div className="border-b border-slate-800/80 px-4 pb-4 pt-4">
+          <div className="border-b border-slate-200/80 dark:border-slate-800/80 px-4 pb-4 pt-4">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex-1">
-                <h2 className="text-xl font-semibold tracking-tight text-white">Menu</h2>
+                <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">Menu</h2>
                 {user?.name ? (
                   <p className="mt-2 text-xs font-normal text-slate-400/90">{user.name}</p>
                 ) : null}
               </div>
               <button
                 type="button"
-                className="shrink-0 rounded-lg p-2 text-slate-400 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/60 hover:text-white active:bg-slate-800"
+                className="shrink-0 rounded-lg p-2 text-slate-500 transition-colors duration-motion ease-motion-standard hover:bg-slate-200/80 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white active:bg-slate-200 dark:active:bg-slate-800"
                 aria-label="Close menu"
                 data-testid="mobile-menu-close"
                 onClick={() => setMenuOpen(false)}
@@ -376,7 +378,7 @@ export default function Layout() {
       {impersonating ? (
         <div className="flex flex-col gap-2 border-b border-amber-800/70 bg-amber-950/45 px-4 py-2.5 text-center text-sm text-amber-100 sm:flex-row sm:items-center sm:justify-center sm:gap-4">
           <span>
-            Viewing as <span className="font-medium text-white">{user?.email}</span> — leave support mode when finished.
+            Viewing as <span className="font-medium text-slate-900 dark:text-white">{user?.email}</span> — leave support mode when finished.
           </span>
           <button
             type="button"
@@ -395,7 +397,7 @@ export default function Layout() {
       ) : null}
 
       {!networkOnline ? (
-        <div className="border-b border-slate-700/80 bg-slate-900/85 px-4 py-2 text-center text-sm text-slate-300">
+        <div className="border-b border-slate-200/80 dark:border-slate-700/80 bg-slate-900/85 px-4 py-2 text-center text-sm text-slate-300">
           You&apos;re offline. You can still log workouts; saves queue and sync automatically when you reconnect (or tap
           Sync below if you have pending changes).
         </div>
@@ -418,7 +420,7 @@ export default function Layout() {
       ) : null}
 
       {showHubTabs ? (
-        <div className="border-b border-slate-800/70 bg-[#0b0e14]/90 px-4 backdrop-blur-sm md:px-6">
+        <div className="border-b border-slate-200/70 dark:border-slate-800/70 bg-app-canvas/90 px-4 backdrop-blur-sm md:px-6">
           <nav className="-mb-px flex gap-8" aria-label="Dashboard views">
             <NavLink
               end
@@ -427,8 +429,8 @@ export default function Layout() {
                 [
                   'border-b-2 py-3 text-sm font-semibold transition-colors duration-motion ease-motion-standard',
                   isActive
-                    ? 'border-blue-600 text-white'
-                    : 'border-transparent text-slate-500 hover:text-slate-300',
+                    ? 'border-blue-600 text-slate-900 dark:text-white'
+                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300',
                 ].join(' ')
               }
             >
@@ -440,8 +442,8 @@ export default function Layout() {
                 [
                   'border-b-2 py-3 text-sm font-semibold transition-colors duration-motion ease-motion-standard',
                   isActive
-                    ? 'border-blue-600 text-white'
-                    : 'border-transparent text-slate-500 hover:text-slate-300',
+                    ? 'border-blue-600 text-slate-900 dark:text-white'
+                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300',
                 ].join(' ')
               }
             >

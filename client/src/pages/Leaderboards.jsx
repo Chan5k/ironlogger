@@ -52,7 +52,7 @@ function SeasonRankGuide({ ladderFromParent }) {
   const ladderRows = ladderFromParent?.length ? ladderFromParent : fetchedLadder;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-800/90 bg-[#121826]/80 ring-1 ring-slate-800/50">
+    <div className="overflow-hidden rounded-xl border border-slate-200/90 dark:border-slate-800/90 bg-app-panel/80 ring-1 ring-slate-200/50 dark:ring-slate-800/50">
       <button
         type="button"
         id="season-rank-guide-trigger"
@@ -81,7 +81,7 @@ function SeasonRankGuide({ ladderFromParent }) {
       >
         <div className="min-h-0 overflow-hidden" aria-hidden={!open}>
           <div
-            className={`space-y-4 border-t border-slate-800/80 px-4 pb-4 pt-3 text-sm text-slate-400 transition-[opacity,transform] duration-motion ease-motion-standard motion-reduce:transition-none ${
+            className={`space-y-4 border-t border-slate-200/80 dark:border-slate-800/80 px-4 pb-4 pt-3 text-sm text-slate-400 transition-[opacity,transform] duration-motion ease-motion-standard motion-reduce:transition-none ${
               open ? 'translate-y-0 opacity-100 delay-75 motion-reduce:delay-0' : '-translate-y-1 opacity-0 delay-0'
             }`}
           >
@@ -167,15 +167,15 @@ function SeasonRankGuide({ ladderFromParent }) {
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Point thresholds (lowest → highest rank)
                 </h3>
-                <div className="max-h-[min(22rem,60dvh)] overflow-y-auto overscroll-contain rounded-lg border border-slate-800/90 bg-slate-950/40">
+                <div className="max-h-[min(22rem,60dvh)] overflow-y-auto overscroll-contain rounded-lg border border-slate-200/90 dark:border-slate-800/90 bg-slate-950/40">
                   <table className="w-full text-left text-xs text-slate-400">
-                    <thead className="sticky top-0 z-[1] border-b border-slate-800 bg-[#121826] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                    <thead className="sticky top-0 z-[1] border-b border-slate-200 dark:border-slate-800 bg-app-panel text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                       <tr>
                         <th className="px-3 py-2">Rank</th>
                         <th className="px-3 py-2 text-right tabular-nums">Min. pts</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/80">
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80">
                       {ladderRows.map((step) => (
                         <tr key={step.index} className="hover:bg-slate-800/30">
                           <td className="px-3 py-1.5 text-slate-300">{step.label}</td>
@@ -217,11 +217,11 @@ function SeasonLadderPanel({ ladder, viewerRankIndex, viewerSeasonPoints, viewer
 
   return (
     <section
-      className="overflow-hidden rounded-xl border border-slate-800/90 bg-[#121826]/95 ring-1 ring-slate-800/50"
+      className="overflow-hidden rounded-xl border border-slate-200/90 dark:border-slate-800/90 bg-app-panel/95 ring-1 ring-slate-200/50 dark:ring-slate-800/50"
       aria-label="Season rank ladder"
     >
-      <div className="border-b border-slate-800/80 px-4 py-3">
-        <h2 className="text-sm font-semibold text-white">Rank ladder</h2>
+      <div className="border-b border-slate-200/80 dark:border-slate-800/80 px-4 py-3">
+        <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Rank ladder</h2>
         <p className="mt-1 text-xs text-slate-500">
           Highest ranks at the top. Season points (this UTC month) must reach at least the threshold to unlock each rank.
         </p>
@@ -235,7 +235,7 @@ function SeasonLadderPanel({ ladder, viewerRankIndex, viewerSeasonPoints, viewer
         ) : null}
       </div>
       <div className="max-h-[min(22rem,55vh)] overflow-y-auto overscroll-contain">
-        <ul className="divide-y divide-slate-800/60">
+        <ul className="divide-y divide-slate-200 dark:divide-slate-800/60">
           {stepsDesc.map((step) => {
             const isYou = step.index === viewerRankIndex;
             return (
@@ -249,7 +249,7 @@ function SeasonLadderPanel({ ladder, viewerRankIndex, viewerSeasonPoints, viewer
               >
                 <RankIcon iconId={step.iconId} className="h-8 w-8 shrink-0" title={step.label} />
                 <div className="min-w-0 flex-1">
-                  <p className={`text-sm font-medium ${isYou ? 'text-white' : 'text-slate-200'}`}>
+                  <p className={`text-sm font-medium ${isYou ? 'text-slate-900 dark:text-white' : 'text-slate-200'}`}>
                     {step.label}
                     {isYou ? (
                       <span className="ml-2 rounded-md bg-blue-600/25 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-300">
@@ -343,7 +343,7 @@ export default function Leaderboards() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-white md:text-[1.65rem]">Leaderboards</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white md:text-[1.65rem]">Leaderboards</h1>
         <p className="mt-1 text-sm text-slate-500">
           {isSeason
             ? 'Season rank uses a UTC calendar month. Only signed-in athletes appear once they earn points.'
@@ -359,7 +359,7 @@ export default function Leaderboards() {
             onClick={() => setMetric(m.id)}
             className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-motion ease-motion-standard ${
               metric === m.id
-                ? 'bg-blue-600/15 text-white ring-1 ring-blue-500/30'
+                ? 'bg-blue-600/15 text-slate-900 dark:text-white ring-1 ring-blue-500/30'
                 : 'text-slate-500 hover:bg-slate-800/50 hover:text-slate-200'
             }`}
           >
@@ -371,12 +371,12 @@ export default function Leaderboards() {
       {isSeason ? <SeasonRankGuide ladderFromParent={data?.ladder ?? null} /> : null}
 
       {seasonCard ? (
-        <div className="rounded-xl border border-slate-800/90 bg-[#121826]/95 px-4 py-4">
+        <div className="rounded-xl border border-slate-200/90 dark:border-slate-800/90 bg-app-panel/95 px-4 py-4">
           <div className="flex flex-wrap items-center gap-4">
             <RankIcon iconId={seasonCard.rankIconId} className="h-12 w-12" title={seasonCard.rankLabel} />
             <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Your season</p>
-              <p className="text-sm font-medium text-white">{seasonCard.seasonLabel ?? ''}</p>
+              <p className="text-sm font-medium text-slate-900 dark:text-white">{seasonCard.seasonLabel ?? ''}</p>
               <p className="mt-0.5 text-sm text-slate-400">
                 <span className="text-slate-200">{seasonCard.rankLabel}</span>
                 <span className="mx-1.5 text-slate-600">·</span>
@@ -416,7 +416,7 @@ export default function Leaderboards() {
             onClick={() => setScope(s.id)}
             className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-motion ease-motion-standard ${
               scope === s.id
-                ? 'bg-slate-800 text-white ring-1 ring-slate-600/50'
+                ? 'bg-slate-800 text-slate-900 dark:text-white ring-1 ring-slate-600/50'
                 : 'text-slate-500 hover:bg-slate-800/40 hover:text-slate-200'
             }`}
           >
@@ -442,7 +442,7 @@ export default function Leaderboards() {
       {err ? <p className="text-sm text-red-400">{err}</p> : null}
 
       {!loading && !err && data?.entries?.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-700/80 bg-[#0f141d]/50 px-6 py-10 text-center text-sm text-slate-500">
+        <div className="rounded-xl border border-dashed border-slate-200/80 dark:border-slate-700/80 bg-app-panel-muted/50 px-6 py-10 text-center text-sm text-slate-500">
           {isSeason
             ? 'No season points yet in this view. Complete a workout to climb the ladder.'
             : 'No entries yet for this view. Log a workout or follow friends to compare.'}
@@ -450,14 +450,14 @@ export default function Leaderboards() {
       ) : null}
 
       {!loading && data?.entries?.length ? (
-        <div className="overflow-hidden rounded-xl border border-slate-800/90 bg-[#121826]/95">
-          <div className="border-b border-slate-800/80 px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+        <div className="overflow-hidden rounded-xl border border-slate-200/90 dark:border-slate-800/90 bg-app-panel/95">
+          <div className="border-b border-slate-200/80 dark:border-slate-800/80 px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
             {metricMeta?.label}
             {metricMeta?.unit ? (
               <span className="ml-2 font-normal normal-case text-slate-600">· {metricMeta.unit}</span>
             ) : null}
           </div>
-          <ul className="divide-y divide-slate-800/80">
+          <ul className="divide-y divide-slate-200 dark:divide-slate-800/80">
             {data.entries.map((row) => (
               <li
                 key={row.userId}
@@ -486,7 +486,7 @@ export default function Leaderboards() {
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-white">
+                  <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
                     {row.name}
                     {row.isViewer ? (
                       <span className="ml-2 text-xs font-normal text-blue-400/90">You</span>
@@ -502,12 +502,12 @@ export default function Leaderboards() {
               </li>
             ))}
           </ul>
-          <div className="flex items-center justify-between border-t border-slate-800/80 px-4 py-3">
+          <div className="flex items-center justify-between border-t border-slate-200/80 dark:border-slate-800/80 px-4 py-3">
             <button
               type="button"
               disabled={page <= 1 || loading}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-colors duration-motion ease-motion-standard hover:bg-slate-800 hover:text-white disabled:opacity-40"
+              className="rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-colors duration-motion ease-motion-standard hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white disabled:opacity-40"
             >
               Previous
             </button>
@@ -519,7 +519,7 @@ export default function Leaderboards() {
               type="button"
               disabled={!data?.hasMore || loading}
               onClick={() => setPage((p) => p + 1)}
-              className="rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-colors duration-motion ease-motion-standard hover:bg-slate-800 hover:text-white disabled:opacity-40"
+              className="rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-colors duration-motion ease-motion-standard hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white disabled:opacity-40"
             >
               Next
             </button>

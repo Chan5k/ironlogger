@@ -115,7 +115,7 @@ export default function AppDialogProvider({ children }) {
           type="button"
           tabIndex={-1}
           aria-hidden
-          className={`fixed inset-0 bg-black/65 backdrop-blur-[2px] transition-opacity duration-motion-slow ease-motion-standard motion-reduce:transition-none ${
+          className={`fixed inset-0 bg-slate-900/65 dark:bg-black/65 backdrop-blur-[2px] transition-opacity duration-motion-slow ease-motion-standard motion-reduce:transition-none ${
             sheetOpen ? 'opacity-100' : 'opacity-0'
           }`}
           onClick={() => {
@@ -129,7 +129,7 @@ export default function AppDialogProvider({ children }) {
           role={active.kind === 'confirm' || active.kind === 'prompt' ? 'alertdialog' : 'dialog'}
           aria-modal="true"
           aria-labelledby="app-dialog-title"
-          className={`relative z-10 my-auto flex max-h-[min(90dvh,32rem)] w-full max-w-lg flex-col border border-slate-600/80 bg-[#121826] shadow-2xl shadow-black/50 ring-1 ring-white/5 transition-[transform,opacity] duration-motion-slow ease-motion-emphasized motion-reduce:transition-none ${
+          className={`relative z-10 my-auto flex max-h-[min(90dvh,32rem)] w-full max-w-lg flex-col border border-slate-300/80 dark:border-slate-600/80 bg-app-panel shadow-2xl shadow-slate-400/25 dark:shadow-black/50 ring-1 ring-white/5 transition-[transform,opacity] duration-motion-slow ease-motion-emphasized motion-reduce:transition-none ${
             sheetMode
               ? `max-sm:max-h-[min(85dvh,28rem)] max-sm:rounded-t-2xl max-sm:border-b-0 sm:rounded-2xl ${
                   sheetOpen
@@ -164,19 +164,19 @@ export default function AppDialogProvider({ children }) {
           ) : (
             <>
               <div className="min-w-0 px-5 pb-2 pt-4 sm:pt-5">
-                <h2 id="app-dialog-title" className="text-lg font-semibold tracking-tight text-white">
+                <h2 id="app-dialog-title" className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">
                   {active.kind === 'confirm' ? 'Confirm' : 'IronLog'}
                 </h2>
                 <p className="mt-3 whitespace-pre-wrap break-words text-[15px] leading-relaxed text-slate-300">
                   {active.message}
                 </p>
               </div>
-              <div className="mt-4 flex flex-col-reverse gap-2 border-t border-slate-800/90 px-4 py-4 safe-pb sm:flex-row sm:justify-end sm:gap-3">
+              <div className="mt-4 flex flex-col-reverse gap-2 border-t border-slate-200/90 dark:border-slate-800/90 px-4 py-4 safe-pb sm:flex-row sm:justify-end sm:gap-3">
                 {active.kind === 'confirm' ? (
                   <>
                     <button
                       type="button"
-                      className="rounded-xl border border-slate-600/80 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/50 sm:py-2.5"
+                      className="rounded-xl border border-slate-300/80 dark:border-slate-600/80 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/50 sm:py-2.5"
                       onClick={() => finishAndAdvance(false)}
                     >
                       Cancel
@@ -235,7 +235,7 @@ function PromptBody({ title, message, placeholder, defaultValue, confirmLabel, o
   return (
     <>
       <div className="min-w-0 px-5 pb-2 pt-4 sm:pt-5">
-        <h2 id="app-dialog-title" className="text-lg font-semibold tracking-tight text-white">
+        <h2 id="app-dialog-title" className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">
           {title}
         </h2>
         <p className="mt-3 whitespace-pre-wrap break-words text-[15px] leading-relaxed text-slate-300">
@@ -253,13 +253,13 @@ function PromptBody({ title, message, placeholder, defaultValue, confirmLabel, o
               submit();
             }
           }}
-          className="mt-4 w-full rounded-xl border border-slate-700 bg-[#0b0e14] px-3 py-3 text-[15px] text-white outline-none focus:border-slate-500"
+          className="mt-4 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-app-canvas px-3 py-3 text-[15px] text-slate-900 dark:text-white outline-none focus:border-slate-500"
         />
       </div>
-      <div className="mt-4 flex flex-col-reverse gap-2 border-t border-slate-800/90 px-4 py-4 safe-pb sm:flex-row sm:justify-end sm:gap-3">
+      <div className="mt-4 flex flex-col-reverse gap-2 border-t border-slate-200/90 dark:border-slate-800/90 px-4 py-4 safe-pb sm:flex-row sm:justify-end sm:gap-3">
         <button
           type="button"
-          className="rounded-xl border border-slate-600/80 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/50 sm:py-2.5"
+          className="rounded-xl border border-slate-300/80 dark:border-slate-600/80 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/50 sm:py-2.5"
           onClick={onCancel}
         >
           Cancel
@@ -304,7 +304,7 @@ function CopySheetBody({ title, url, onDone }) {
   return (
     <>
       <div className="min-w-0 px-5 pb-2 pt-3 sm:pt-5">
-        <h2 id="app-dialog-title" className="text-lg font-semibold tracking-tight text-white">
+        <h2 id="app-dialog-title" className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">
           {title}
         </h2>
         <p className="mt-2 text-sm text-slate-400">Select and copy, or use the button below.</p>
@@ -313,14 +313,14 @@ function CopySheetBody({ title, url, onDone }) {
           readOnly
           value={url}
           onFocus={(e) => e.target.select()}
-          className="mt-4 w-full min-w-0 rounded-xl border border-slate-700 bg-[#0b0e14] px-3 py-3 font-mono text-sm text-slate-200 outline-none focus:border-slate-500"
+          className="mt-4 w-full min-w-0 rounded-xl border border-slate-300 dark:border-slate-700 bg-app-canvas px-3 py-3 font-mono text-sm text-slate-200 outline-none focus:border-slate-500"
         />
         {copied ? <p className="mt-2 text-sm font-medium text-emerald-400">Copied to clipboard</p> : null}
       </div>
-      <div className="mt-2 flex flex-col-reverse gap-2 border-t border-slate-800/90 px-4 py-4 safe-pb sm:flex-row sm:justify-end sm:gap-3">
+      <div className="mt-2 flex flex-col-reverse gap-2 border-t border-slate-200/90 dark:border-slate-800/90 px-4 py-4 safe-pb sm:flex-row sm:justify-end sm:gap-3">
         <button
           type="button"
-          className="rounded-xl border border-slate-600/80 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/50 sm:py-2.5"
+          className="rounded-xl border border-slate-300/80 dark:border-slate-600/80 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/50 sm:py-2.5"
           onClick={onDone}
         >
           Done

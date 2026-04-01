@@ -66,7 +66,7 @@ export default function WorkoutLikeButton({
           ? isFeed
             ? 'bg-rose-500/20 text-rose-300 ring-1 ring-rose-500/35 shadow-sm shadow-rose-950/20'
             : 'bg-rose-500/15 text-rose-300 ring-1 ring-rose-500/25'
-          : 'bg-slate-800/50 text-slate-400 ring-1 ring-slate-700/60 hover:bg-slate-800 hover:text-slate-200'
+          : 'bg-slate-800/50 text-slate-400 ring-1 ring-slate-200/60 dark:ring-slate-700/60 hover:bg-slate-800 hover:text-slate-200'
       }`}
       aria-pressed={liked}
       aria-label={liked ? 'Unlike workout' : 'Like workout'}

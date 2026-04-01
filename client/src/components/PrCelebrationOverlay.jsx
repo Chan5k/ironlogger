@@ -97,7 +97,7 @@ export default function PrCelebrationOverlay({
         ))}
 
         <div
-          className="animate-pr-card-in w-full cursor-default rounded-3xl border border-slate-700/80 bg-surface-card p-8 text-center shadow-[0_0_60px_rgba(37,99,235,0.12),0_25px_50px_-12px_rgba(0,0,0,0.5)] ring-1 ring-slate-600/40 [animation-delay:140ms]"
+          className="animate-pr-card-in w-full cursor-default rounded-3xl border border-slate-200/80 dark:border-slate-700/80 bg-surface-card p-8 text-center shadow-[0_0_60px_rgba(37,99,235,0.12),0_25px_50px_-12px_rgba(0,0,0,0.5)] ring-1 ring-slate-600/40 [animation-delay:140ms]"
           onClick={(e) => e.stopPropagation()}
         >
           <p className="animate-pr-reveal-line mb-1 text-xs font-semibold uppercase tracking-[0.25em] text-accent-muted [animation-delay:420ms]">
@@ -105,7 +105,7 @@ export default function PrCelebrationOverlay({
           </p>
           <h2
             id="pr-celebration-title"
-            className="animate-pr-reveal-line mb-2 text-3xl font-black tracking-tight text-white sm:text-4xl [animation-delay:560ms]"
+            className="animate-pr-reveal-line mb-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-4xl [animation-delay:560ms]"
           >
             New PR!
           </h2>
@@ -118,14 +118,14 @@ export default function PrCelebrationOverlay({
                 strokeWidth={1.65}
               />
             </div>
-            <p className="text-lg font-semibold text-white">{exerciseName || 'Lift'}</p>
+            <p className="text-lg font-semibold text-slate-900 dark:text-white">{exerciseName || 'Lift'}</p>
           </div>
           {headline ? (
             <p className="animate-pr-reveal-line mx-auto max-w-[280px] text-sm font-medium leading-snug text-slate-300 [animation-delay:760ms]">
               {headline}
             </p>
           ) : null}
-          <p className="animate-pr-reveal-line mt-3 font-mono text-xl font-bold tabular-nums text-white [animation-delay:820ms]">
+          <p className="animate-pr-reveal-line mt-3 font-mono text-xl font-bold tabular-nums text-slate-900 dark:text-white [animation-delay:820ms]">
             {weight} {weightUnit}
             {typeof reps === 'number' && reps > 0 ? (
               <span className="text-slate-400"> · {reps} reps</span>

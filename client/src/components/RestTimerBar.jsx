@@ -68,12 +68,12 @@ export default function RestTimerBar({
   return createPortal(
     <div
       ref={rootRef}
-      className="fixed bottom-0 left-0 right-0 z-50 safe-pb border-t border-slate-700 bg-surface-card/98 px-4 py-3 shadow-lg backdrop-blur-md"
+      className="fixed bottom-0 left-0 right-0 z-50 safe-pb border-t border-slate-300 dark:border-slate-700 bg-surface-card/98 px-4 py-3 shadow-lg backdrop-blur-md"
     >
       <div className="mx-auto flex max-w-4xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Rest</p>
-          <p className="font-mono text-2xl font-semibold text-white tabular-nums">
+          <p className="font-mono text-2xl font-semibold text-slate-900 dark:text-white tabular-nums">
             {Math.floor(secondsLeft / 60)}:{String(secondsLeft % 60).padStart(2, '0')}
           </p>
           <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-800">
@@ -87,7 +87,7 @@ export default function RestTimerBar({
           <button
             type="button"
             onClick={() => onAddSeconds?.(30)}
-            className="rounded-lg border border-slate-600 px-3 py-2 text-xs text-slate-200"
+            className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-xs text-slate-200"
           >
             +30s
           </button>

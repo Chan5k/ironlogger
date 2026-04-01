@@ -7,7 +7,7 @@ import { appAlert, appConfirm } from '../lib/appDialogApi.js';
 import { useWeightUnit } from '../hooks/useWeightUnit.js';
 import { LBS_PER_KG, formatWeightInputValue, lbsToKg } from '../utils/weightUnits.js';
 
-const CARD_MUTED = 'rounded-xl border border-slate-800/80 bg-[#0f141d]/90 p-5';
+const CARD_MUTED = 'rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-app-panel-muted/90 p-5';
 
 const TYPE_LABEL = {
   strength: 'Strength',
@@ -141,14 +141,14 @@ export default function Goals() {
     <div className="min-w-0 space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-white">Goals</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">Goals</h1>
           <p className="mt-1 text-sm text-slate-500">
             Strength, weekly frequency, and rolling 7-day volume — progress updates from your logs.
           </p>
         </div>
         <Link
           to={appPath()}
-          className="-ml-2 inline-flex min-h-11 min-w-11 items-center gap-1 rounded-xl px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-white active:bg-slate-800"
+          className="-ml-2 inline-flex min-h-11 min-w-11 items-center gap-1 rounded-xl px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white active:bg-slate-800"
         >
           ← Home
         </Link>
@@ -171,7 +171,7 @@ export default function Goals() {
               id="goal-type"
               value={form.type}
               onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
-              className="h-11 w-full rounded-xl border border-slate-700 bg-surface px-3 text-white"
+              className="h-11 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 text-slate-900 dark:text-white"
             >
               <option value="frequency">Frequency (workouts / 7 days)</option>
               <option value="volume">Volume ({weightUnit}×reps / 7 days)</option>
@@ -187,7 +187,7 @@ export default function Goals() {
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               placeholder="e.g. Bench 100kg, 4 sessions/week"
-              className="h-11 w-full rounded-xl border border-slate-700 bg-surface px-3 text-white placeholder:text-slate-600"
+              className="h-11 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 text-slate-900 dark:text-white placeholder:text-slate-600"
             />
           </div>
           {form.type === 'strength' ? (
@@ -200,7 +200,7 @@ export default function Goals() {
                 value={form.strengthExerciseName}
                 onChange={(e) => setForm((f) => ({ ...f, strengthExerciseName: e.target.value }))}
                 placeholder="Bench press"
-                className="h-11 w-full rounded-xl border border-slate-700 bg-surface px-3 text-white placeholder:text-slate-600"
+                className="h-11 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 text-slate-900 dark:text-white placeholder:text-slate-600"
               />
             </div>
           ) : null}
@@ -218,7 +218,7 @@ export default function Goals() {
                 value={form.targetValue}
                 onChange={(e) => setForm((f) => ({ ...f, targetValue: e.target.value }))}
                 placeholder={form.type === 'frequency' ? '4' : form.type === 'volume' ? '50000' : '100'}
-                className="h-11 w-full rounded-xl border border-slate-700 bg-surface px-3 text-white placeholder:text-slate-600"
+                className="h-11 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 text-slate-900 dark:text-white placeholder:text-slate-600"
               />
             </div>
             <div>
@@ -226,13 +226,13 @@ export default function Goals() {
                 Deadline (optional)
               </label>
               <div className="group w-full min-w-0">
-                <div className="flex h-11 w-full min-w-0 items-center rounded-xl border border-slate-700 bg-surface px-3 transition-[border-color,box-shadow] duration-motion ease-motion-standard group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
+                <div className="flex h-11 w-full min-w-0 items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 transition-[border-color,box-shadow] duration-motion ease-motion-standard group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
                   <input
                     id="goal-deadline"
                     type="date"
                     value={form.deadline}
                     onChange={(e) => setForm((f) => ({ ...f, deadline: e.target.value }))}
-                    className="min-h-0 min-w-0 flex-1 border-0 bg-transparent p-0 text-base text-white outline-none [color-scheme:dark] focus:ring-0 focus-visible:ring-0"
+                    className="min-h-0 min-w-0 flex-1 border-0 bg-transparent p-0 text-base text-slate-900 dark:text-white outline-none [color-scheme:dark] focus:ring-0 focus-visible:ring-0"
                   />
                 </div>
               </div>
@@ -265,7 +265,7 @@ export default function Goals() {
                       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                         {TYPE_LABEL[g.type] || g.type}
                       </p>
-                      <p className="mt-1 font-medium text-white">{g.title}</p>
+                      <p className="mt-1 font-medium text-slate-900 dark:text-white">{g.title}</p>
                       <p className="mt-1 text-xs text-slate-500">{goalDetailLine(g, weightUnit)}</p>
                       <p className="mt-2 text-sm text-slate-400">{currentLine(g, weightUnit)}</p>
                       {g.deadline ? (
@@ -320,7 +320,7 @@ export default function Goals() {
                 <button
                   type="button"
                   onClick={() => reopenGoal(g._id)}
-                  className="text-xs text-slate-500 hover:text-white"
+                  className="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white"
                 >
                   Reopen
                 </button>

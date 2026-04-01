@@ -127,7 +127,7 @@ export default function Library() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-white">Exercise library</h1>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">Exercise library</h1>
         <p className="text-sm text-slate-400">
           Browse by category or add your own. Use the search field and the “With demo” filter to find exercises that include a technique video.
         </p>
@@ -160,7 +160,7 @@ export default function Library() {
             type="button"
             onClick={() => setDemosOnly((v) => !v)}
             className={`rounded-full px-3 py-1 text-xs ${
-              demosOnly ? 'bg-emerald-700 text-white' : 'bg-surface-card text-slate-400'
+              demosOnly ? 'bg-emerald-700 text-slate-900 dark:text-white' : 'bg-surface-card text-slate-400'
             }`}
           >
             With demo
@@ -178,7 +178,7 @@ export default function Library() {
             placeholder="Search by exercise name…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-slate-700 bg-surface-card px-4 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-accent"
+            className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 outline-none focus:border-accent"
           />
           <p className="mt-1.5 text-xs text-slate-500">
             {demosOnly || searchQuery.trim()
@@ -189,21 +189,21 @@ export default function Library() {
         </div>
       </div>
 
-      <form onSubmit={addCustom} className="rounded-2xl border border-slate-800 bg-surface-card p-4">
-        <p className="mb-2 text-sm font-medium text-white">Add custom exercise</p>
+      <form onSubmit={addCustom} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-4">
+        <p className="mb-2 text-sm font-medium text-slate-900 dark:text-white">Add custom exercise</p>
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Name"
-              className="flex-1 rounded-xl border border-slate-700 bg-surface px-3 py-2 text-white"
+              className="flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2 text-slate-900 dark:text-white"
               required
             />
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="rounded-xl border border-slate-700 bg-surface px-3 py-2 text-white capitalize"
+              className="rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2 text-slate-900 dark:text-white capitalize"
             >
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>
@@ -230,14 +230,14 @@ export default function Library() {
             value={newVideoUrl}
             onChange={(e) => setNewVideoUrl(e.target.value)}
             placeholder="https://www.youtube.com/watch?v=…"
-            className="w-full rounded-xl border border-slate-700 bg-surface px-3 py-2 text-sm text-white placeholder:text-slate-500"
+            className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-500"
           />
         </div>
       </form>
 
       <div className="space-y-6">
         {filteredExercises.length === 0 ? (
-          <p className="rounded-xl border border-slate-800 bg-surface-card px-4 py-8 text-center text-sm text-slate-400">
+          <p className="rounded-xl border border-slate-200 dark:border-slate-800 bg-surface-card px-4 py-8 text-center text-sm text-slate-400">
             {exercises.length === 0
               ? 'No exercises in this category.'
               : demosOnly
@@ -256,12 +256,12 @@ export default function Library() {
                 {list.map((ex) => (
                   <li
                     key={ex._id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800 bg-surface-elevated px-3 py-2"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-surface-elevated px-3 py-2"
                   >
                     <div className="flex min-w-0 flex-1 items-start gap-2">
                       <ExerciseIcon name={ex.name} category={ex.category} boxed className="h-4 w-4 text-slate-300" />
                       <div className="min-w-0 flex-1">
-                      <p className="font-medium text-white">{ex.name}</p>
+                      <p className="font-medium text-slate-900 dark:text-white">{ex.name}</p>
                       {!ex.userId ? (
                         <span className="text-xs text-slate-500">Built-in</span>
                       ) : (
@@ -276,7 +276,7 @@ export default function Library() {
                           onClick={() =>
                             setVideoModal({ title: ex.name, videoUrl: ex.videoUrl })
                           }
-                          className="rounded-lg border border-slate-600 px-2 py-1 text-xs text-accent-muted hover:bg-slate-800"
+                          className="rounded-lg border border-slate-300 dark:border-slate-600 px-2 py-1 text-xs text-accent-muted hover:bg-slate-800"
                         >
                           Demo
                         </button>
@@ -314,7 +314,7 @@ export default function Library() {
                               videoUrl: ex.videoUrl ?? '',
                             })
                           }
-                          className="rounded-lg border border-slate-600 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800"
+                          className="rounded-lg border border-slate-300 dark:border-slate-600 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800"
                         >
                           {ex.videoUrl ? 'Edit demo' : 'Set demo'}
                         </button>
@@ -328,9 +328,9 @@ export default function Library() {
       </div>
 
       {editing ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">
-          <div className="w-full max-w-md rounded-2xl border border-slate-700 bg-surface-card p-4 shadow-xl">
-            <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/60 dark:bg-black/60 p-4 sm:items-center">
+          <div className="w-full max-w-md rounded-2xl border border-slate-300 dark:border-slate-700 bg-surface-card p-4 shadow-xl">
+            <h3 className="mb-3 flex items-center gap-2 font-semibold text-slate-900 dark:text-white">
               <ExerciseIcon name={editing.name} category={editing.category} boxed className="h-5 w-5 text-slate-300" />
               Edit exercise
             </h3>
@@ -338,13 +338,13 @@ export default function Library() {
             <input
               value={editing.name}
               onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-              className="mb-3 w-full rounded-xl border border-slate-700 bg-surface px-3 py-2 text-white"
+              className="mb-3 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2 text-slate-900 dark:text-white"
             />
             <label className="mb-1 block text-xs text-slate-500">Category</label>
             <select
               value={editing.category}
               onChange={(e) => setEditing({ ...editing, category: e.target.value })}
-              className="mb-3 w-full rounded-xl border border-slate-700 bg-surface px-3 py-2 text-white capitalize"
+              className="mb-3 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2 text-slate-900 dark:text-white capitalize"
             >
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>
@@ -357,7 +357,7 @@ export default function Library() {
               value={editing.notes}
               onChange={(e) => setEditing({ ...editing, notes: e.target.value })}
               rows={2}
-              className="mb-3 w-full rounded-xl border border-slate-700 bg-surface px-3 py-2 text-white"
+              className="mb-3 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2 text-slate-900 dark:text-white"
             />
             <label className="mb-1 block text-xs text-slate-500">Demo video URL (https, optional)</label>
             <input
@@ -367,7 +367,7 @@ export default function Library() {
               value={editing.videoUrl}
               onChange={(e) => setEditing({ ...editing, videoUrl: e.target.value })}
               placeholder="https://…"
-              className="mb-3 w-full rounded-xl border border-slate-700 bg-surface px-3 py-2 text-sm text-white"
+              className="mb-3 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2 text-sm text-slate-900 dark:text-white"
             />
             <div className="flex gap-2">
               <button
@@ -381,7 +381,7 @@ export default function Library() {
               <button
                 type="button"
                 onClick={() => setEditing(null)}
-                className="rounded-xl border border-slate-600 px-4 py-2 text-slate-300"
+                className="rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-2 text-slate-300"
               >
                 Cancel
               </button>
@@ -391,9 +391,9 @@ export default function Library() {
       ) : null}
 
       {adminVideo ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">
-          <div className="w-full max-w-md rounded-2xl border border-slate-700 bg-surface-card p-4 shadow-xl">
-            <h3 className="mb-1 font-semibold text-white">Built-in demo video</h3>
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/60 dark:bg-black/60 p-4 sm:items-center">
+          <div className="w-full max-w-md rounded-2xl border border-slate-300 dark:border-slate-700 bg-surface-card p-4 shadow-xl">
+            <h3 className="mb-1 font-semibold text-slate-900 dark:text-white">Built-in demo video</h3>
             <p className="mb-3 text-xs text-slate-500">{adminVideo.name}</p>
             <label className="mb-1 block text-xs text-slate-500">HTTPS YouTube or Vimeo URL</label>
             <input
@@ -403,7 +403,7 @@ export default function Library() {
               value={adminVideo.videoUrl}
               onChange={(e) => setAdminVideo({ ...adminVideo, videoUrl: e.target.value })}
               placeholder="Leave empty to clear"
-              className="mb-3 w-full rounded-xl border border-slate-700 bg-surface px-3 py-2 text-sm text-white"
+              className="mb-3 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2 text-sm text-slate-900 dark:text-white"
             />
             <div className="flex gap-2">
               <button
@@ -417,7 +417,7 @@ export default function Library() {
               <button
                 type="button"
                 onClick={() => setAdminVideo(null)}
-                className="rounded-xl border border-slate-600 px-4 py-2 text-slate-300"
+                className="rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-2 text-slate-300"
               >
                 Cancel
               </button>

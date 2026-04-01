@@ -75,7 +75,7 @@ export default function FollowingFeed() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-white">Following</h1>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">Following</h1>
         <p className="text-sm text-slate-400">
           Session counts and each person&apos;s last few completed workouts (title and duration only — no sets or
           exercises).
@@ -86,7 +86,7 @@ export default function FollowingFeed() {
       {err ? <p className="text-red-400">{err}</p> : null}
 
       {!loading && !err && items.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-700 p-8 text-center text-slate-500">
+        <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center text-slate-500">
           <p>You are not following anyone yet.</p>
           <p className="mt-2 text-sm">
             Ask them for their <span className="text-slate-400">friend invite</span> link, or open their public
@@ -110,20 +110,20 @@ export default function FollowingFeed() {
         {items.map((row) => (
           <li
             key={row.userId || row.slug || row.name}
-            className="rounded-xl border border-slate-800 bg-surface-card px-4 py-3"
+            className="rounded-xl border border-slate-200 dark:border-slate-800 bg-surface-card px-4 py-3"
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 {row.slug ? (
                   <Link
                     to={`/u/${encodeURIComponent(row.slug)}`}
-                    className="font-medium text-white hover:text-accent-muted"
+                    className="font-medium text-slate-900 dark:text-white hover:text-accent-muted"
                   >
                     {row.name}
                   </Link>
                 ) : (
                   <>
-                    <span className="font-medium text-white">{row.name}</span>
+                    <span className="font-medium text-slate-900 dark:text-white">{row.name}</span>
                     <p className="mt-0.5 text-[11px] text-slate-500">
                       No public profile URL yet — they won&apos;t appear on /u/… until they add one in Settings.
                     </p>
@@ -144,7 +144,7 @@ export default function FollowingFeed() {
                 {row.slug ? (
                   <Link
                     to={`/u/${encodeURIComponent(row.slug)}`}
-                    className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-300"
+                    className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-1.5 text-xs text-slate-300"
                   >
                     Profile
                   </Link>
@@ -165,7 +165,7 @@ export default function FollowingFeed() {
             </div>
 
             {row.recentWorkouts?.length ? (
-              <div className="mt-3 border-t border-slate-800/80 pt-3">
+              <div className="mt-3 border-t border-slate-200/80 dark:border-slate-800/80 pt-3">
                 <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-slate-500">
                   Recent workouts
                 </p>
@@ -176,7 +176,7 @@ export default function FollowingFeed() {
                       className="flex flex-wrap items-start justify-between gap-2 rounded-lg bg-surface-elevated/80 px-3 py-2 text-sm text-slate-300"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-white">{w.title}</p>
+                        <p className="font-medium text-slate-900 dark:text-white">{w.title}</p>
                         <p className="mt-0.5 text-xs text-slate-500">
                           {fmtDay(w.completedAt || w.startedAt)}
                           <span className="text-slate-600"> · </span>
@@ -195,7 +195,7 @@ export default function FollowingFeed() {
                 </ul>
               </div>
             ) : (
-              <p className="mt-3 border-t border-slate-800/80 pt-3 text-xs text-slate-600">
+              <p className="mt-3 border-t border-slate-200/80 dark:border-slate-800/80 pt-3 text-xs text-slate-600">
                 No completed workouts to show yet.
               </p>
             )}
@@ -205,7 +205,7 @@ export default function FollowingFeed() {
 
       <Link
         to={appPath()}
-        className="-ml-2 inline-flex min-h-11 min-w-11 items-center gap-1 rounded-xl px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-white active:bg-slate-800"
+        className="-ml-2 inline-flex min-h-11 min-w-11 items-center gap-1 rounded-xl px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white active:bg-slate-800"
       >
         ← Dashboard
       </Link>

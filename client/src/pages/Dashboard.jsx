@@ -31,6 +31,7 @@ import { useWeightUnit } from '../hooks/useWeightUnit.js';
 import { LBS_PER_KG } from '../utils/weightUnits.js';
 import { formatWorkoutDuration } from '../utils/workoutDuration.js';
 import { useLiveClock } from '../hooks/useLiveClock.js';
+import { useTheme } from '../context/ThemeContext.jsx';
 
 function fmtDate(d) {
   if (!d) return '—';
@@ -66,8 +67,8 @@ const CHART_FILL = {
 };
 
 const CARD =
-  'rounded-xl border border-slate-800/90 bg-[#121826]/95 p-5 shadow-sm shadow-black/20';
-const CARD_MUTED = 'rounded-xl border border-slate-800/80 bg-[#0f141d]/90 p-5';
+  'rounded-xl border border-slate-200/90 dark:border-slate-800/90 bg-app-panel/95 p-5 shadow-sm shadow-slate-400/25 dark:shadow-black/20';
+const CARD_MUTED = 'rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-app-panel-muted/90 p-5';
 
 function pctChange(current, previous) {
   if (previous === 0) {
@@ -111,6 +112,7 @@ function streakRecordLine(streak) {
 }
 
 export default function Dashboard() {
+  const { effectiveDark } = useTheme();
   const weightUnit = useWeightUnit();
   const [summary, setSummary] = useState(null);
   const [muscleWeek, setMuscleWeek] = useState(null);
@@ -241,12 +243,35 @@ export default function Dashboard() {
     }));
   }, [volumeByDay, weightUnit]);
 
-  const tooltipStyle = {
-    background: '#1e293b',
-    border: '1px solid #334155',
-    borderRadius: '8px',
-    fontSize: '12px',
-  };
+  const chartTheme = useMemo(
+    () =>
+      effectiveDark
+        ? {
+            grid: '#1e293b',
+            tooltipBg: '#1e293b',
+            tooltipBorder: '#334155',
+            tooltipLabel: '#e2e8f0',
+            tick: '#64748b',
+          }
+        : {
+            grid: '#e2e8f0',
+            tooltipBg: '#ffffff',
+            tooltipBorder: '#cbd5e1',
+            tooltipLabel: '#0f172a',
+            tick: '#64748b',
+          },
+    [effectiveDark]
+  );
+
+  const tooltipStyle = useMemo(
+    () => ({
+      background: chartTheme.tooltipBg,
+      border: `1px solid ${chartTheme.tooltipBorder}`,
+      borderRadius: '8px',
+      fontSize: '12px',
+    }),
+    [chartTheme]
+  );
 
   if (err) {
     return <p className="text-sm text-red-400">{err}</p>;
@@ -257,10 +282,10 @@ export default function Dashboard() {
   if (!summary) {
     return (
       <div className="space-y-6 animate-pulse">
-        <div className="h-8 w-48 rounded-lg bg-slate-800/60" />
+        <div className="h-8 w-48 rounded-lg bg-slate-200/90 dark:bg-slate-800/60" />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-28 rounded-xl bg-slate-800/40" />
+            <div key={i} className="h-28 rounded-xl bg-slate-200/70 dark:bg-slate-800/40" />
           ))}
         </div>
       </div>
@@ -270,7 +295,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 md:space-y-8">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-white md:text-[1.65rem]">Dashboard</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white md:text-[1.65rem]">Dashboard</h1>
         <p className="text-sm text-slate-500">Your training at a glance</p>
       </header>
 
@@ -283,7 +308,7 @@ export default function Dashboard() {
               </p>
               <LayoutDashboard className="h-4 w-4 shrink-0 text-slate-600" strokeWidth={1.75} aria-hidden />
             </div>
-            <p className="mt-3 text-3xl font-semibold tabular-nums tracking-tight text-white">
+            <p className="mt-3 text-3xl font-semibold tabular-nums tracking-tight text-slate-900 dark:text-white">
               {summary.totalWorkouts}
             </p>
             <p className="mt-2 text-[11px] text-slate-600">All-time completed</p>
@@ -293,7 +318,7 @@ export default function Dashboard() {
               <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">This week</p>
               <CalendarDays className="h-4 w-4 shrink-0 text-slate-600" strokeWidth={1.75} aria-hidden />
             </div>
-            <p className="mt-3 text-3xl font-semibold tabular-nums tracking-tight text-white">
+            <p className="mt-3 text-3xl font-semibold tabular-nums tracking-tight text-slate-900 dark:text-white">
               {summary.workoutsThisWeek}
             </p>
             <div className="mt-2 flex min-h-[1rem] items-center gap-2">
@@ -305,7 +330,7 @@ export default function Dashboard() {
               <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">This month</p>
               <CalendarDays className="h-4 w-4 shrink-0 text-slate-600" strokeWidth={1.75} aria-hidden />
             </div>
-            <p className="mt-3 text-3xl font-semibold tabular-nums tracking-tight text-white">
+            <p className="mt-3 text-3xl font-semibold tabular-nums tracking-tight text-slate-900 dark:text-white">
               {summary.workoutsThisMonth}
             </p>
             <div className="mt-2 flex min-h-[1rem] items-center gap-2">
@@ -319,7 +344,7 @@ export default function Dashboard() {
               </p>
               <Weight className="h-4 w-4 shrink-0 text-slate-600" strokeWidth={1.75} aria-hidden />
             </div>
-            <p className="mt-3 text-3xl font-semibold tabular-nums tracking-tight text-white">
+            <p className="mt-3 text-3xl font-semibold tabular-nums tracking-tight text-slate-900 dark:text-white">
               {displayVolume.toLocaleString()}
             </p>
             <div className="mt-2 flex flex-col gap-1">
@@ -377,7 +402,7 @@ export default function Dashboard() {
         {goalsPreview.length === 0 ? (
           <Link
             to={appPath('goals')}
-            className="mt-4 inline-flex h-10 items-center justify-center rounded-lg border border-slate-700 px-4 text-sm font-medium text-slate-200 hover:bg-slate-800/60"
+            className="mt-4 inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 px-4 text-sm font-medium text-slate-800 hover:bg-slate-100/90 dark:text-slate-200 dark:hover:bg-slate-800/60"
           >
             Add a goal
           </Link>
@@ -386,12 +411,12 @@ export default function Dashboard() {
             {goalsPreview.map((g) => (
               <li key={g._id}>
                 <div className="flex items-center justify-between gap-2 text-sm">
-                  <span className="min-w-0 truncate font-medium text-white">{g.title}</span>
+                  <span className="min-w-0 truncate font-medium text-slate-900 dark:text-white">{g.title}</span>
                   <span className="shrink-0 tabular-nums text-slate-500">
                     {Math.min(100, Math.round(g.progressPct ?? 0))}%
                   </span>
                 </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-800/90">
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800/90">
                   <div
                     className="h-full rounded-full bg-blue-500 transition-all duration-motion-progress ease-motion-standard"
                     style={{ width: `${Math.min(100, g.progressPct ?? 0)}%` }}
@@ -411,7 +436,7 @@ export default function Dashboard() {
               <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Insights</p>
               <ul className="mt-3 flex flex-1 flex-col gap-2">
                 {intel.insights.map((text, i) => (
-                  <li key={i} className="flex gap-2.5 text-sm leading-relaxed text-slate-300">
+                  <li key={i} className="flex gap-2.5 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
                     <Lightbulb
                       className="mt-0.5 h-4 w-4 shrink-0 text-amber-400/85"
                       strokeWidth={1.75}
@@ -428,7 +453,7 @@ export default function Dashboard() {
               <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                 Suggested workout
               </p>
-              <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-200">{intel.suggestion.message}</p>
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-800 dark:text-slate-200">{intel.suggestion.message}</p>
               {intel.suggestion.exercises?.length ? (
                 <p className="mt-3 text-xs text-slate-500">
                   Ideas: {intel.suggestion.exercises.join(' · ')}
@@ -472,7 +497,7 @@ export default function Dashboard() {
                     <span className="text-slate-500">{d.label}</span>
                     <span className="shrink-0 tabular-nums text-slate-400">{d.pct}%</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-slate-800/90">
+                  <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800/90">
                     <div
                       className="h-full rounded-full transition-[width] duration-motion-progress ease-motion-standard"
                       style={{
@@ -495,7 +520,7 @@ export default function Dashboard() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Consistency</p>
-              <p className="mt-1 text-lg font-semibold text-white">
+              <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">
                 <span className="tabular-nums text-blue-400">{summary.streak.currentDays}</span>
                 <span className="font-medium text-slate-400">-day streak</span>
                 {summary.streak.currentDays === 0 ? (
@@ -512,13 +537,13 @@ export default function Dashboard() {
               summary.streak.bestEver > 0 ? (
                 <p className="mt-1 text-sm text-slate-400">
                   Personal best:{' '}
-                  <span className="font-mono tabular-nums text-slate-300">
+                  <span className="font-mono tabular-nums text-slate-800 dark:text-slate-300">
                     {summary.streak.bestEver}
                   </span>
                   -day streak (from your history, including imports).
                 </p>
               ) : null}
-              {recordHint ? <p className="mt-2 text-sm font-medium text-slate-300">{recordHint}</p> : null}
+              {recordHint ? <p className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-300">{recordHint}</p> : null}
               <p className="mt-2 text-sm text-slate-500">
                 This week — distinct days with a workout:{' '}
                 <span className="font-mono text-slate-400">{summary.streak.trainingDaysLast7}</span> of the last 7
@@ -543,12 +568,12 @@ export default function Dashboard() {
           <div className="min-h-[220px] w-full min-w-0">
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={barChartData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
+                <XAxis dataKey="name" tick={{ fill: chartTheme.tick, fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: chartTheme.tick, fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  labelStyle={{ color: '#e2e8f0', fontWeight: 600 }}
+                  labelStyle={{ color: chartTheme.tooltipLabel, fontWeight: 600 }}
                   formatter={(value, name) => [Number(value).toLocaleString(), CAT_LABEL[name] || name]}
                 />
                 {chartCategories.map((k) => (
@@ -563,7 +588,7 @@ export default function Dashboard() {
                 ))}
               </BarChart>
             </ResponsiveContainer>
-            <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2 border-t border-slate-800/80 pt-3">
+            <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2 border-t border-slate-200/80 dark:border-slate-800/80 pt-3">
               {weekVolumesAll.map(({ key, label, volume }) => (
                 <li key={key} className="flex items-center gap-2 text-xs">
                   <span
@@ -572,7 +597,7 @@ export default function Dashboard() {
                     aria-hidden
                   />
                   <span className="text-slate-500">{label}</span>
-                  <span className={`font-mono tabular-nums ${volume > 0 ? 'text-slate-300' : 'text-slate-600'}`}>
+                  <span className={`font-mono tabular-nums ${volume > 0 ? 'text-slate-800 dark:text-slate-300' : 'text-slate-600'}`}>
                     {volume > 0 ? volume.toLocaleString() : '—'}
                   </span>
                 </li>
@@ -582,7 +607,7 @@ export default function Dashboard() {
         ) : weekVolTotal > 0 ? (
           <p className="text-sm text-slate-500">Chart data is loading or unavailable — category totals below.</p>
         ) : (
-          <div className="rounded-lg border border-dashed border-slate-700/80 bg-slate-900/20 px-4 py-10 text-center">
+          <div className="rounded-lg border border-dashed border-slate-200/80 dark:border-slate-700/80 bg-slate-100/70 dark:bg-slate-900/20 px-4 py-10 text-center">
             <Dumbbell className="mx-auto h-8 w-8 text-slate-600" strokeWidth={1.5} aria-hidden />
             <p className="mt-3 text-sm text-slate-500">No volume this week yet</p>
             <p className="mt-1 text-xs text-slate-600">Complete a workout to see your mix here.</p>
@@ -595,7 +620,7 @@ export default function Dashboard() {
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Last session</p>
           {summary.lastWorkout ? (
             <div className="mt-3 flex-1">
-              <p className="text-xl font-semibold text-white">{summary.lastWorkout.title}</p>
+              <p className="text-xl font-semibold text-slate-900 dark:text-white">{summary.lastWorkout.title}</p>
               <p className="mt-1 text-sm text-slate-500">{fmtDate(summary.lastWorkout.startedAt)}</p>
               <p className="mt-1 font-mono text-xs text-slate-500">
                 {formatWorkoutDuration(
@@ -628,13 +653,13 @@ export default function Dashboard() {
             </NewWorkoutLink>
             <Link
               to={appPath('templates')}
-              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-lg border border-slate-600/70 bg-transparent px-4 py-3 text-sm font-medium text-slate-300 transition-colors duration-motion ease-motion-standard hover:border-slate-500 hover:bg-slate-800/40 sm:min-h-11 sm:w-auto sm:py-0"
+              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-lg border border-slate-300/70 dark:border-slate-600/70 bg-transparent px-4 py-3 text-sm font-medium text-slate-700 transition-colors duration-motion ease-motion-standard hover:border-slate-500 hover:bg-slate-100/90 dark:hover:bg-slate-800/40 dark:text-slate-300 sm:min-h-11 sm:w-auto sm:py-0"
             >
               From plan
             </Link>
             <Link
               to={appPath('progress')}
-              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-lg border border-slate-600/70 bg-transparent px-4 py-3 text-sm font-medium text-slate-300 transition-colors duration-motion ease-motion-standard hover:border-slate-500 hover:bg-slate-800/40 sm:min-h-11 sm:w-auto sm:py-0"
+              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-lg border border-slate-300/70 dark:border-slate-600/70 bg-transparent px-4 py-3 text-sm font-medium text-slate-700 transition-colors duration-motion ease-motion-standard hover:border-slate-500 hover:bg-slate-100/90 dark:hover:bg-slate-800/40 dark:text-slate-300 sm:min-h-11 sm:w-auto sm:py-0"
             >
               View progress
             </Link>
@@ -654,12 +679,12 @@ export default function Dashboard() {
                       <stop offset="100%" stopColor="#14b8a6" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                  <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
+                  <XAxis dataKey="name" tick={{ fill: chartTheme.tick, fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: chartTheme.tick, fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
                   <Tooltip
                     contentStyle={tooltipStyle}
-                    labelStyle={{ color: '#e2e8f0', fontWeight: 600 }}
+                    labelStyle={{ color: chartTheme.tooltipLabel, fontWeight: 600 }}
                     formatter={(value) => [`${Number(value).toLocaleString()} ${weightUnit}×reps`, 'Volume']}
                   />
                   <Area
@@ -674,7 +699,7 @@ export default function Dashboard() {
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex h-[220px] items-center justify-center rounded-lg border border-dashed border-slate-800/80 text-sm text-slate-600">
+              <div className="flex h-[220px] items-center justify-center rounded-lg border border-dashed border-slate-200/80 dark:border-slate-800/80 text-sm text-slate-600">
                 No volume logged this week
               </div>
             )}

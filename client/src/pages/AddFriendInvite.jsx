@@ -58,7 +58,7 @@ export default function AddFriendInvite() {
 
   if (!slug) {
     return (
-      <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-8 text-white">
+      <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-8 text-slate-900 dark:text-white">
         <p className="text-slate-300">This invite link is not valid.</p>
         <Link
           to="/"
@@ -82,8 +82,8 @@ export default function AddFriendInvite() {
 
   if (phase === 'own') {
     return (
-      <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-8 text-white">
-        <h1 className="text-xl font-bold text-white">Your invite link</h1>
+      <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-8 text-slate-900 dark:text-white">
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">Your invite link</h1>
         <p className="mt-3 text-sm text-slate-400">
           Share this URL with others so they can follow you on IronLog. You can&apos;t add yourself
           as a friend.
@@ -97,7 +97,7 @@ export default function AddFriendInvite() {
           </Link>
           <Link
             to={appPath('settings')}
-            className="rounded-xl border border-slate-600 px-4 py-3 text-center text-sm text-slate-200"
+            className="rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-3 text-center text-sm text-slate-200"
           >
             Settings
           </Link>
@@ -108,8 +108,8 @@ export default function AddFriendInvite() {
 
   if (phase === 'missing') {
     return (
-      <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-8 text-white">
-        <h1 className="text-xl font-bold text-white">Link not available</h1>
+      <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-8 text-slate-900 dark:text-white">
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">Link not available</h1>
         <p className="mt-3 text-sm text-slate-400">
           This profile is missing or not public anymore, so we can&apos;t add them from this link.
         </p>
@@ -122,8 +122,8 @@ export default function AddFriendInvite() {
 
   if (phase === 'error') {
     return (
-      <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-8 text-white">
-        <h1 className="text-xl font-bold text-white">Couldn&apos;t complete invite</h1>
+      <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-8 text-slate-900 dark:text-white">
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">Couldn&apos;t complete invite</h1>
         <p className="mt-3 text-sm text-red-300/90">{errorDetail}</p>
         <Link
           to={`/u/${encodeURIComponent(slug)}`}
@@ -138,7 +138,7 @@ export default function AddFriendInvite() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-3 px-4 text-slate-300">
       <div
-        className="h-9 w-9 animate-spin rounded-full border-2 border-slate-600 border-t-accent"
+        className="h-9 w-9 animate-spin rounded-full border-2 border-slate-300 dark:border-slate-600 border-t-accent"
         aria-hidden
       />
       <p className="text-sm">Adding friend…</p>

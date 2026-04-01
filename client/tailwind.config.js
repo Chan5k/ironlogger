@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
@@ -14,10 +15,16 @@ export default {
         ],
       },
       colors: {
+        app: {
+          canvas: 'rgb(var(--rgb-app-canvas) / <alpha-value>)',
+          panel: 'rgb(var(--rgb-app-panel) / <alpha-value>)',
+          'panel-deep': 'rgb(var(--rgb-app-panel-deep) / <alpha-value>)',
+          'panel-muted': 'rgb(var(--rgb-app-panel-muted) / <alpha-value>)',
+        },
         surface: {
-          DEFAULT: '#0f1419',
-          card: '#1a2332',
-          elevated: '#243044',
+          DEFAULT: 'rgb(var(--rgb-surface) / <alpha-value>)',
+          card: 'rgb(var(--rgb-surface-card) / <alpha-value>)',
+          elevated: 'rgb(var(--rgb-surface-elevated) / <alpha-value>)',
         },
         accent: {
           DEFAULT: '#2563eb',

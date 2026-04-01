@@ -83,12 +83,12 @@ export default function Activity() {
     }));
 
   const fieldClass =
-    'w-full min-w-0 max-w-full rounded-lg border border-slate-700 bg-surface px-3 py-2.5 text-white';
+    'w-full min-w-0 max-w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2.5 text-slate-900 dark:text-white';
 
   return (
     <div className="min-w-0 space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-white">Activity</h1>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">Activity</h1>
         <p className="text-[15px] leading-relaxed text-slate-400 sm:text-sm sm:leading-normal">
           Manual steps, calories, and exercise minutes.{' '}
           <span className="text-slate-500">
@@ -98,7 +98,7 @@ export default function Activity() {
         </p>
       </div>
 
-      <div className="min-w-0 overflow-x-clip rounded-2xl border border-slate-800 bg-surface-card p-4">
+      <div className="min-w-0 overflow-x-clip rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-4">
         <label className="mb-1 block text-xs text-slate-500" htmlFor="activity-day-key">
           Date
         </label>
@@ -107,13 +107,13 @@ export default function Activity() {
           Shell carries border/bg/padding; the input is flex-sized with zero padding.
         */}
         <div className="group mb-4 w-full min-w-0 max-w-full">
-          <div className="flex min-h-[44px] w-full min-w-0 max-w-full items-center rounded-lg border border-slate-700 bg-surface px-3 py-2 transition-[border-color,box-shadow] duration-motion ease-motion-standard group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
+          <div className="flex min-h-[44px] w-full min-w-0 max-w-full items-center rounded-lg border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2 transition-[border-color,box-shadow] duration-motion ease-motion-standard group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
             <input
               id="activity-day-key"
               type="date"
               value={dayKey}
               onChange={(e) => setDayKey(e.target.value)}
-              className="min-w-0 flex-1 basis-0 border-0 bg-transparent p-0 text-base text-white outline-none focus:ring-0 focus-visible:ring-0"
+              className="min-w-0 flex-1 basis-0 border-0 bg-transparent p-0 text-base text-slate-900 dark:text-white outline-none focus:ring-0 focus-visible:ring-0"
             />
           </div>
         </div>
@@ -170,7 +170,7 @@ export default function Activity() {
       </div>
 
       {chartData.length > 0 ? (
-        <div className="h-56 rounded-2xl border border-slate-800 bg-surface-card p-2">
+        <div className="h-56 rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-2">
           <p className="mb-1 px-2 text-xs text-slate-500">Last ~14 days — steps</p>
           <ResponsiveContainer width="100%" height="90%">
             <BarChart data={chartData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>

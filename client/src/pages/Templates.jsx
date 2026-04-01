@@ -95,14 +95,14 @@ export default function Templates() {
               aria-live="polite"
               aria-label="Creating workout"
             >
-              <div className="fixed inset-0 bg-black/70 backdrop-blur-sm motion-reduce:backdrop-blur-none" />
-              <div className="animate-ui-modal-in relative z-10 w-full max-w-sm rounded-2xl border border-slate-700 bg-surface-card p-6 shadow-2xl ring-1 ring-white/5 motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none">
+              <div className="fixed inset-0 bg-slate-900/70 dark:bg-black/70 backdrop-blur-sm motion-reduce:backdrop-blur-none" />
+              <div className="animate-ui-modal-in relative z-10 w-full max-w-sm rounded-2xl border border-slate-300 dark:border-slate-700 bg-surface-card p-6 shadow-2xl ring-1 ring-white/5 motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none">
                 <div className="mb-1 flex items-center gap-2">
                   <span className="relative flex h-2.5 w-2.5">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/60 opacity-75 motion-reduce:animate-none" />
                     <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
                   </span>
-                  <h2 className="text-base font-semibold text-white">Creating workout</h2>
+                  <h2 className="text-base font-semibold text-slate-900 dark:text-white">Creating workout</h2>
                 </div>
                 <p className="mt-2 text-sm text-slate-400">Building your session from &quot;{creating.name}&quot;…</p>
                 <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-slate-800">
@@ -122,7 +122,7 @@ export default function Templates() {
 
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white">Workout plans</h1>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white">Workout plans</h1>
           <p className="text-sm text-slate-400">Templates to start sessions quickly</p>
         </div>
         <Link
@@ -137,11 +137,11 @@ export default function Templates() {
         {templates.map((t) => (
           <li
             key={t._id}
-            className="rounded-xl border border-slate-800 bg-surface-card p-4"
+            className="rounded-xl border border-slate-200 dark:border-slate-800 bg-surface-card p-4"
           >
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
-                <p className="font-medium text-white">{t.name}</p>
+                <p className="font-medium text-slate-900 dark:text-white">{t.name}</p>
                 {t.description ? (
                   <p className="text-sm text-slate-400">{t.description}</p>
                 ) : null}
@@ -154,20 +154,20 @@ export default function Templates() {
                   type="button"
                   disabled={!!creating}
                   onClick={() => startFromTemplate(t)}
-                  className="min-h-12 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-11 sm:px-5"
+                  className="min-h-12 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-11 sm:px-5"
                 >
                   {creating?.id === t._id ? 'Starting…' : 'Start workout'}
                 </button>
                 <Link
                   to={appPath(`templates/${t._id}`)}
-                  className="flex min-h-12 items-center justify-center rounded-xl border border-slate-600 bg-surface/50 px-4 py-3 text-center text-sm font-semibold text-slate-200 transition-colors hover:border-slate-500 hover:bg-surface-elevated/80 sm:min-h-11 sm:px-5"
+                  className="flex min-h-12 items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-surface/50 px-4 py-3 text-center text-sm font-semibold text-slate-200 transition-colors hover:border-slate-500 hover:bg-surface-elevated/80 sm:min-h-11 sm:px-5"
                 >
                   Edit
                 </Link>
                 <button
                   type="button"
                   onClick={() => sharePlan(t._id)}
-                  className="min-h-12 rounded-xl border border-slate-600 bg-surface/50 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors hover:border-slate-500 hover:bg-surface-elevated/80 sm:min-h-11 sm:px-5"
+                  className="min-h-12 rounded-xl border border-slate-300 dark:border-slate-600 bg-surface/50 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors hover:border-slate-500 hover:bg-surface-elevated/80 sm:min-h-11 sm:px-5"
                 >
                   Share
                 </button>

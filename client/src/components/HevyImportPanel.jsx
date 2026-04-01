@@ -111,10 +111,10 @@ export default function HevyImportPanel({ user, refreshUser }) {
   if (locked) {
     return (
       <section className="rounded-2xl border border-amber-900/50 bg-amber-950/20 p-4">
-        <h2 className="mb-2 font-semibold text-white">Import from Hevy</h2>
+        <h2 className="mb-2 font-semibold text-slate-900 dark:text-white">Import from Hevy</h2>
         <p className="text-sm text-amber-100/90">
           Verify your email to upload Hevy exports. Use the banner at the top of the app or open{' '}
-          <Link to={appPath('settings')} className="font-medium text-white underline underline-offset-2">
+          <Link to={appPath('settings')} className="font-medium text-slate-900 dark:text-white underline underline-offset-2">
             Settings
           </Link>{' '}
           to resend the confirmation link.
@@ -129,16 +129,16 @@ export default function HevyImportPanel({ user, refreshUser }) {
   }
 
   return (
-    <section className="rounded-2xl border border-slate-800 bg-surface-card p-4">
-      <h2 className="mb-2 font-semibold text-white">Import from Hevy</h2>
-      <p className="mb-3 rounded-lg border border-slate-700/80 bg-slate-900/40 px-3 py-2 text-xs text-slate-500">
+    <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-4">
+      <h2 className="mb-2 font-semibold text-slate-900 dark:text-white">Import from Hevy</h2>
+      <p className="mb-3 rounded-lg border border-slate-200/80 dark:border-slate-700/80 bg-slate-900/40 px-3 py-2 text-xs text-slate-500">
         <span className="font-medium text-slate-400">CSV = history.</span> Hevy&apos;s export file is completed sessions
         only. <span className="font-medium text-slate-400">Routine link = plan.</span> Paste a{' '}
         <span className="text-slate-400">hevy.com/routine/…</span> URL below to create an IronLog plan (exercises match
         by name; weights use your Settings unit).
       </p>
 
-      <div className="mb-6 rounded-xl border border-slate-700/80 bg-surface/40 p-4">
+      <div className="mb-6 rounded-xl border border-slate-200/80 dark:border-slate-700/80 bg-surface/40 p-4">
         <h3 className="mb-2 text-sm font-medium text-slate-200">Import Hevy plan from link</h3>
         <p className="mb-3 text-xs text-slate-500">
           In Hevy, open the routine → share → copy link. Example:{' '}
@@ -155,7 +155,7 @@ export default function HevyImportPanel({ user, refreshUser }) {
             }}
             placeholder="https://hevy.com/routine/…"
             disabled={hevyPlanBusy}
-            className="min-w-0 flex-1 rounded-xl border border-slate-600 bg-[#0b0e14] px-3 py-2 text-sm text-slate-200 outline-none focus:border-accent disabled:opacity-50"
+            className="min-w-0 flex-1 rounded-xl border border-slate-300 dark:border-slate-600 bg-app-canvas px-3 py-2 text-sm text-slate-200 outline-none focus:border-accent disabled:opacity-50"
           />
           <button
             type="button"
@@ -176,7 +176,7 @@ export default function HevyImportPanel({ user, refreshUser }) {
               <button
                 type="button"
                 onClick={() => navigate(appPath(`templates/${hevyPlanOk.templateId}`))}
-                className="mt-2 text-sm font-medium text-white underline decoration-emerald-600 underline-offset-2"
+                className="mt-2 text-sm font-medium text-slate-900 dark:text-white underline decoration-emerald-600 underline-offset-2"
               >
                 Open in Plans →
               </button>
@@ -190,7 +190,7 @@ export default function HevyImportPanel({ user, refreshUser }) {
         in IronLog when the session qualifies (base + volume bonus, plus the daily first-workout
         bonus when it applies). All exported sessions are stored and count toward your training-day
         streak and stats; duplicates in IronLog are skipped. Set your{' '}
-        <Link to={appPath('settings')} className="text-slate-300 underline decoration-slate-600 underline-offset-2 hover:text-white">
+        <Link to={appPath('settings')} className="text-slate-300 underline decoration-slate-600 underline-offset-2 hover:text-slate-900 dark:hover:text-white">
           timezone in Settings
         </Link>{' '}
         to match where you train — CSV times without a timezone are read as local time in that zone
@@ -201,7 +201,7 @@ export default function HevyImportPanel({ user, refreshUser }) {
 
       {sr?.rankLabel ? (
         <div
-          className={`mb-6 rounded-xl border border-slate-800/90 bg-[#121826]/95 px-4 py-4 transition-transform duration-500 ${
+          className={`mb-6 rounded-xl border border-slate-200/90 dark:border-slate-800/90 bg-app-panel/95 px-4 py-4 transition-transform duration-500 ${
             rankFlash ? 'scale-[1.02] ring-2 ring-amber-400/50' : ''
           }`}
         >
@@ -211,7 +211,7 @@ export default function HevyImportPanel({ user, refreshUser }) {
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Your season rank
               </p>
-              <p className="text-sm font-medium text-white">{sr.seasonLabel ?? ''}</p>
+              <p className="text-sm font-medium text-slate-900 dark:text-white">{sr.seasonLabel ?? ''}</p>
               <p className="mt-0.5 text-sm text-slate-400">
                 <span className="text-slate-200">{sr.rankLabel}</span>
                 <span className="mx-1.5 text-slate-600">·</span>
@@ -233,7 +233,7 @@ export default function HevyImportPanel({ user, refreshUser }) {
         </div>
       ) : null}
 
-      <div className="rounded-xl border border-dashed border-slate-600 bg-surface/40 p-4">
+      <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-600 bg-surface/40 p-4">
         <label className="block">
           <span className="mb-2 block text-sm font-medium text-slate-200">CSV file</span>
           <input
@@ -242,7 +242,7 @@ export default function HevyImportPanel({ user, refreshUser }) {
             accept=".csv,text/csv"
             disabled={phase !== 'idle'}
             onChange={onPickFile}
-            className="block w-full cursor-pointer text-sm text-slate-300 file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-accent file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white disabled:opacity-50"
+            className="block w-full cursor-pointer text-sm text-slate-300 file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-accent file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-900 dark:text-white disabled:opacity-50"
           />
         </label>
         {phase === 'uploading' ? (
@@ -260,11 +260,11 @@ export default function HevyImportPanel({ user, refreshUser }) {
           <ul className="mt-2 space-y-1 text-sm text-slate-300">
             <li>
               Workouts imported:{' '}
-              <span className="font-medium text-white">{summary.workoutsImported}</span>
+              <span className="font-medium text-slate-900 dark:text-white">{summary.workoutsImported}</span>
             </li>
             <li>
               Skipped (already imported):{' '}
-              <span className="font-medium text-white">{summary.workoutsSkipped}</span>
+              <span className="font-medium text-slate-900 dark:text-white">{summary.workoutsSkipped}</span>
             </li>
             <li>
               Season points from this import:{' '}
@@ -278,7 +278,7 @@ export default function HevyImportPanel({ user, refreshUser }) {
               <span className="mx-1 text-slate-500">→</span>
               <span
                 className={
-                  summary.rankUp ? 'font-semibold text-amber-300' : 'font-medium text-white'
+                  summary.rankUp ? 'font-semibold text-amber-300' : 'font-medium text-slate-900 dark:text-white'
                 }
               >
                 {summary.newRankLabel}

@@ -1082,7 +1082,7 @@ export default function WorkoutEdit() {
             type="button"
             onClick={() => markComplete(false)}
             disabled={saving}
-            className="rounded-xl border border-slate-600 px-6 py-3 text-slate-300"
+            className="rounded-xl border border-slate-300 dark:border-slate-600 px-6 py-3 text-slate-300"
           >
             Reopen
           </button>
@@ -1090,7 +1090,7 @@ export default function WorkoutEdit() {
             type="button"
             onClick={() => shareWorkoutLink()}
             disabled={saving}
-            className="rounded-xl border border-slate-600 px-6 py-3 text-slate-300"
+            className="rounded-xl border border-slate-300 dark:border-slate-600 px-6 py-3 text-slate-300"
           >
             Share link
           </button>
@@ -1119,7 +1119,7 @@ export default function WorkoutEdit() {
               type="button"
               tabIndex={-1}
               aria-label="Close menu"
-              className={`fixed inset-0 bg-black/65 backdrop-blur-[2px] motion-reduce:animate-none ${
+              className={`fixed inset-0 bg-slate-900/65 dark:bg-black/65 backdrop-blur-[2px] motion-reduce:animate-none ${
                 workoutMoreClosing
                   ? 'animate-ui-backdrop-out motion-reduce:opacity-0'
                   : 'animate-ui-backdrop-in motion-reduce:opacity-100'
@@ -1127,7 +1127,7 @@ export default function WorkoutEdit() {
               onClick={() => closeWorkoutMoreMenu()}
             />
             <div
-              className={`relative z-10 my-auto w-full max-w-lg overflow-hidden rounded-2xl border border-slate-700 bg-surface-card shadow-2xl shadow-black/40 ring-1 ring-white/5 ${
+              className={`relative z-10 my-auto w-full max-w-lg overflow-hidden rounded-2xl border border-slate-300 dark:border-slate-700 bg-surface-card shadow-2xl shadow-slate-400/25 dark:shadow-black/40 ring-1 ring-white/5 ${
                 workoutMoreClosing
                   ? 'animate-ui-nutrition-modal-out motion-reduce:animate-none motion-reduce:opacity-0 motion-reduce:scale-[0.94]'
                   : 'animate-ui-nutrition-modal-in motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none'
@@ -1136,17 +1136,17 @@ export default function WorkoutEdit() {
               onClick={(e) => e.stopPropagation()}
             >
               <div
-                className={`flex items-center justify-between border-b border-slate-800 px-4 py-3 motion-reduce:animate-none ${
+                className={`flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-4 py-3 motion-reduce:animate-none ${
                   workoutMoreClosing ? '' : 'animate-ai-stagger-in'
                 }`}
               >
-                <span id="workout-more-actions-title" className="text-sm font-semibold text-white">
+                <span id="workout-more-actions-title" className="text-sm font-semibold text-slate-900 dark:text-white">
                   Workout actions
                 </span>
                 <button
                   type="button"
                   onClick={() => closeWorkoutMoreMenu()}
-                  className="rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                  className="rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                 >
                   Close
                 </button>
@@ -1188,7 +1188,7 @@ export default function WorkoutEdit() {
                         closeWorkoutMoreMenu(() => markComplete(false));
                       }}
                       disabled={saving}
-                      className="flex w-full items-center justify-center rounded-xl border border-slate-600 py-2.5 text-sm text-slate-200 disabled:opacity-50"
+                      className="flex w-full items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 py-2.5 text-sm text-slate-200 disabled:opacity-50"
                     >
                       Reopen
                     </button>
@@ -1198,7 +1198,7 @@ export default function WorkoutEdit() {
                         closeWorkoutMoreMenu(() => shareWorkoutLink());
                       }}
                       disabled={saving}
-                      className="flex w-full items-center justify-center rounded-xl border border-slate-600 py-2.5 text-sm text-slate-200 disabled:opacity-50"
+                      className="flex w-full items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 py-2.5 text-sm text-slate-200 disabled:opacity-50"
                     >
                       Share link
                     </button>
@@ -1236,7 +1236,7 @@ export default function WorkoutEdit() {
           type="button"
           onClick={openWorkoutMoreMenu}
           disabled={saving}
-          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-600 bg-surface-elevated text-slate-200 transition-colors hover:border-slate-500 hover:bg-slate-800 disabled:opacity-50 motion-reduce:transition-none ${workoutMoreBtnPop ? 'animate-ai-btn-pop motion-reduce:animate-none' : ''}`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-surface-elevated text-slate-200 transition-colors hover:border-slate-500 hover:bg-slate-800 disabled:opacity-50 motion-reduce:transition-none ${workoutMoreBtnPop ? 'animate-ai-btn-pop motion-reduce:animate-none' : ''}`}
           aria-label="More workout actions"
         >
           <MoreHorizontal className="h-5 w-5" strokeWidth={2} aria-hidden />
@@ -1251,7 +1251,7 @@ export default function WorkoutEdit() {
       <div className="flex flex-wrap items-center gap-2">
         <Link
           to={appPath('workouts')}
-          className="-ml-2 inline-flex min-h-11 min-w-11 items-center gap-1 rounded-xl px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-white active:bg-slate-800"
+          className="-ml-2 inline-flex min-h-11 min-w-11 items-center gap-1 rounded-xl px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white active:bg-slate-800"
         >
           ← Back
         </Link>
@@ -1270,7 +1270,7 @@ export default function WorkoutEdit() {
       !lockTipDismissedSession ? (
         <div className="rounded-2xl border border-blue-500/35 bg-blue-950/25 px-4 py-3 ring-1 ring-blue-500/20">
           <p className="text-sm text-slate-200">
-            <span className="font-medium text-white">Installed app (PWA):</span> Lock-screen workout
+            <span className="font-medium text-slate-900 dark:text-white">Installed app (PWA):</span> Lock-screen workout
             cards <span className="text-slate-300">are supported here</span> — same as in Chrome, using
             media controls. Android usually shows them reliably; iPhone still depends on Safari and may
             be inconsistent.
@@ -1302,12 +1302,12 @@ export default function WorkoutEdit() {
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full rounded-xl border border-slate-700 bg-surface-card px-4 py-3 text-white outline-none focus:border-accent"
+          className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card px-4 py-3 text-slate-900 dark:text-white outline-none focus:border-accent"
         />
       </div>
 
-      <div className="min-w-0 overflow-x-clip rounded-2xl border border-slate-800 bg-surface-card p-4">
-        <h2 className="mb-1 text-sm font-semibold text-white">Session time</h2>
+      <div className="min-w-0 overflow-x-clip rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-4">
+        <h2 className="mb-1 text-sm font-semibold text-slate-900 dark:text-white">Session time</h2>
         <p className="mb-3 text-xs text-slate-500">
           Use <span className="font-medium text-slate-400">hours and minutes</span> to set how long
           the session was — the end time updates automatically. Changing start keeps that length.
@@ -1319,7 +1319,7 @@ export default function WorkoutEdit() {
           </p>
         ) : null}
         <p className="mb-4 text-lg font-medium text-accent-muted">
-          Duration: <span className="font-mono text-white">{durationLabel}</span>
+          Duration: <span className="font-mono text-slate-900 dark:text-white">{durationLabel}</span>
           {sessionInProgress ? (
             <span className="ml-2 text-xs font-normal text-slate-500">live, every second</span>
           ) : null}
@@ -1337,7 +1337,7 @@ export default function WorkoutEdit() {
               inputMode="numeric"
               value={durHours}
               onChange={(e) => applyDurationParts(e.target.value, durMins)}
-              className="w-20 rounded-xl border border-slate-700 bg-surface px-3 py-2 text-white"
+              className="w-20 rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2 text-slate-900 dark:text-white"
             />
           </div>
           <div>
@@ -1351,7 +1351,7 @@ export default function WorkoutEdit() {
               inputMode="numeric"
               value={durMins}
               onChange={(e) => applyDurationParts(durHours, e.target.value)}
-              className="w-20 rounded-xl border border-slate-700 bg-surface px-3 py-2 text-white"
+              className="w-20 rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2 text-slate-900 dark:text-white"
             />
           </div>
           <p className="pb-2 text-xs text-slate-600">
@@ -1368,14 +1368,14 @@ export default function WorkoutEdit() {
               Start
             </label>
             <div className="group w-full min-w-0 max-w-full">
-              <div className="flex min-h-[44px] w-full min-w-0 max-w-full items-center rounded-xl border border-slate-700 bg-surface px-3 py-2 transition-[border-color,box-shadow] duration-motion ease-motion-standard group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
+              <div className="flex min-h-[44px] w-full min-w-0 max-w-full items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2 transition-[border-color,box-shadow] duration-motion ease-motion-standard group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
                 <input
                   id="session-start"
                   type="datetime-local"
                   step="1"
                   value={sessionStartedLocal}
                   onChange={handleSessionStartChange}
-                  className="min-w-0 flex-1 basis-0 border-0 bg-transparent p-0 font-mono text-base text-white outline-none focus:ring-0 focus-visible:ring-0"
+                  className="min-w-0 flex-1 basis-0 border-0 bg-transparent p-0 font-mono text-base text-slate-900 dark:text-white outline-none focus:ring-0 focus-visible:ring-0"
                 />
               </div>
             </div>
@@ -1385,14 +1385,14 @@ export default function WorkoutEdit() {
               End (optional)
             </label>
             <div className="group w-full min-w-0 max-w-full">
-              <div className="flex min-h-[44px] w-full min-w-0 max-w-full items-center rounded-xl border border-slate-700 bg-surface px-3 py-2 transition-[border-color,box-shadow] duration-motion ease-motion-standard group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
+              <div className="flex min-h-[44px] w-full min-w-0 max-w-full items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2 transition-[border-color,box-shadow] duration-motion ease-motion-standard group-focus-within:border-slate-500 group-focus-within:shadow-[0_0_0_1px_rgba(100,116,139,0.35)]">
                 <input
                   id="session-end"
                   type="datetime-local"
                   step="1"
                   value={sessionEndedLocal}
                   onChange={handleSessionEndChange}
-                  className="min-w-0 flex-1 basis-0 border-0 bg-transparent p-0 font-mono text-base text-white outline-none focus:ring-0 focus-visible:ring-0"
+                  className="min-w-0 flex-1 basis-0 border-0 bg-transparent p-0 font-mono text-base text-slate-900 dark:text-white outline-none focus:ring-0 focus-visible:ring-0"
                 />
               </div>
             </div>
@@ -1401,8 +1401,8 @@ export default function WorkoutEdit() {
       </div>
 
       {sessionInProgress ? (
-        <div className="rounded-2xl border border-slate-800 bg-surface-card p-4">
-          <h2 className="mb-1 text-sm font-semibold text-white">Rest timer</h2>
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-4">
+          <h2 className="mb-1 text-sm font-semibold text-slate-900 dark:text-white">Rest timer</h2>
           <p className="mb-3 text-xs text-slate-500">
             Starts when you tick <span className="text-slate-400">Done</span> on a set. Choose a
             default (10–600s), saved on this device — same control lives under{' '}
@@ -1423,7 +1423,7 @@ export default function WorkoutEdit() {
                 className={`rounded-lg px-3 py-2 text-xs font-medium ${
                   restDurationPick === sec
                     ? 'bg-accent text-white'
-                    : 'border border-slate-600 text-slate-300'
+                    : 'border border-slate-300 dark:border-slate-600 text-slate-300'
                 }`}
               >
                 {sec}s
@@ -1444,13 +1444,13 @@ export default function WorkoutEdit() {
                 value={restCustomDraft}
                 onChange={(e) => setRestCustomDraft(e.target.value)}
                 onBlur={applyCustomRestDefault}
-                className="w-full rounded-xl border border-slate-700 bg-surface px-3 py-2 font-mono text-sm text-white outline-none focus:border-accent"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2 font-mono text-sm text-slate-900 dark:text-white outline-none focus:border-accent"
               />
             </div>
             <button
               type="button"
               onClick={applyCustomRestDefault}
-              className="rounded-xl border border-slate-600 bg-surface-elevated px-4 py-2 text-sm font-medium text-slate-200 ring-1 ring-slate-600/60"
+              className="rounded-xl border border-slate-300 dark:border-slate-600 bg-surface-elevated px-4 py-2 text-sm font-medium text-slate-200 ring-1 ring-slate-600/60"
             >
               Apply
             </button>
@@ -1490,7 +1490,7 @@ export default function WorkoutEdit() {
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
           placeholder="How it felt, injuries, cues…"
-          className="w-full rounded-xl border border-slate-700 bg-surface-card px-4 py-3 text-white outline-none focus:border-accent"
+          className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card px-4 py-3 text-slate-900 dark:text-white outline-none focus:border-accent"
         />
         <p className="mt-2 text-xs text-slate-500">
           Set type: warm-up sets are skipped in dashboard volume and progress charts; normal and
@@ -1499,26 +1499,26 @@ export default function WorkoutEdit() {
       </div>
 
       {!isNew && endedISO ? (
-        <section className="rounded-2xl border border-slate-800 bg-surface-card p-4 ring-1 ring-emerald-500/15">
+        <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-4 ring-1 ring-emerald-500/15">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
             Session summary
           </p>
-          <p className="mt-2 text-lg font-semibold text-white">{title}</p>
+          <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">{title}</p>
           <p className="mt-1 text-sm text-slate-500">{shareKind}</p>
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-xl border border-slate-800 bg-surface/80 px-3 py-3">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-surface/80 px-3 py-3">
               <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500">Duration</p>
-              <p className="mt-1 font-mono text-sm text-white">{durationLabel}</p>
+              <p className="mt-1 font-mono text-sm text-slate-900 dark:text-white">{durationLabel}</p>
             </div>
-            <div className="rounded-xl border border-slate-800 bg-surface/80 px-3 py-3">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-surface/80 px-3 py-3">
               <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500">Volume</p>
-              <p className="mt-1 font-mono text-sm text-white">
+              <p className="mt-1 font-mono text-sm text-slate-900 dark:text-white">
                 {shareStats.displayVolume.toLocaleString()} kg
               </p>
             </div>
-            <div className="rounded-xl border border-slate-800 bg-surface/80 px-3 py-3">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-surface/80 px-3 py-3">
               <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500">Sets</p>
-              <p className="mt-1 font-mono text-sm text-white">{shareStats.setCount}</p>
+              <p className="mt-1 font-mono text-sm text-slate-900 dark:text-white">{shareStats.setCount}</p>
             </div>
             <div className="flex items-end sm:col-span-1">
               <button
@@ -1546,7 +1546,7 @@ export default function WorkoutEdit() {
         {exercises.map((ex, exIdx) => (
           <div
             key={ex._local}
-            className="rounded-2xl border border-slate-800 bg-surface-card p-4"
+            className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-4"
           >
             <div className="mb-3 flex flex-col gap-2">
               <div className="flex min-w-0 items-center gap-2">
@@ -1560,14 +1560,14 @@ export default function WorkoutEdit() {
                       return n;
                     })
                   }
-                  className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-surface px-3 py-2 text-sm font-medium text-white"
+                  className="min-w-0 flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-surface px-3 py-2 text-sm font-medium text-slate-900 dark:text-white"
                 />
               </div>
               <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                 <button
                   type="button"
                   onClick={() => setPickerFor(exIdx)}
-                  className="min-h-11 w-full rounded-xl border border-slate-600 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:border-slate-500 hover:bg-surface-elevated/60 active:bg-surface-elevated sm:w-auto sm:min-w-[9.5rem]"
+                  className="min-h-11 w-full rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:border-slate-500 hover:bg-surface-elevated/60 active:bg-surface-elevated sm:w-auto sm:min-w-[9.5rem]"
                 >
                   From library
                 </button>
@@ -1667,7 +1667,7 @@ export default function WorkoutEdit() {
                     className={`flex flex-wrap items-start gap-x-2 gap-y-2 rounded-xl border px-2 py-2 transition-[background-color,box-shadow,border-color] duration-motion ease-motion-standard sm:flex-nowrap sm:items-center sm:gap-2 sm:px-1 ${rowBg} ${
                       s.completed
                         ? 'border-emerald-500/25'
-                        : 'border-slate-800/80 hover:border-slate-700'
+                        : 'border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:border-slate-700'
                     } ${pulsing ? 'ring-2 ring-blue-500/45' : ''} ${
                       newSetKey === `${ex._local}-${si}` ? 'animate-set-slide-in' : ''
                     }`}
@@ -1693,7 +1693,7 @@ export default function WorkoutEdit() {
                     <select
                       value={st}
                       onChange={(e) => updateSet(exIdx, si, 'setType', e.target.value)}
-                      className="h-11 max-w-[9rem] shrink-0 rounded-lg border border-slate-700 bg-surface py-0 pl-2 pr-8 text-xs text-white sm:max-w-[7.5rem]"
+                      className="h-11 max-w-[9rem] shrink-0 rounded-lg border border-slate-300 dark:border-slate-700 bg-surface py-0 pl-2 pr-8 text-xs text-slate-900 dark:text-white sm:max-w-[7.5rem]"
                       aria-label={`Set ${si + 1} type`}
                       data-no-row-toggle
                     >
@@ -1727,7 +1727,7 @@ export default function WorkoutEdit() {
                               v === '' ? 0 : parseWeightInput(v, weightUnit)
                             );
                           }}
-                          className="h-11 w-full min-w-0 rounded-lg border border-slate-700 bg-surface px-3 text-sm text-white placeholder:text-slate-600"
+                          className="h-11 w-full min-w-0 rounded-lg border border-slate-300 dark:border-slate-700 bg-surface px-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-600"
                           title={
                             hasLastSession && lastWeightForTitle != null
                               ? lastHint != null
@@ -1757,7 +1757,7 @@ export default function WorkoutEdit() {
                             const v = e.target.value;
                             updateSet(exIdx, si, 'reps', v === '' ? '' : v);
                           }}
-                          className="h-11 w-full min-w-0 rounded-lg border border-slate-700 bg-surface px-3 text-sm text-white placeholder:text-slate-600"
+                          className="h-11 w-full min-w-0 rounded-lg border border-slate-300 dark:border-slate-700 bg-surface px-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-600"
                           title={
                             lastRepsFromSession != null
                               ? lastHint != null
@@ -1808,7 +1808,7 @@ export default function WorkoutEdit() {
                         className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 transition-colors duration-motion ease-motion-standard sm:h-11 sm:w-11 ${
                           s.completed
                             ? 'border-emerald-500/60 bg-emerald-500/20 text-emerald-300'
-                            : 'border-slate-600 bg-slate-800/60 text-slate-500 hover:border-slate-500 hover:text-slate-300'
+                            : 'border-slate-300 dark:border-slate-600 bg-slate-800/60 text-slate-500 hover:border-slate-500 hover:text-slate-300'
                         }`}
                       >
                         <Check className="h-6 w-6" strokeWidth={2.5} aria-hidden />
@@ -1841,7 +1841,7 @@ export default function WorkoutEdit() {
               <button
                 type="button"
                 onClick={() => addWarmupSet(exIdx)}
-                className="min-h-11 rounded-xl border border-slate-700 bg-slate-800/40 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/70 active:bg-slate-800"
+                className="min-h-11 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-800/40 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/70 active:bg-slate-800"
               >
                 + Warm-up set
               </button>
@@ -1853,7 +1853,7 @@ export default function WorkoutEdit() {
       <button
         type="button"
         onClick={addExercise}
-        className="w-full rounded-xl border border-dashed border-slate-600 py-3 text-sm text-slate-400"
+        className="w-full rounded-xl border border-dashed border-slate-300 dark:border-slate-600 py-3 text-sm text-slate-400"
       >
         + Add exercise
       </button>
@@ -1868,7 +1868,7 @@ export default function WorkoutEdit() {
           {createPortal(
             <div
               ref={workoutActionsRef}
-              className={`motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none fixed left-0 right-0 z-[55] border-t border-slate-800 bg-surface-card/98 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-3 shadow-[0_-12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md ${
+              className={`motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none fixed left-0 right-0 z-[55] border-t border-slate-200 dark:border-slate-800 bg-surface-card/98 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-3 shadow-[0_-12px_40px_rgba(0,0,0,0.35)] backdrop-blur-md ${
                 restDockExit && !restRunning
                   ? 'animate-workout-dock-out'
                   : 'animate-workout-dock-in'
@@ -1924,11 +1924,11 @@ export default function WorkoutEdit() {
                 type="button"
                 tabIndex={-1}
                 aria-label="Close discard dialog"
-                className="animate-ui-backdrop-in fixed inset-0 bg-black/65 backdrop-blur-[2px] motion-reduce:animate-none motion-reduce:opacity-100"
+                className="animate-ui-backdrop-in fixed inset-0 bg-slate-900/65 dark:bg-black/65 backdrop-blur-[2px] motion-reduce:animate-none motion-reduce:opacity-100"
                 onClick={() => setDiscardConfirmOpen(false)}
               />
               <div
-                className="animate-ui-modal-in relative z-10 my-auto w-full max-w-sm rounded-2xl border border-red-900/55 bg-red-950/45 p-5 shadow-2xl shadow-black/50 ring-1 ring-red-500/20 backdrop-blur-sm motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none"
+                className="animate-ui-modal-in relative z-10 my-auto w-full max-w-sm rounded-2xl border border-red-900/55 bg-red-950/45 p-5 shadow-2xl shadow-slate-400/25 dark:shadow-black/50 ring-1 ring-red-500/20 backdrop-blur-sm motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none"
                 onClick={(e) => e.stopPropagation()}
               >
                 <p id="workout-discard-title" className="text-base font-semibold text-red-100">
@@ -1943,14 +1943,14 @@ export default function WorkoutEdit() {
                   <button
                     type="button"
                     onClick={() => setDiscardConfirmOpen(false)}
-                    className="rounded-xl border border-slate-600 bg-surface-card/80 px-4 py-2.5 text-sm text-slate-200 transition-colors hover:bg-slate-800/90"
+                    className="rounded-xl border border-slate-300 dark:border-slate-600 bg-surface-card/80 px-4 py-2.5 text-sm text-slate-200 transition-colors hover:bg-slate-800/90"
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
                     onClick={performDiscard}
-                    className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-500"
+                    className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-white transition-colors hover:bg-red-500"
                   >
                     Yes, discard
                   </button>
@@ -1973,22 +1973,22 @@ export default function WorkoutEdit() {
                 type="button"
                 tabIndex={-1}
                 aria-label="Close exercise picker"
-                className="animate-ui-backdrop-in fixed inset-0 bg-black/65 backdrop-blur-[2px] motion-reduce:animate-none motion-reduce:opacity-100"
+                className="animate-ui-backdrop-in fixed inset-0 bg-slate-900/65 dark:bg-black/65 backdrop-blur-[2px] motion-reduce:animate-none motion-reduce:opacity-100"
                 onClick={() => setPickerFor(null)}
               />
               <div
-                className="animate-ui-modal-in relative z-10 my-auto flex max-h-[min(85dvh,32rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-700 bg-surface-card shadow-2xl shadow-black/40 ring-1 ring-white/5 motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none"
+                className="animate-ui-modal-in relative z-10 my-auto flex max-h-[min(85dvh,32rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-300 dark:border-slate-700 bg-surface-card shadow-2xl shadow-slate-400/25 dark:shadow-black/40 ring-1 ring-white/5 motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:transform-none"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="shrink-0 border-b border-slate-800 px-4 py-3">
+                <div className="shrink-0 border-b border-slate-200 dark:border-slate-800 px-4 py-3">
                   <div className="mb-3 flex items-center justify-between gap-2">
-                    <span id="workout-exercise-picker-title" className="font-medium text-white">
+                    <span id="workout-exercise-picker-title" className="font-medium text-slate-900 dark:text-white">
                       Choose exercise
                     </span>
                     <button
                       type="button"
                       onClick={() => setPickerFor(null)}
-                      className="min-h-10 min-w-10 rounded-lg px-2 text-sm text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                      className="min-h-10 min-w-10 rounded-lg px-2 text-sm text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                     >
                       Close
                     </button>
@@ -2007,7 +2007,7 @@ export default function WorkoutEdit() {
                     placeholder="Type to filter by name or category…"
                     value={exercisePickerQuery}
                     onChange={(e) => setExercisePickerQuery(e.target.value)}
-                    className="w-full rounded-xl border border-slate-700 bg-surface px-4 py-3 text-white placeholder:text-slate-500 outline-none focus:border-accent"
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-500 outline-none focus:border-accent"
                   />
                   {exercisePickerQuery.trim() ? (
                     <p className="mt-2 text-xs text-slate-500">
@@ -2036,7 +2036,7 @@ export default function WorkoutEdit() {
                                 <button
                                   type="button"
                                   onClick={() => pickExercise(pickerFor, e)}
-                                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-white hover:bg-surface-elevated"
+                                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-900 dark:text-white hover:bg-surface-elevated"
                                 >
                                   <ExerciseIcon
                                     name={e.name}

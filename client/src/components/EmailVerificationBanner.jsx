@@ -50,7 +50,7 @@ export default function EmailVerificationBanner() {
           </button>
           <Link
             to={appPath('settings')}
-            className="rounded-lg px-3 py-1.5 text-xs font-medium text-amber-200/90 underline decoration-amber-600/80 underline-offset-2 hover:text-white"
+            className="rounded-lg px-3 py-1.5 text-xs font-medium text-amber-200/90 underline decoration-amber-600/80 underline-offset-2 hover:text-slate-900 dark:hover:text-white"
           >
             Settings
           </Link>

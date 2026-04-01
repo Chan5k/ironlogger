@@ -60,10 +60,10 @@ export default function AdminAuditLog() {
         <p className="text-slate-500">Loading…</p>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-surface-card">
+          <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-slate-800 text-xs text-slate-500">
+                <tr className="border-b border-slate-200 dark:border-slate-800 text-xs text-slate-500">
                   <th className="px-3 py-2 font-medium">When</th>
                   <th className="px-3 py-2 font-medium">Action</th>
                   <th className="px-3 py-2 font-medium">Actor</th>
@@ -72,7 +72,7 @@ export default function AdminAuditLog() {
               </thead>
               <tbody>
                 {entries.map((e) => (
-                  <tr key={e._id} className="border-b border-slate-800/80 text-slate-300 last:border-0">
+                  <tr key={e._id} className="border-b border-slate-200/80 dark:border-slate-800/80 text-slate-300 last:border-0">
                     <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-500">{fmt(e.createdAt)}</td>
                     <td className="px-3 py-2 font-mono text-xs text-amber-100/90">{e.action}</td>
                     <td className="px-3 py-2 text-xs">{actorLabel(e)}</td>
@@ -91,7 +91,7 @@ export default function AdminAuditLog() {
                 type="button"
                 disabled={skip <= 0}
                 onClick={() => setSkip((s) => Math.max(0, s - limit))}
-                className="rounded-lg border border-slate-600 px-3 py-1 text-white disabled:opacity-40"
+                className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-1 text-slate-900 dark:text-white disabled:opacity-40"
               >
                 Previous
               </button>
@@ -99,7 +99,7 @@ export default function AdminAuditLog() {
                 type="button"
                 disabled={skip + limit >= total}
                 onClick={() => setSkip((s) => s + limit)}
-                className="rounded-lg border border-slate-600 px-3 py-1 text-white disabled:opacity-40"
+                className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-1 text-slate-900 dark:text-white disabled:opacity-40"
               >
                 Next
               </button>

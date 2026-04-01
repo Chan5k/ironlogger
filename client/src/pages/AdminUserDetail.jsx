@@ -328,7 +328,7 @@ export default function AdminUserDetail() {
         >
           ← All users
         </Link>
-        <h1 className="mt-2 text-xl font-bold text-white">{user.name || '—'}</h1>
+        <h1 className="mt-2 text-xl font-bold text-slate-900 dark:text-white">{user.name || '—'}</h1>
         <p className="text-sm text-slate-400">{user.email}</p>
         {user.isAdmin ? (
           <span className="mt-1 inline-block rounded bg-amber-950/60 px-2 py-0.5 text-xs text-amber-200">
@@ -379,8 +379,8 @@ export default function AdminUserDetail() {
         </p>
       ) : null}
 
-      <section className="rounded-2xl border border-slate-800 bg-surface-card p-4">
-        <h2 className="mb-3 font-semibold text-white">Summary</h2>
+      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-4">
+        <h2 className="mb-3 font-semibold text-slate-900 dark:text-white">Summary</h2>
         <ul className="grid gap-2 text-sm text-slate-300 sm:grid-cols-2">
           <li>Workouts: {stats?.workouts ?? 0}</li>
           <li>Plans (templates): {stats?.templates ?? 0}</li>
@@ -400,7 +400,7 @@ export default function AdminUserDetail() {
         </ul>
 
         {meIsFullAdmin && !user.emailVerifiedAt ? (
-          <div className="mt-4 border-t border-slate-800/80 pt-4">
+          <div className="mt-4 border-t border-slate-200/80 dark:border-slate-800/80 pt-4">
             <h3 className="mb-2 text-sm font-medium text-slate-300">Email verification</h3>
             <button
               type="button"
@@ -418,14 +418,14 @@ export default function AdminUserDetail() {
             </p>
           </div>
         ) : meIsStaff && !meIsFullAdmin && !user.emailVerifiedAt ? (
-          <div className="mt-4 border-t border-slate-800/80 pt-4">
+          <div className="mt-4 border-t border-slate-200/80 dark:border-slate-800/80 pt-4">
             <p className="text-xs text-slate-500">
               This account is not verified. Ask a full admin to use <strong className="text-slate-400">Mark verified</strong>{' '}
               so the user gets the in-app badge and gated features.
             </p>
           </div>
         ) : meIsStaff && user.emailVerifiedAt ? (
-          <div className="mt-4 flex items-start gap-2 border-t border-slate-800/80 pt-4 text-sm text-slate-400">
+          <div className="mt-4 flex items-start gap-2 border-t border-slate-200/80 dark:border-slate-800/80 pt-4 text-sm text-slate-400">
             <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" strokeWidth={2} aria-hidden />
             <p>
               This account is verified. Revocation is not available here — change email in production
@@ -434,14 +434,14 @@ export default function AdminUserDetail() {
           </div>
         ) : null}
 
-        <div className="mt-4 space-y-3 border-t border-slate-800/80 pt-4">
+        <div className="mt-4 space-y-3 border-t border-slate-200/80 dark:border-slate-800/80 pt-4">
           <h3 className="text-sm font-medium text-slate-300">Internal notes</h3>
           <textarea
             value={notesDraft}
             onChange={(e) => setNotesDraft(e.target.value)}
             disabled={!meIsFullAdmin || busy}
             rows={4}
-            className="w-full rounded-xl border border-slate-700 bg-[#0b0e14] px-3 py-2 text-sm text-slate-200 outline-none focus:border-accent disabled:opacity-50"
+            className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-app-canvas px-3 py-2 text-sm text-slate-200 outline-none focus:border-accent disabled:opacity-50"
             placeholder={meIsFullAdmin ? 'Visible to admin staff…' : 'Only full admins can edit notes.'}
           />
           {meIsFullAdmin ? (
@@ -449,21 +449,21 @@ export default function AdminUserDetail() {
               type="button"
               disabled={busy}
               onClick={() => saveNotes()}
-              className="rounded-xl border border-slate-600 px-4 py-2 text-sm text-white disabled:opacity-50"
+              className="rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm text-slate-900 dark:text-white disabled:opacity-50"
             >
               Save notes
             </button>
           ) : null}
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-800/80 pt-4">
+        <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-200/80 dark:border-slate-800/80 pt-4">
           {meIsFullAdmin ? (
             <>
               <button
                 type="button"
                 disabled={busy}
                 onClick={() => toggleAdmin()}
-                className="rounded-xl border border-slate-600 px-4 py-2 text-sm text-white disabled:opacity-50"
+                className="rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm text-slate-900 dark:text-white disabled:opacity-50"
               >
                 {user.isAdmin ? 'Remove admin' : 'Make admin'}
               </button>
@@ -471,7 +471,7 @@ export default function AdminUserDetail() {
                 type="button"
                 disabled={busy || isSelf}
                 onClick={() => toggleSupport()}
-                className="rounded-xl border border-slate-600 px-4 py-2 text-sm text-slate-200 disabled:opacity-50"
+                className="rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm text-slate-200 disabled:opacity-50"
               >
                 {user.isSupport ? 'Remove support (read-only)' : 'Grant support (read-only)'}
               </button>
@@ -503,13 +503,13 @@ export default function AdminUserDetail() {
         ) : null}
 
         {meIsFullAdmin ? (
-          <div className="mt-6 space-y-4 border-t border-slate-800/80 pt-6">
-            <h3 className="text-sm font-semibold text-white">Season rank (leaderboard)</h3>
+          <div className="mt-6 space-y-4 border-t border-slate-200/80 dark:border-slate-800/80 pt-6">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Season rank (leaderboard)</h3>
             <p className="text-xs text-slate-500">
               Rank is derived from season points (UTC month). Leave season blank when saving to use the current UTC month.
             </p>
             {seasonRank?.rankLabel ? (
-              <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-800 bg-[#0b0e14] px-3 py-3">
+              <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-app-canvas px-3 py-3">
                 <RankIcon iconId={seasonRank.rankIconId} className="h-10 w-10 shrink-0" title={seasonRank.rankLabel} />
                 <div className="min-w-0 text-sm">
                   <p className="font-medium text-slate-200">{seasonRank.rankLabel}</p>
@@ -533,7 +533,7 @@ export default function AdminUserDetail() {
                   value={seasonIdDraft}
                   onChange={(e) => setSeasonIdDraft(e.target.value)}
                   disabled={busy}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-[#0b0e14] px-3 py-2 font-mono text-sm text-white outline-none focus:border-accent disabled:opacity-50"
+                  className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-app-canvas px-3 py-2 font-mono text-sm text-slate-900 dark:text-white outline-none focus:border-accent disabled:opacity-50"
                 />
               </label>
               <label className="block text-xs text-slate-400">
@@ -545,7 +545,7 @@ export default function AdminUserDetail() {
                   value={seasonPointsDraft}
                   onChange={(e) => setSeasonPointsDraft(e.target.value)}
                   disabled={busy}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-[#0b0e14] px-3 py-2 font-mono text-sm text-white outline-none focus:border-accent disabled:opacity-50"
+                  className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-app-canvas px-3 py-2 font-mono text-sm text-slate-900 dark:text-white outline-none focus:border-accent disabled:opacity-50"
                 />
               </label>
             </div>
@@ -561,8 +561,8 @@ export default function AdminUserDetail() {
         ) : null}
       </section>
 
-      <section className="rounded-2xl border border-slate-800 bg-surface-card p-4">
-        <h2 className="mb-3 font-semibold text-white">Workouts</h2>
+      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-4">
+        <h2 className="mb-3 font-semibold text-slate-900 dark:text-white">Workouts</h2>
         {workouts.length === 0 ? (
           <p className="text-sm text-slate-500">None</p>
         ) : (
@@ -570,9 +570,9 @@ export default function AdminUserDetail() {
             {workouts.map((w) => (
               <li
                 key={w._id}
-                className="flex flex-wrap justify-between gap-2 border-b border-slate-800/80 py-2 last:border-0"
+                className="flex flex-wrap justify-between gap-2 border-b border-slate-200/80 dark:border-slate-800/80 py-2 last:border-0"
               >
-                <span className="text-white">{w.title}</span>
+                <span className="text-slate-900 dark:text-white">{w.title}</span>
                 <span className="text-xs text-slate-500">
                   {fmt(w.startedAt)}
                   {w.completedAt ? ' · completed' : ' · open'}
@@ -593,15 +593,15 @@ export default function AdminUserDetail() {
         ) : null}
       </section>
 
-      <section className="rounded-2xl border border-slate-800 bg-surface-card p-4">
-        <h2 className="mb-3 font-semibold text-white">Plans</h2>
+      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-4">
+        <h2 className="mb-3 font-semibold text-slate-900 dark:text-white">Plans</h2>
         {templates.length === 0 ? (
           <p className="text-sm text-slate-500">None</p>
         ) : (
           <ul className="space-y-2 text-sm text-slate-300">
             {templates.map((t) => (
-              <li key={t._id} className="border-b border-slate-800/80 py-2 last:border-0">
-                <span className="font-medium text-white">{t.name}</span>
+              <li key={t._id} className="border-b border-slate-200/80 dark:border-slate-800/80 py-2 last:border-0">
+                <span className="font-medium text-slate-900 dark:text-white">{t.name}</span>
                 <span className="ml-2 text-xs text-slate-500">
                   {t.items?.length ?? 0} exercises · {fmt(t.updatedAt)}
                 </span>
@@ -621,8 +621,8 @@ export default function AdminUserDetail() {
         ) : null}
       </section>
 
-      <section className="rounded-2xl border border-slate-800 bg-surface-card p-4">
-        <h2 className="mb-3 font-semibold text-white">Activity logs</h2>
+      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-4">
+        <h2 className="mb-3 font-semibold text-slate-900 dark:text-white">Activity logs</h2>
         {activity.length === 0 ? (
           <p className="text-sm text-slate-500">None</p>
         ) : (

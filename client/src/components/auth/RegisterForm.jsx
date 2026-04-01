@@ -65,7 +65,7 @@ export default function RegisterForm({ idPrefix = 'register', className = '', fo
             autoComplete="username"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-xl border border-slate-700 bg-surface-card px-4 py-3 text-white outline-none focus:border-accent"
+            className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card px-4 py-3 text-slate-900 dark:text-white outline-none focus:border-accent"
             required
             minLength={1}
             maxLength={120}
@@ -81,7 +81,7 @@ export default function RegisterForm({ idPrefix = 'register', className = '', fo
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-xl border border-slate-700 bg-surface-card px-4 py-3 text-white outline-none focus:border-accent"
+            className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card px-4 py-3 text-slate-900 dark:text-white outline-none focus:border-accent"
             required
           />
         </div>
@@ -95,7 +95,7 @@ export default function RegisterForm({ idPrefix = 'register', className = '', fo
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-xl border border-slate-700 bg-surface-card px-4 py-3 text-white outline-none focus:border-accent"
+            className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card px-4 py-3 text-slate-900 dark:text-white outline-none focus:border-accent"
             required
             minLength={8}
           />

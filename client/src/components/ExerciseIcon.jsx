@@ -83,7 +83,7 @@ export default function ExerciseIcon({
   if (!boxed) return glyph;
   return (
     <span
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-800/80 text-slate-300 ring-1 ring-slate-700/80"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-800/80 text-slate-300 ring-1 ring-slate-200/80 dark:ring-slate-700/80"
       aria-hidden
     >
       {glyph}

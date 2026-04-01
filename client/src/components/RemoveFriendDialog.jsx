@@ -81,7 +81,7 @@ export default function RemoveFriendDialog({ friend, onClosed, onRemove, busy, e
         tabIndex={-1}
         aria-hidden
         disabled={busy}
-        className={`absolute inset-0 bg-black/65 backdrop-blur-[3px] transition-opacity duration-motion-slow ease-motion-standard motion-reduce:transition-none motion-reduce:opacity-100 ${
+        className={`absolute inset-0 bg-slate-900/65 dark:bg-black/65 backdrop-blur-[3px] transition-opacity duration-motion-slow ease-motion-standard motion-reduce:transition-none motion-reduce:opacity-100 ${
           visible ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={() => !busy && dismiss()}
@@ -91,7 +91,7 @@ export default function RemoveFriendDialog({ friend, onClosed, onRemove, busy, e
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descId}
-        className={`relative z-10 w-full max-w-[min(100%,22rem)] rounded-2xl border border-slate-600/80 bg-surface-card px-5 pb-5 pt-4 shadow-2xl shadow-black/50 ring-1 ring-white/5 transition-[opacity,transform] duration-motion-slow ease-motion-standard motion-reduce:transition-none ${
+        className={`relative z-10 w-full max-w-[min(100%,22rem)] rounded-2xl border border-slate-300/80 dark:border-slate-600/80 bg-surface-card px-5 pb-5 pt-4 shadow-2xl shadow-slate-400/25 dark:shadow-black/50 ring-1 ring-white/5 transition-[opacity,transform] duration-motion-slow ease-motion-standard motion-reduce:transition-none ${
           visible
             ? 'translate-y-0 scale-100 opacity-100'
             : 'translate-y-3 scale-[0.96] opacity-0'
@@ -107,7 +107,7 @@ export default function RemoveFriendDialog({ friend, onClosed, onRemove, busy, e
             <UserMinus className="h-6 w-6" strokeWidth={2} />
           </span>
           <div className="min-w-0 pt-0.5">
-            <h2 id={titleId} className="text-base font-semibold tracking-tight text-white">
+            <h2 id={titleId} className="text-base font-semibold tracking-tight text-slate-900 dark:text-white">
               Remove from Following?
             </h2>
             <p id={descId} className="mt-1 text-sm leading-snug text-slate-400">
@@ -127,7 +127,7 @@ export default function RemoveFriendDialog({ friend, onClosed, onRemove, busy, e
             ref={cancelRef}
             type="button"
             disabled={busy}
-            className="rounded-xl border border-slate-600/80 bg-slate-800/40 px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 disabled:opacity-50"
+            className="rounded-xl border border-slate-300/80 dark:border-slate-600/80 bg-slate-800/40 px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 disabled:opacity-50"
             onClick={() => !busy && dismiss()}
           >
             Cancel
@@ -135,7 +135,7 @@ export default function RemoveFriendDialog({ friend, onClosed, onRemove, busy, e
           <button
             type="button"
             disabled={busy}
-            className="rounded-xl bg-rose-600/90 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-950/40 transition-colors duration-motion ease-motion-standard hover:bg-rose-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 disabled:opacity-50"
+            className="rounded-xl bg-rose-600/90 px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-white shadow-lg shadow-rose-950/40 transition-colors duration-motion ease-motion-standard hover:bg-rose-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 disabled:opacity-50"
             onClick={() => confirm()}
           >
             {busy ? 'Removing…' : 'Remove'}

@@ -39,9 +39,9 @@ export default function AiWorkoutReview({ workoutId }) {
 
   if (loading) {
     return (
-      <div className="animate-ai-stagger-in flex items-center gap-3 rounded-xl border border-slate-800/90 bg-[#121826]/95 px-4 py-3">
+      <div className="animate-ai-stagger-in flex items-center gap-3 rounded-xl border border-slate-200/90 dark:border-slate-800/90 bg-app-panel/95 px-4 py-3">
         <span
-          className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-600 border-t-violet-400"
+          className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 dark:border-slate-600 border-t-violet-400"
           aria-hidden
         />
         <p className="text-sm text-slate-400">Generating AI review…</p>
@@ -65,7 +65,7 @@ export default function AiWorkoutReview({ workoutId }) {
   }
 
   return (
-    <div className="animate-ai-stagger-in relative rounded-xl border border-slate-800/90 bg-[#121826]/95 px-4 py-3.5">
+    <div className="animate-ai-stagger-in relative rounded-xl border border-slate-200/90 dark:border-slate-800/90 bg-app-panel/95 px-4 py-3.5">
       <button
         type="button"
         onClick={() => setDismissed(true)}

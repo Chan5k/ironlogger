@@ -180,7 +180,7 @@ export default function TemplateEdit() {
     <div className="space-y-6 pb-8">
       <Link
         to={appPath('templates')}
-        className="-ml-2 inline-flex min-h-11 min-w-11 items-center gap-1 rounded-xl px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-white active:bg-slate-800"
+        className="-ml-2 inline-flex min-h-11 min-w-11 items-center gap-1 rounded-xl px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white active:bg-slate-800"
       >
         ← Back to plans
       </Link>
@@ -190,7 +190,7 @@ export default function TemplateEdit() {
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-xl border border-slate-700 bg-surface-card px-4 py-3 text-white"
+          className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card px-4 py-3 text-slate-900 dark:text-white"
         />
       </div>
       <div>
@@ -199,14 +199,14 @@ export default function TemplateEdit() {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={2}
-          className="w-full rounded-xl border border-slate-700 bg-surface-card px-4 py-3 text-white"
+          className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface-card px-4 py-3 text-slate-900 dark:text-white"
         />
       </div>
 
       <button
         type="button"
         onClick={() => setPickerOpen(true)}
-        className="w-full rounded-xl border border-dashed border-slate-600 py-3 text-sm text-accent-muted"
+        className="w-full rounded-xl border border-dashed border-slate-300 dark:border-slate-600 py-3 text-sm text-accent-muted"
       >
         + Add exercise from library
       </button>
@@ -215,10 +215,10 @@ export default function TemplateEdit() {
         {items.map((item, idx) => (
           <li
             key={`${item.exerciseId}-${idx}`}
-            className="rounded-xl border border-slate-800 bg-surface-card p-3"
+            className="rounded-xl border border-slate-200 dark:border-slate-800 bg-surface-card p-3"
           >
             <div className="mb-2 flex justify-between gap-2">
-              <span className="flex min-w-0 items-center gap-2 font-medium text-white">
+              <span className="flex min-w-0 items-center gap-2 font-medium text-slate-900 dark:text-white">
                 <ExerciseIcon
                   name={item.exerciseName}
                   category={categoryByExerciseId.get(String(item.exerciseId)) || 'other'}
@@ -242,7 +242,7 @@ export default function TemplateEdit() {
                   type="number"
                   value={item.defaultSets}
                   onChange={(e) => updateItem(idx, 'defaultSets', e.target.value)}
-                  className="w-full rounded border border-slate-700 bg-surface px-2 py-1 text-white"
+                  className="w-full rounded border border-slate-300 dark:border-slate-700 bg-surface px-2 py-1 text-slate-900 dark:text-white"
                 />
               </div>
               <div>
@@ -253,7 +253,7 @@ export default function TemplateEdit() {
                   inputMode="numeric"
                   value={item.defaultReps}
                   onChange={(e) => updateItem(idx, 'defaultReps', e.target.value)}
-                  className="w-full rounded border border-slate-700 bg-surface px-2 py-1 text-white"
+                  className="w-full rounded border border-slate-300 dark:border-slate-700 bg-surface px-2 py-1 text-slate-900 dark:text-white"
                 />
               </div>
               <div>
@@ -266,7 +266,7 @@ export default function TemplateEdit() {
                   onChange={(e) =>
                     updateItem(idx, 'defaultWeight', parseWeightInput(e.target.value, weightUnit))
                   }
-                  className="w-full rounded border border-slate-700 bg-surface px-2 py-1 text-white"
+                  className="w-full rounded border border-slate-300 dark:border-slate-700 bg-surface px-2 py-1 text-slate-900 dark:text-white"
                 />
               </div>
             </div>
@@ -280,7 +280,7 @@ export default function TemplateEdit() {
             type="button"
             onClick={sharePlanLink}
             disabled={saving}
-            className="rounded-xl border border-slate-600 py-3 font-medium text-slate-200 disabled:opacity-50 sm:shrink-0 sm:px-6"
+            className="rounded-xl border border-slate-300 dark:border-slate-600 py-3 font-medium text-slate-200 disabled:opacity-50 sm:shrink-0 sm:px-6"
           >
             Share link
           </button>
@@ -296,11 +296,11 @@ export default function TemplateEdit() {
       </div>
 
       {pickerOpen ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">
-          <div className="max-h-[80vh] w-full max-w-md overflow-hidden rounded-2xl border border-slate-700 bg-surface-card">
-            <div className="border-b border-slate-800 px-4 py-3">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/60 dark:bg-black/60 p-4 sm:items-center">
+          <div className="max-h-[80vh] w-full max-w-md overflow-hidden rounded-2xl border border-slate-300 dark:border-slate-700 bg-surface-card">
+            <div className="border-b border-slate-200 dark:border-slate-800 px-4 py-3">
               <div className="mb-3 flex justify-between">
-                <span className="font-medium text-white">Pick exercise</span>
+                <span className="font-medium text-slate-900 dark:text-white">Pick exercise</span>
                 <button type="button" onClick={() => setPickerOpen(false)} className="text-slate-400">
                   Close
                 </button>
@@ -319,7 +319,7 @@ export default function TemplateEdit() {
                 placeholder="Type to filter by name or category…"
                 value={templatePickerQuery}
                 onChange={(e) => setTemplatePickerQuery(e.target.value)}
-                className="w-full rounded-xl border border-slate-700 bg-surface px-4 py-3 text-white placeholder:text-slate-500 outline-none focus:border-accent"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-surface px-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-500 outline-none focus:border-accent"
               />
               {templatePickerQuery.trim() ? (
                 <p className="mt-2 text-xs text-slate-500">
@@ -345,7 +345,7 @@ export default function TemplateEdit() {
                           key={ex._id}
                           type="button"
                           onClick={() => addFromLibrary(ex)}
-                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-white hover:bg-surface-elevated"
+                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-900 dark:text-white hover:bg-surface-elevated"
                         >
                           <ExerciseIcon name={ex.name} category={ex.category} className="h-4 w-4 text-slate-500" />
                           <span>{ex.name}</span>

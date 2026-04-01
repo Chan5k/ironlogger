@@ -12,7 +12,7 @@ function FeedSkeleton() {
       {[1, 2, 3].map((i) => (
         <div
           key={i}
-          className="animate-pulse rounded-[11px] border border-slate-800/60 bg-[#121826]/60 p-5"
+          className="animate-pulse rounded-[11px] border border-slate-200/60 dark:border-slate-800/60 bg-app-panel/60 p-5"
         >
           <div className="flex gap-3">
             <div className="h-10 w-10 rounded-full bg-slate-800" />
@@ -112,7 +112,7 @@ export default function ActivityFeedPage() {
     <div className="mx-auto w-full max-w-[880px] pb-8">
       <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-white md:text-[1.65rem]">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white md:text-[1.65rem]">
             Activity Feed
           </h1>
           <p className="mt-1 text-sm text-slate-500">
@@ -127,7 +127,7 @@ export default function ActivityFeedPage() {
             id="feed-sort"
             value={fq.sort}
             onChange={(e) => setSort(e.target.value)}
-            className="rounded-lg border border-slate-700 bg-[#121826] px-3 py-2 text-sm text-slate-200 transition-[border-color,box-shadow] duration-motion ease-motion-standard focus:border-blue-500/50 focus:outline-none focus:ring-1 focus:ring-blue-500/40"
+            className="rounded-lg border border-slate-300 dark:border-slate-700 bg-app-panel px-3 py-2 text-sm text-slate-200 transition-[border-color,box-shadow] duration-motion ease-motion-standard focus:border-blue-500/50 focus:outline-none focus:ring-1 focus:ring-blue-500/40"
           >
             <option value="latest">Latest</option>
             <option value="top">Top</option>
@@ -155,7 +155,7 @@ export default function ActivityFeedPage() {
           ))}
 
         {!loading && !err && posts.length === 0 ? (
-          <div className="rounded-[11px] border border-dashed border-slate-700/80 bg-[#0f141d]/50 px-6 py-12 text-center text-sm text-slate-500">
+          <div className="rounded-[11px] border border-dashed border-slate-200/80 dark:border-slate-700/80 bg-app-panel-muted/50 px-6 py-12 text-center text-sm text-slate-500">
             {fq.scope === 'following'
               ? 'Follow people to see their workouts here, or switch to Global.'
               : 'No public workouts to show yet. Enable a public profile and complete a session to appear here.'}
