@@ -34,6 +34,7 @@ import {
   addMinutesToLocalDatetime,
 } from '../utils/workoutDuration.js';
 import { useLiveClock } from '../hooks/useLiveClock.js';
+import { useWorkoutLockScreenMedia } from '../hooks/useWorkoutLockScreenMedia.js';
 import RestTimerBar, {
   readRestDurationSeconds,
   writeRestDurationSeconds,
@@ -528,6 +529,15 @@ export default function WorkoutEdit() {
 
   const sessionInProgress = !endedISO;
   const liveNow = useLiveClock(sessionInProgress);
+
+  useWorkoutLockScreenMedia({
+    active: sessionInProgress,
+    workoutTitle: title,
+    exercises,
+    restRunning,
+    restSecondsLeft,
+    weightUnit,
+  });
 
   const durationLabel = useMemo(() => {
     if (!startedISO) return '—';
@@ -1303,7 +1313,9 @@ export default function WorkoutEdit() {
             Starts when you tick <span className="text-slate-400">Done</span> on a set. Choose a
             default (10–600s), saved on this device — same control lives under{' '}
             <span className="text-slate-400">Settings</span>. Use +30s on the bar if you need more time
-            mid-set.
+            mid-set. With the screen off, many phones show this session in{' '}
+            <span className="text-slate-400">media / lock-screen controls</span> (next set and rest
+            countdown); pause there to dismiss. Works best in the installed app (PWA).
           </p>
           <div className="mb-3 flex flex-wrap gap-2">
             {[60, 90, 120, 180].map((sec) => (
