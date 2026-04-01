@@ -96,7 +96,7 @@ export default function LandingAuthModal({ mode, onClose, onSwitchMode }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="landing-auth-title"
-        className={`relative z-10 my-auto flex max-h-[min(90dvh,36rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-300/80 dark:border-slate-600/80 bg-app-panel shadow-2xl shadow-slate-400/25 dark:shadow-black/50 ring-1 ring-white/[0.06] transition-[opacity,transform] duration-motion-slow ease-motion-standard motion-reduce:transition-none ${
+        className={`relative z-10 my-auto flex max-h-[min(90dvh,36rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-300/80 dark:border-slate-600/80 bg-app-panel shadow-2xl shadow-slate-400/25 dark:shadow-black/50 ring-1 ring-slate-200/80 dark:ring-white/[0.06] transition-[opacity,transform] duration-motion-slow ease-motion-standard motion-reduce:transition-none ${
           panelActive
             ? 'translate-y-0 scale-100 opacity-100'
             : 'translate-y-4 scale-[0.97] opacity-0 motion-reduce:translate-y-0 motion-reduce:scale-100'
@@ -107,14 +107,14 @@ export default function LandingAuthModal({ mode, onClose, onSwitchMode }) {
             <h2 id="landing-auth-title" className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
               {mode === 'login' ? 'Welcome back' : 'Create account'}
             </h2>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
               {mode === 'login' ? 'Sign in to track your training' : 'Start logging workouts on any device'}
             </p>
           </div>
           <button
             type="button"
             onClick={() => runClose()}
-            className="shrink-0 rounded-lg p-2 text-slate-400 transition-colors duration-motion ease-motion-standard hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white"
+            className="shrink-0 rounded-lg p-2 text-slate-500 transition-colors duration-motion ease-motion-standard hover:bg-slate-200/90 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/80 dark:hover:text-white"
             aria-label="Close"
           >
             <X className="h-5 w-5" strokeWidth={2} aria-hidden />
