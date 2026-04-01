@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { formatWeightInputValue } from '../utils/weightUnits.js';
-import { siteOriginPrefix } from '../utils/siteBase.js';
 
 function findFirstIncompleteSet(exercises) {
   const list = exercises || [];
@@ -16,57 +15,88 @@ function findFirstIncompleteSet(exercises) {
   return null;
 }
 
-function formatRestClock(totalSec) {
+function fmtClock(totalSec) {
   const s = Math.max(0, Math.floor(Number(totalSec) || 0));
-  const m = Math.floor(s / 60);
-  const r = s % 60;
-  return `${m}:${String(r).padStart(2, '0')}`;
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-function setSummaryLine(set, weightUnit) {
-  const w = formatWeightInputValue(Number(set.weight) || 0, weightUnit);
+function setLine(set, unit) {
+  const w = formatWeightInputValue(Number(set.weight) || 0, unit);
   const r = set.reps === '' || set.reps == null ? '—' : String(set.reps);
-  return `${w} ${weightUnit} × ${r} reps`;
+  return `${w} ${unit} × ${r} reps`;
 }
 
-function lockScreenArtwork() {
-  const base = siteOriginPrefix();
+function artworkUrls() {
+  const b = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
   return [
-    { src: `${base}/icons/icon-192.png`, sizes: '192x192', type: 'image/png' },
-    { src: `${base}/icons/icon-512.png`, sizes: '512x512', type: 'image/png' },
+    { src: `${b}/icons/icon-192.png`, sizes: '192x192', type: 'image/png' },
+    { src: `${b}/icons/icon-512.png`, sizes: '512x512', type: 'image/png' },
   ];
 }
 
-function buildMetadataPayload(s) {
-  const name = (s.workoutTitle || '').trim() || 'Workout';
-  const spot = findFirstIncompleteSet(s.exercises);
-  let displayTitle;
-  let displayArtist;
-  const displayAlbum = name;
+const HAS_MEDIA_SESSION =
+  typeof navigator !== 'undefined' &&
+  'mediaSession' in navigator &&
+  typeof MediaMetadata !== 'undefined';
 
-  if (s.restRunning && s.restSecondsLeft > 0) {
-    displayTitle = `Rest ${formatRestClock(s.restSecondsLeft)}`;
-    if (spot) {
-      const exName = (spot.exercise.name || 'Exercise').trim() || 'Exercise';
-      displayArtist = `Next: ${exName} · set ${spot.si + 1} of ${spot.setCount}`;
-    } else {
-      displayArtist = 'IronLog';
-    }
+function applyMeta(state) {
+  if (!HAS_MEDIA_SESSION) return;
+  const spot = findFirstIncompleteSet(state.exercises);
+  const album = (state.workoutTitle || '').trim() || 'Workout';
+  let title;
+  let artist;
+
+  if (state.restRunning && state.restSecondsLeft > 0) {
+    title = `Rest ${fmtClock(state.restSecondsLeft)}`;
+    artist = spot
+      ? `Next: ${(spot.exercise.name || 'Exercise').trim()} · set ${spot.si + 1}/${spot.setCount}`
+      : 'IronLog';
   } else if (spot) {
-    const exName = (spot.exercise.name || 'Exercise').trim() || 'Exercise';
-    displayTitle = `${exName} · Set ${spot.si + 1} of ${spot.setCount}`;
-    displayArtist = setSummaryLine(spot.set, s.weightUnit);
+    title = `${(spot.exercise.name || 'Exercise').trim()} · Set ${spot.si + 1}/${spot.setCount}`;
+    artist = setLine(spot.set, state.weightUnit);
   } else {
-    displayTitle = 'Session in progress';
-    displayArtist = 'All sets done — finish when ready';
+    title = 'Session in progress';
+    artist = 'All sets done — finish when ready';
   }
 
-  return { displayTitle, displayArtist, displayAlbum };
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title,
+      artist,
+      album,
+      artwork: artworkUrls(),
+    });
+  } catch {
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({ title, artist, album });
+    } catch {
+      /* give up */
+    }
+  }
+
+  try {
+    const total = Number(state.restTotal) || 0;
+    if (state.restRunning && state.restSecondsLeft >= 0 && total > 0) {
+      navigator.mediaSession.setPositionState({
+        duration: total,
+        playbackRate: 1,
+        position: Math.min(total, Math.max(0, total - state.restSecondsLeft)),
+      });
+    } else {
+      navigator.mediaSession.setPositionState({
+        duration: 0,
+        playbackRate: 1,
+        position: 0,
+      });
+    }
+  } catch {
+    /* older browsers */
+  }
 }
 
 /**
- * Lock screen / shade via Media Session. Audio must start from a user gesture — call `engagePlayback`
- * from taps (see WorkoutEdit). Uses a looping silent MP3 so the OS shows media controls.
+ * Keeps a media session alive (lock screen / notification shade) while a workout is in progress.
+ * Returns `engagePlayback` — must be called from a **user gesture** (tap) at least once.
  */
 export function useWorkoutLockScreenMedia({
   active,
@@ -79,6 +109,7 @@ export function useWorkoutLockScreenMedia({
 }) {
   const audioRef = useRef(null);
   const stateRef = useRef({});
+  const playingRef = useRef(false);
 
   stateRef.current = {
     active,
@@ -86,161 +117,85 @@ export function useWorkoutLockScreenMedia({
     exercises,
     restRunning,
     restSecondsLeft,
-    restTotal: Number(restTotal) || 0,
+    restTotal,
     weightUnit,
   };
 
-  const ensureAudio = useCallback(() => {
+  const getAudio = useCallback(() => {
     if (typeof document === 'undefined') return null;
-    let a = audioRef.current;
-    if (!a) {
-      a = document.createElement('audio');
-      a.preload = 'auto';
-      a.loop = true;
-      /** iOS / some Android builds hide “Now playing” when volume is ~0 */
-      a.volume = 0.08;
-      a.defaultMuted = false;
-      a.muted = false;
-      a.setAttribute('playsinline', '');
-      a.setAttribute('webkit-playsinline', '');
-      const base = import.meta.env.BASE_URL || '/';
-      const mp3 = `${base}media/silence.mp3`;
-      const wav = `${base}media/silence.wav`;
-      a.src = mp3;
-      a.addEventListener(
-        'error',
-        () => {
-          if (a && String(a.src || '').includes('silence.mp3')) {
-            a.src = wav;
-            void a.load();
-          }
-        },
-        { once: true }
-      );
-      document.body.appendChild(a);
-      audioRef.current = a;
-    }
+    if (audioRef.current) return audioRef.current;
+    const a = document.createElement('audio');
+    a.preload = 'auto';
+    a.loop = true;
+    a.setAttribute('playsinline', '');
+    a.setAttribute('webkit-playsinline', '');
+    const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+    a.src = `${base}/media/silence.mp3`;
+    document.body.appendChild(a);
+    audioRef.current = a;
     return a;
   }, []);
 
-  const applyMetadata = useCallback(() => {
-    const s = stateRef.current;
-    if (
-      !s.active ||
-      typeof navigator === 'undefined' ||
-      !navigator.mediaSession ||
-      typeof MediaMetadata === 'undefined'
-    ) {
-      return;
-    }
-
-    const { displayTitle, displayArtist, displayAlbum } = buildMetadataPayload(s);
-
-    try {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: displayTitle,
-        artist: displayArtist,
-        album: displayAlbum,
-        artwork: lockScreenArtwork(),
-      });
-    } catch {
-      try {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: displayTitle,
-          artist: displayArtist,
-          album: displayAlbum,
-        });
-      } catch {
-        /* ignore */
-      }
-    }
-
-    if (typeof navigator.mediaSession.setPositionState === 'function') {
-      try {
-        const total = s.restTotal;
-        if (s.restRunning && s.restSecondsLeft >= 0 && total > 0) {
-          const elapsed = Math.min(total, Math.max(0, total - s.restSecondsLeft));
-          navigator.mediaSession.setPositionState({
-            duration: total,
-            playbackRate: 1,
-            position: elapsed,
-          });
-        } else {
-          navigator.mediaSession.setPositionState(null);
-        }
-      } catch {
-        /* Chrome throws if duration is invalid; ignore */
-      }
-    }
-
-    const a = audioRef.current;
-    if (navigator.mediaSession) {
-      navigator.mediaSession.playbackState = a && !a.paused ? 'playing' : 'paused';
-    }
-  }, []);
-
-  /** Call from click / pointerdown while `active` so `play()` is allowed (autoplay policies). */
   const engagePlayback = useCallback(() => {
-    const s = stateRef.current;
-    if (!s.active || typeof document === 'undefined') return;
-    const audio = ensureAudio();
-    if (!audio) return;
+    if (!stateRef.current.active) return;
+    const a = getAudio();
+    if (!a) return;
+    applyMeta(stateRef.current);
+    if (HAS_MEDIA_SESSION) {
+      navigator.mediaSession.playbackState = 'playing';
+    }
+    const p = a.play();
+    if (p && typeof p.then === 'function') {
+      p.then(() => {
+        playingRef.current = true;
+      }).catch(() => {
+        playingRef.current = false;
+      });
+    }
+  }, [getAudio]);
 
-    void audio
-      .play()
-      .then(() => {
-        applyMetadata();
-        if (typeof navigator !== 'undefined' && navigator.mediaSession) {
-          navigator.mediaSession.playbackState = 'playing';
-        }
-      })
-      .catch(() => {});
-  }, [ensureAudio, applyMetadata]);
+  useEffect(() => {
+    if (!active) return;
+    applyMeta(stateRef.current);
+    if (HAS_MEDIA_SESSION && playingRef.current) {
+      navigator.mediaSession.playbackState = 'playing';
+    }
+  }, [active, workoutTitle, exercises, restRunning, restSecondsLeft, restTotal, weightUnit]);
 
   useEffect(() => {
     if (!active) return undefined;
-    applyMetadata();
-    return undefined;
-  }, [
-    active,
-    workoutTitle,
-    exercises,
-    restRunning,
-    restSecondsLeft,
-    restTotal,
-    weightUnit,
-    applyMetadata,
-  ]);
 
-  useEffect(() => {
-    if (!active || typeof document === 'undefined') return undefined;
+    getAudio();
 
-    const audio = ensureAudio();
-    if (!audio) return undefined;
-
-    const onPointerDown = () => {
+    const onInteraction = () => {
+      if (!stateRef.current.active) return;
+      if (playingRef.current && audioRef.current && !audioRef.current.paused) return;
       engagePlayback();
     };
-    document.addEventListener('pointerdown', onPointerDown, { capture: true, passive: true });
 
-    const onVis = () => {
-      if (document.visibilityState === 'visible' && audioRef.current?.paused) {
+    document.addEventListener('pointerdown', onInteraction, { capture: true, passive: true });
+    document.addEventListener('touchstart', onInteraction, { capture: true, passive: true });
+    document.addEventListener('click', onInteraction, { capture: true, passive: true });
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && stateRef.current.active) {
         engagePlayback();
       }
     };
-    document.addEventListener('visibilitychange', onVis);
-    window.addEventListener('pageshow', onVis);
+    document.addEventListener('visibilitychange', onVisible);
 
-    if (typeof navigator !== 'undefined' && navigator.mediaSession) {
+    if (HAS_MEDIA_SESSION) {
       try {
         navigator.mediaSession.setActionHandler('play', () => {
-          void audio.play().catch(() => {});
+          const a = audioRef.current;
+          if (a) void a.play().catch(() => {});
           navigator.mediaSession.playbackState = 'playing';
-          applyMetadata();
+          playingRef.current = true;
         });
         navigator.mediaSession.setActionHandler('pause', () => {
-          audio.pause();
+          audioRef.current?.pause();
           navigator.mediaSession.playbackState = 'paused';
+          playingRef.current = false;
         });
       } catch {
         /* ignore */
@@ -248,34 +203,29 @@ export function useWorkoutLockScreenMedia({
     }
 
     return () => {
-      document.removeEventListener('pointerdown', onPointerDown, { capture: true });
-      document.removeEventListener('visibilitychange', onVis);
-      window.removeEventListener('pageshow', onVis);
-      audio.pause();
-      if (typeof navigator !== 'undefined' && navigator.mediaSession) {
+      document.removeEventListener('pointerdown', onInteraction, { capture: true });
+      document.removeEventListener('touchstart', onInteraction, { capture: true });
+      document.removeEventListener('click', onInteraction, { capture: true });
+      document.removeEventListener('visibilitychange', onVisible);
+      audioRef.current?.pause();
+      playingRef.current = false;
+      if (HAS_MEDIA_SESSION) {
         try {
           navigator.mediaSession.setActionHandler('play', null);
           navigator.mediaSession.setActionHandler('pause', null);
-          navigator.mediaSession.setPositionState?.(null);
         } catch {
           /* ignore */
         }
       }
     };
-  }, [active, ensureAudio, engagePlayback, applyMetadata]);
+  }, [active, getAudio, engagePlayback]);
 
   useEffect(() => {
-    if (active) return undefined;
-    if (typeof navigator !== 'undefined' && navigator.mediaSession) {
+    if (active) return;
+    if (HAS_MEDIA_SESSION) {
       navigator.mediaSession.metadata = null;
       navigator.mediaSession.playbackState = 'none';
-      try {
-        navigator.mediaSession.setPositionState?.(null);
-      } catch {
-        /* ignore */
-      }
     }
-    return undefined;
   }, [active]);
 
   useEffect(() => {
@@ -286,13 +236,13 @@ export function useWorkoutLockScreenMedia({
         a.remove();
         audioRef.current = null;
       }
-      if (typeof navigator !== 'undefined' && navigator.mediaSession) {
+      playingRef.current = false;
+      if (HAS_MEDIA_SESSION) {
         navigator.mediaSession.metadata = null;
         navigator.mediaSession.playbackState = 'none';
         try {
           navigator.mediaSession.setActionHandler('play', null);
           navigator.mediaSession.setActionHandler('pause', null);
-          navigator.mediaSession.setPositionState?.(null);
         } catch {
           /* ignore */
         }
