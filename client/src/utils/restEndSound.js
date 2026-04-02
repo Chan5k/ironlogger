@@ -1,4 +1,4 @@
-import { preferAmbientAudioSession, preferTransientAudioSession } from './audioSessionMix.js';
+import { preferPlaybackAudioSession, preferTransientAudioSession } from './audioSessionMix.js';
 
 /** Short chime URL (same-origin, precached with PWA). */
 function restDoneSrc() {
@@ -14,18 +14,19 @@ function ensureRestDoneAudio() {
   a.preload = 'auto';
   a.setAttribute('playsinline', '');
   a.setAttribute('webkit-playsinline', '');
-  const backToAmbient = () => {
-    preferAmbientAudioSession();
+  const backToWorkoutSession = () => {
+    preferPlaybackAudioSession();
   };
-  a.addEventListener('ended', backToAmbient);
-  a.addEventListener('error', backToAmbient);
+  a.addEventListener('ended', backToWorkoutSession);
+  a.addEventListener('error', backToWorkoutSession);
   cached = a;
   return cached;
 }
 
 /**
  * Rest-complete chime. Uses a transient audio session when supported so other music is less likely to
- * stay paused; ambient is restored after the clip ends. Vibration is handled in RestTimerBar.
+ * stay paused; playback session is restored after the clip so the workout keepalive stays primary.
+ * Vibration is handled in RestTimerBar.
  */
 export function playRestEndSound() {
   if (typeof window === 'undefined' || typeof Audio === 'undefined') return;
@@ -35,9 +36,9 @@ export function playRestEndSound() {
     el.currentTime = 0;
     el.volume = 0.4;
     void el.play().catch(() => {
-      preferAmbientAudioSession();
+      preferPlaybackAudioSession();
     });
   } catch {
-    preferAmbientAudioSession();
+    preferPlaybackAudioSession();
   }
 }

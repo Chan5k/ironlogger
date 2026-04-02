@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { preferAmbientAudioSession } from '../utils/audioSessionMix.js';
+import {
+  preferPlaybackAudioSession,
+  resetAudioSessionType,
+} from '../utils/audioSessionMix.js';
 import { formatWeightInputValue } from '../utils/weightUnits.js';
 
 function findFirstIncompleteSet(exercises) {
@@ -112,7 +115,8 @@ function applyMeta(state) {
 
 /**
  * Lock screen / notification shade workout card via Media Session + silent keepalive.
- * Uses Audio Session `"ambient"` when available so other apps’ music can keep playing.
+ * Uses Audio Session `"playback"` when available so IronLog is more likely to own the lock-screen card
+ * (other audio may pause; reset to `"auto"` when the session ends).
  */
 export function useWorkoutLockScreenMedia({
   active,
@@ -141,7 +145,7 @@ export function useWorkoutLockScreenMedia({
 
   const getAudio = useCallback(() => {
     if (typeof document === 'undefined') return null;
-    preferAmbientAudioSession();
+    preferPlaybackAudioSession();
     if (audioRef.current) return audioRef.current;
     const a = document.createElement('audio');
     a.preload = 'auto';
@@ -156,7 +160,7 @@ export function useWorkoutLockScreenMedia({
   }, []);
 
   const resumeKeepaliveAfterControl = useCallback(() => {
-    preferAmbientAudioSession();
+    preferPlaybackAudioSession();
     getAudio();
     const a = audioRef.current;
     if (!stateRef.current.active || !a) return;
@@ -169,7 +173,7 @@ export function useWorkoutLockScreenMedia({
   }, [getAudio]);
 
   const engagePlayback = useCallback(() => {
-    preferAmbientAudioSession();
+    preferPlaybackAudioSession();
     if (!stateRef.current.active) return;
     const a = getAudio();
     if (!a) return;
@@ -201,7 +205,7 @@ export function useWorkoutLockScreenMedia({
 
   useEffect(() => {
     if (!active) return;
-    preferAmbientAudioSession();
+    preferPlaybackAudioSession();
   }, [active]);
 
   useEffect(() => {
@@ -254,7 +258,7 @@ export function useWorkoutLockScreenMedia({
     if (HAS_MEDIA_SESSION) {
       try {
         navigator.mediaSession.setActionHandler('play', () => {
-          preferAmbientAudioSession();
+          preferPlaybackAudioSession();
           const a = audioRef.current;
           if (a) void a.play().catch(() => {});
           navigator.mediaSession.playbackState = 'playing';
@@ -287,6 +291,7 @@ export function useWorkoutLockScreenMedia({
 
   useEffect(() => {
     if (active) return;
+    resetAudioSessionType();
     if (HAS_MEDIA_SESSION) {
       navigator.mediaSession.metadata = null;
       navigator.mediaSession.playbackState = 'none';
@@ -302,6 +307,7 @@ export function useWorkoutLockScreenMedia({
         audioRef.current = null;
       }
       playingRef.current = false;
+      resetAudioSessionType();
       if (HAS_MEDIA_SESSION) {
         navigator.mediaSession.metadata = null;
         navigator.mediaSession.playbackState = 'none';

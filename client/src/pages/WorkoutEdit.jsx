@@ -1271,11 +1271,10 @@ export default function WorkoutEdit() {
         <div className="rounded-2xl border border-blue-500/35 bg-blue-950/25 px-4 py-3 ring-1 ring-blue-500/20">
           <p className="text-sm text-slate-200">
             <span className="font-medium text-slate-900 dark:text-white">Lock screen &amp; headphones:</span> Tap below so
-            IronLog can show your session in media controls — during rest the countdown matches the bar
-            so the lock screen can show the timer instead of your music app where the OS allows. On{' '}
-            <span className="font-medium text-slate-900 dark:text-white">Safari / iOS 16.4+</span> we request an{' '}
-            <span className="font-medium text-slate-900 dark:text-white">ambient</span> audio session so Spotify and Apple
-            Music can keep playing; other browsers may still pause background audio.
+            IronLog can own media / lock-screen controls — during rest the countdown matches the bar. On{' '}
+            <span className="font-medium text-slate-900 dark:text-white">Safari / iOS 16.4+</span> we use a{' '}
+            <span className="font-medium text-slate-900 dark:text-white">playback</span> audio session so IronLog is
+            prioritized over other apps; Spotify or podcasts may pause while the workout is active.
           </p>
           <p className="mt-2 text-xs text-slate-500">
             You can also tap any set or control — same one-time gesture starts the silent keepalive.
@@ -1409,10 +1408,9 @@ export default function WorkoutEdit() {
             Starts when you tick <span className="text-slate-400">Done</span> on a set. Choose a
             default (10–600s), saved on this device — same control lives under{' '}
             <span className="text-slate-400">Settings</span>. Use +30s on the bar if you need more time
-            mid-set. With the PWA, a silent loop keeps IronLog on media / lock-screen controls; during
-            rest the countdown matches the bar so that card can replace your music app’s artwork while
-            the track keeps playing where the OS allows it (ambient session on Safari / iOS 16.4+).
-            Skip rest = seek forward, +15s = seek back.
+            mid-set. A silent loop keeps IronLog first in media / lock-screen controls where supported
+            (playback session on Safari / iOS 16.4+ — background music may pause for the workout).
+            During rest the countdown matches the bar. Skip rest = seek forward, +15s = seek back.
           </p>
           <div className="mb-3 flex flex-wrap gap-2">
             {[60, 90, 120, 180].map((sec) => (
