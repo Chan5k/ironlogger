@@ -1,3 +1,5 @@
+import { preferAmbientAudioSession, preferTransientAudioSession } from './audioSessionMix.js';
+
 /** Short chime URL (same-origin, precached with PWA). */
 function restDoneSrc() {
   const b = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
@@ -6,24 +8,36 @@ function restDoneSrc() {
 
 let cached = null;
 
+function ensureRestDoneAudio() {
+  if (cached) return cached;
+  const a = new Audio(restDoneSrc());
+  a.preload = 'auto';
+  a.setAttribute('playsinline', '');
+  a.setAttribute('webkit-playsinline', '');
+  const backToAmbient = () => {
+    preferAmbientAudioSession();
+  };
+  a.addEventListener('ended', backToAmbient);
+  a.addEventListener('error', backToAmbient);
+  cached = a;
+  return cached;
+}
+
 /**
- * Optional rest-complete chime. **HTMLAudioElement can pause or duck Spotify / Apple Music on iOS**
- * when this runs, so the app defaults to sound off and only plays when the user opts in in workout
- * settings. Vibration is handled separately in RestTimerBar.
+ * Rest-complete chime. Uses a transient audio session when supported so other music is less likely to
+ * stay paused; ambient is restored after the clip ends. Vibration is handled in RestTimerBar.
  */
 export function playRestEndSound() {
   if (typeof window === 'undefined' || typeof Audio === 'undefined') return;
   try {
-    if (!cached) {
-      cached = new Audio(restDoneSrc());
-      cached.preload = 'auto';
-      cached.setAttribute('playsinline', '');
-      cached.setAttribute('webkit-playsinline', '');
-    }
-    cached.currentTime = 0;
-    cached.volume = 0.4;
-    void cached.play().catch(() => {});
+    const el = ensureRestDoneAudio();
+    preferTransientAudioSession();
+    el.currentTime = 0;
+    el.volume = 0.4;
+    void el.play().catch(() => {
+      preferAmbientAudioSession();
+    });
   } catch {
-    /* ignore */
+    preferAmbientAudioSession();
   }
 }

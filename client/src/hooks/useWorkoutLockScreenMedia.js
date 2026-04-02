@@ -56,16 +56,17 @@ function clearMediaActionHandlers() {
 function applyMeta(state) {
   if (!HAS_MEDIA_SESSION) return;
   const spot = findFirstIncompleteSet(state.exercises);
-  const album = (state.workoutTitle || '').trim() || 'Workout';
+  let album = (state.workoutTitle || '').trim() || 'Workout';
   let title;
   let artist;
 
   if (state.restRunning && state.restSecondsLeft > 0) {
-    title = `Rest ${fmtClock(state.restSecondsLeft)}`;
-    const nextLine = spot
-      ? `Next: ${(spot.exercise.name || 'Exercise').trim()} · set ${spot.si + 1}/${spot.setCount}`
-      : 'IronLog';
-    artist = `${nextLine} · >> skip rest · << +15s`;
+    // Match in-app rest bar: countdown + “Rest”; album is IronLog so the card reads as the timer, not a track.
+    title = `${fmtClock(state.restSecondsLeft)} · Rest`;
+    artist = spot
+      ? `Next: ${(spot.exercise.name || 'Exercise').trim()} · set ${spot.si + 1}/${spot.setCount} · skip » · +15s «`
+      : 'Ready for next set · skip » · +15s «';
+    album = 'IronLog';
   } else if (spot) {
     title = `${(spot.exercise.name || 'Exercise').trim()} · Set ${spot.si + 1}/${spot.setCount}`;
     artist = setLine(spot.set, state.weightUnit);
@@ -185,6 +186,18 @@ export function useWorkoutLockScreenMedia({
       });
     }
   }, [getAudio]);
+
+  const prevRestRunningRef = useRef(false);
+  useEffect(() => {
+    if (!active) {
+      prevRestRunningRef.current = restRunning;
+      return;
+    }
+    if (restRunning && !prevRestRunningRef.current) {
+      engagePlayback();
+    }
+    prevRestRunningRef.current = restRunning;
+  }, [active, restRunning, engagePlayback]);
 
   useEffect(() => {
     if (!active) return;
