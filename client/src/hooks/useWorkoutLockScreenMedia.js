@@ -115,8 +115,9 @@ function applyMeta(state) {
 
 /**
  * Lock screen / notification shade workout card via Media Session + silent keepalive.
- * Uses Audio Session `"playback"` when available so IronLog is more likely to own the lock-screen card
- * (other audio may pause; reset to `"auto"` when the session ends).
+ * Uses Audio Session `"playback"` when starting or resuming the keepalive so IronLog can own the
+ * lock-screen card (other audio may pause then). Does not re-assert playback on every tap while the
+ * silent loop is already running — avoids repeated interruptions from in-workout UI actions.
  */
 export function useWorkoutLockScreenMedia({
   active,
@@ -145,7 +146,6 @@ export function useWorkoutLockScreenMedia({
 
   const getAudio = useCallback(() => {
     if (typeof document === 'undefined') return null;
-    preferPlaybackAudioSession();
     if (audioRef.current) return audioRef.current;
     const a = document.createElement('audio');
     a.preload = 'auto';
@@ -160,7 +160,6 @@ export function useWorkoutLockScreenMedia({
   }, []);
 
   const resumeKeepaliveAfterControl = useCallback(() => {
-    preferPlaybackAudioSession();
     getAudio();
     const a = audioRef.current;
     if (!stateRef.current.active || !a) return;
@@ -168,12 +167,14 @@ export function useWorkoutLockScreenMedia({
     if (HAS_MEDIA_SESSION) {
       navigator.mediaSession.playbackState = 'playing';
     }
+    if (a.paused) {
+      preferPlaybackAudioSession();
+    }
     void a.play().catch(() => {});
     playingRef.current = true;
   }, [getAudio]);
 
   const engagePlayback = useCallback(() => {
-    preferPlaybackAudioSession();
     if (!stateRef.current.active) return;
     const a = getAudio();
     if (!a) return;
@@ -181,6 +182,11 @@ export function useWorkoutLockScreenMedia({
     if (HAS_MEDIA_SESSION) {
       navigator.mediaSession.playbackState = 'playing';
     }
+    if (!a.paused) {
+      playingRef.current = true;
+      return;
+    }
+    preferPlaybackAudioSession();
     const p = a.play();
     if (p && typeof p.then === 'function') {
       p.then(() => {
@@ -202,11 +208,6 @@ export function useWorkoutLockScreenMedia({
     }
     prevRestRunningRef.current = restRunning;
   }, [active, restRunning, engagePlayback]);
-
-  useEffect(() => {
-    if (!active) return;
-    preferPlaybackAudioSession();
-  }, [active]);
 
   useEffect(() => {
     if (!active) return;

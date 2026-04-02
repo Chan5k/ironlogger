@@ -761,7 +761,6 @@ export default function WorkoutEdit() {
 
   const toggleSetComplete = useCallback(
     (exIdx, setIdx, checked) => {
-      if (sessionInProgress) engagePlayback();
       const ex = exercises[exIdx];
       const s = ex?.sets?.[setIdx];
       if (!ex || !s) return;
@@ -807,7 +806,6 @@ export default function WorkoutEdit() {
       weightUnit,
       sessionInProgress,
       effectiveRepsForSet,
-      engagePlayback,
     ]
   );
 
@@ -1277,7 +1275,8 @@ export default function WorkoutEdit() {
             prioritized over other apps; Spotify or podcasts may pause while the workout is active.
           </p>
           <p className="mt-2 text-xs text-slate-500">
-            You can also tap any set or control — same one-time gesture starts the silent keepalive.
+            You can also tap any set or control — one gesture starts the silent keepalive. Further taps
+            during the workout only update the on-screen workout; they do not keep re-taking audio focus.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <button
