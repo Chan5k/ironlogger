@@ -2,28 +2,12 @@ import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import ExerciseIcon from './ExerciseIcon.jsx';
 
-/** Short ascending fanfare (Web Audio). */
+/** Haptic-only — Web Audio fanfare was pausing background music on phones. */
 export function playPrFanfare() {
   try {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return;
-    const ctx = new Ctx();
-    const freqs = [392, 523.25, 659.25, 783.99];
-    freqs.forEach((f, i) => {
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.type = 'triangle';
-      o.frequency.value = f;
-      o.connect(g);
-      g.connect(ctx.destination);
-      const t = ctx.currentTime + i * 0.07;
-      g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(0.11, t + 0.025);
-      g.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
-      o.start(t);
-      o.stop(t + 0.42);
-    });
-    ctx.resume?.();
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate([35, 45, 55, 45, 90]);
+    }
   } catch {
     /* ignore */
   }

@@ -41,7 +41,7 @@ export default function RestTimerBar({
         /* iOS may ignore */
       }
     }
-    /** Tone is played from the workout page via `playRestEndSound()` (HTMLAudio) so it works on the lock screen. */
+    /** Optional chime: Workout page calls `playRestEndSound()` when that setting is on (can duck other audio on iOS). */
   }, [secondsLeft, hapticEnabled]);
 
   useLayoutEffect(() => {

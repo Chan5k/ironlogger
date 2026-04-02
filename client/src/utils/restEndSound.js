@@ -7,8 +7,9 @@ function restDoneSrc() {
 let cached = null;
 
 /**
- * Plays the rest-complete tone via HTMLAudioElement so it still fires when the tab is in the
- * background / lock screen (unlike Web Audio oscillators).
+ * Optional rest-complete chime. **HTMLAudioElement can pause or duck Spotify / Apple Music on iOS**
+ * when this runs, so the app defaults to sound off and only plays when the user opts in in workout
+ * settings. Vibration is handled separately in RestTimerBar.
  */
 export function playRestEndSound() {
   if (typeof window === 'undefined' || typeof Audio === 'undefined') return;
@@ -16,9 +17,11 @@ export function playRestEndSound() {
     if (!cached) {
       cached = new Audio(restDoneSrc());
       cached.preload = 'auto';
+      cached.setAttribute('playsinline', '');
+      cached.setAttribute('webkit-playsinline', '');
     }
     cached.currentTime = 0;
-    cached.volume = 0.45;
+    cached.volume = 0.4;
     void cached.play().catch(() => {});
   } catch {
     /* ignore */
