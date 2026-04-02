@@ -55,6 +55,7 @@ import WorkoutShareModal from '../components/WorkoutShareModal.jsx';
 import ExerciseIcon from '../components/ExerciseIcon.jsx';
 import AiWorkoutReview from '../components/AiWorkoutReview.jsx';
 import PostWorkoutRecapModal from '../components/PostWorkoutRecapModal.jsx';
+import { isStandalonePwa } from '../utils/pwaDisplayMode.js';
 import { playRestEndSound } from '../utils/restEndSound.js';
 
 const emptySet = (type = 'normal') => ({
@@ -66,6 +67,8 @@ const emptySet = (type = 'normal') => ({
 
 const REST_SOUND_KEY = 'ironlog_rest_sound';
 const REST_HAPTIC_KEY = 'ironlog_rest_haptic';
+const LOCK_MEDIA_PRIMED_KEY = 'ironlog_lock_media_primed';
+const LOCK_TIP_DISMISS_SESSION_KEY = 'ironlog_lock_tip_dismiss_session';
 
 /** Match longest exit animation (modal 300ms + small buffer). */
 const WORKOUT_MORE_MENU_CLOSE_MS = 320;
@@ -123,6 +126,21 @@ export default function WorkoutEdit() {
       return localStorage.getItem(REST_HAPTIC_KEY) !== '0';
     } catch {
       return true;
+    }
+  });
+  const [standalonePwa, setStandalonePwa] = useState(false);
+  const [lockMediaPrimed, setLockMediaPrimed] = useState(() => {
+    try {
+      return localStorage.getItem(LOCK_MEDIA_PRIMED_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const [lockTipDismissedSession, setLockTipDismissedSession] = useState(() => {
+    try {
+      return sessionStorage.getItem(LOCK_TIP_DISMISS_SESSION_KEY) === '1';
+    } catch {
+      return false;
     }
   });
   const [prCelebration, setPrCelebration] = useState(null);
@@ -276,6 +294,10 @@ export default function WorkoutEdit() {
       /* ignore */
     }
   }, [restHapticEnabled]);
+
+  useEffect(() => {
+    setStandalonePwa(isStandalonePwa());
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -540,7 +562,41 @@ export default function WorkoutEdit() {
   const sessionInProgress = !endedISO;
   const liveNow = useLiveClock(sessionInProgress);
 
-  useWorkoutLockScreenMedia({ active: sessionInProgress });
+  const skipRestMediaRef = useRef(() => {});
+  const extendRestMediaRef = useRef(() => {});
+  skipRestMediaRef.current = () => setRestSecondsLeft(0);
+  extendRestMediaRef.current = () => setRestSecondsLeft((s) => (s > 0 ? s + 15 : s));
+
+  const { engagePlayback } = useWorkoutLockScreenMedia({
+    active: sessionInProgress,
+    workoutTitle: title,
+    exercises,
+    restRunning,
+    restSecondsLeft,
+    restTotal,
+    weightUnit,
+    skipRestRef: skipRestMediaRef,
+    extendRestRef: extendRestMediaRef,
+  });
+
+  const primeLockScreenMedia = useCallback(() => {
+    engagePlayback();
+    try {
+      localStorage.setItem(LOCK_MEDIA_PRIMED_KEY, '1');
+    } catch {
+      /* ignore */
+    }
+    setLockMediaPrimed(true);
+  }, [engagePlayback]);
+
+  const dismissLockScreenTipForSession = useCallback(() => {
+    try {
+      sessionStorage.setItem(LOCK_TIP_DISMISS_SESSION_KEY, '1');
+    } catch {
+      /* ignore */
+    }
+    setLockTipDismissedSession(true);
+  }, []);
 
   const durationLabel = useMemo(() => {
     if (!startedISO) return '—';
@@ -705,6 +761,7 @@ export default function WorkoutEdit() {
 
   const toggleSetComplete = useCallback(
     (exIdx, setIdx, checked) => {
+      if (sessionInProgress) engagePlayback();
       const ex = exercises[exIdx];
       const s = ex?.sets?.[setIdx];
       if (!ex || !s) return;
@@ -750,6 +807,7 @@ export default function WorkoutEdit() {
       weightUnit,
       sessionInProgress,
       effectiveRepsForSet,
+      engagePlayback,
     ]
   );
 
@@ -1206,6 +1264,40 @@ export default function WorkoutEdit() {
         </p>
       ) : null}
 
+      {sessionInProgress &&
+      standalonePwa &&
+      !lockMediaPrimed &&
+      !lockTipDismissedSession ? (
+        <div className="rounded-2xl border border-blue-500/35 bg-blue-950/25 px-4 py-3 ring-1 ring-blue-500/20">
+          <p className="text-sm text-slate-200">
+            <span className="font-medium text-slate-900 dark:text-white">Lock screen &amp; headphones:</span> Tap below so
+            IronLog can show your session in media controls. On{' '}
+            <span className="font-medium text-slate-900 dark:text-white">Safari / iOS 16.4+</span> we request an{' '}
+            <span className="font-medium text-slate-900 dark:text-white">ambient</span> audio session so Spotify and Apple
+            Music can keep playing; other browsers may still pause background audio.
+          </p>
+          <p className="mt-2 text-xs text-slate-500">
+            You can also tap any set or control — same one-time gesture starts the silent keepalive.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={primeLockScreenMedia}
+              className="rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white"
+            >
+              Show workout on lock screen
+            </button>
+            <button
+              type="button"
+              onClick={dismissLockScreenTipForSession}
+              className="rounded-xl px-3 py-2 text-sm text-slate-500 hover:bg-slate-800/60 hover:text-slate-300"
+            >
+              Not now
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <div>
         <label className="mb-1 block text-xs text-slate-500">Title</label>
         <input
@@ -1316,8 +1408,10 @@ export default function WorkoutEdit() {
             Starts when you tick <span className="text-slate-400">Done</span> on a set. Choose a
             default (10–600s), saved on this device — same control lives under{' '}
             <span className="text-slate-400">Settings</span>. Use +30s on the bar if you need more time
-            mid-set. IronLog does not take over the system media session, so Spotify, Apple Music, and
-            podcasts keep playing and lock-screen / headphone controls stay on your audio app.
+            mid-set. With the PWA, a silent loop keeps the workout visible in media / lock-screen
+            controls (skip rest = seek forward, +15s = seek back). On supported Safari/iOS versions we
+            use an ambient audio session so your music can keep playing; elsewhere background audio
+            may still pause.
           </p>
           <div className="mb-3 flex flex-wrap gap-2">
             {[60, 90, 120, 180].map((sec) => (
