@@ -14,7 +14,7 @@ import {
   mergeTwoBaselines,
   sessionBaselineMapFromExercises,
 } from '../utils/prBaseline.js';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Check, MoreHorizontal } from 'lucide-react';
 import api from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -91,6 +91,7 @@ export default function WorkoutEdit() {
   const { id } = useParams();
   const isNew = !id || id === 'new';
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [title, setTitle] = useState('Workout');
   const [notes, setNotes] = useState('');
@@ -330,6 +331,12 @@ export default function WorkoutEdit() {
   useEffect(() => {
     repsTouchedRef.current = new Set();
   }, [id, isNew]);
+
+  useEffect(() => {
+    if (location.state?.openPostWorkoutRecap !== true) return;
+    setPostWorkoutRecapOpen(true);
+    navigate(`${location.pathname}${location.search ?? ''}`, { replace: true, state: {} });
+  }, [location.pathname, location.search, location.state, navigate]);
 
   useEffect(() => {
     if (isNew) {
@@ -874,6 +881,10 @@ export default function WorkoutEdit() {
       await appAlert(e.message);
       return;
     }
+    const completedAt = times.completedAt ?? new Date().toISOString();
+    const wasCompleted = serverCompleted;
+    const startLocalForDur = sessionStartedLocal;
+
     setSaving(true);
     try {
       if (isNew) {
@@ -882,13 +893,16 @@ export default function WorkoutEdit() {
           notes,
           exercises: payloadExercises(),
           startedAt: times.startedAt,
-          completedAt: times.completedAt,
+          completedAt,
         };
         try {
           const { data } = await api.post('/workouts', body);
           clearWorkoutDraft(newUnsavedWorkoutDraftKey());
           resetNewWorkoutDraftSession();
-          navigate(appPath(`workouts/${data.workout._id}`), { replace: true });
+          navigate(appPath(`workouts/${data.workout._id}`), {
+            replace: true,
+            state: { openPostWorkoutRecap: true },
+          });
         } catch (e) {
           if (isOfflineQueueableError(e) && enqueueOfflineRequest({ method: 'POST', url: '/workouts', data: body })) {
             await appAlert(
@@ -904,11 +918,22 @@ export default function WorkoutEdit() {
           notes,
           exercises: payloadExercises(),
           startedAt: times.startedAt,
-          completedAt: times.completedAt,
+          completedAt,
         };
         try {
           await api.put(`/workouts/${id}`, body);
           clearWorkoutDraft(workoutDraftKey(id, false));
+          setServerCompleted(true);
+          const endL = toDatetimeLocalValue(completedAt);
+          setSessionEndedLocal(endL);
+          const total = diffMinutesFromLocal(startLocalForDur, endL);
+          if (total != null) {
+            setDurHours(Math.floor(total / 60));
+            setDurMins(total % 60);
+          }
+          if (!wasCompleted) {
+            setPostWorkoutRecapOpen(true);
+          }
         } catch (e) {
           if (isOfflineQueueableError(e) && enqueueOfflineRequest({ method: 'PUT', url: `/workouts/${id}`, data: body })) {
             await appAlert('Offline: changes queued. They will sync automatically when you are online, or tap Sync in the header.');
@@ -1076,14 +1101,6 @@ export default function WorkoutEdit() {
         <>
           <button
             type="button"
-            onClick={() => markComplete(true)}
-            disabled={saving}
-            className="rounded-xl border border-emerald-700 px-6 py-3 font-medium text-emerald-400"
-          >
-            Mark complete
-          </button>
-          <button
-            type="button"
             onClick={() => markComplete(false)}
             disabled={saving}
             className="rounded-xl border border-slate-300 dark:border-slate-600 px-6 py-3 text-slate-300"
@@ -1176,16 +1193,6 @@ export default function WorkoutEdit() {
                 ) : null}
                 {!isNew ? (
                   <>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        closeWorkoutMoreMenu(() => markComplete(true));
-                      }}
-                      disabled={saving}
-                      className="flex w-full items-center justify-center rounded-xl border border-emerald-800/80 py-2.5 text-sm font-medium text-emerald-400 disabled:opacity-50"
-                    >
-                      Mark complete
-                    </button>
                     <button
                       type="button"
                       onClick={() => {
@@ -1361,7 +1368,8 @@ export default function WorkoutEdit() {
             />
           </div>
           <p className="pb-2 text-xs text-slate-600">
-            0h 0m clears the end (session in progress). Use Mark complete to stamp &quot;now&quot;.
+            0h 0m clears the end (session in progress). Save workout completes the session; if end time is empty, the
+            finish time is set to when you save.
           </p>
         </div>
         {/*
