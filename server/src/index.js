@@ -16,7 +16,6 @@ import notificationsRoutes from './routes/notifications.js';
 import cronRoutes from './routes/cron.js';
 import goalRoutes from './routes/goals.js';
 import nutritionRoutes from './routes/nutrition.js';
-import aiRoutes from './routes/ai.js';
 import importRoutes from './routes/import.js';
 import { runEmailVerificationGrandfather } from './lib/runMigrations.js';
 
@@ -77,7 +76,6 @@ app.use('/api/goals', goalRoutes);
 app.use('/api/nutrition', nutritionRoutes);
 app.use('/api/templates', templateRoutes);
 app.use('/api/activity', activityRoutes);
-app.use('/api/ai', aiRoutes);
 app.use('/api/import', importRoutes);
 app.use('/api/admin', adminRoutes);
 

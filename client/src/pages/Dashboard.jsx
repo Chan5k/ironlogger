@@ -25,7 +25,6 @@ import {
 } from 'lucide-react';
 import api from '../api/client.js';
 import NewWorkoutLink from '../components/NewWorkoutLink.jsx';
-import AiProgressReview from '../components/AiProgressReview.jsx';
 import { appPath } from '../constants/routes.js';
 import { useWeightUnit } from '../hooks/useWeightUnit.js';
 import { LBS_PER_KG } from '../utils/weightUnits.js';
@@ -707,7 +706,6 @@ export default function Dashboard() {
         </section>
       </div>
 
-      <AiProgressReview />
     </div>
   );
 }

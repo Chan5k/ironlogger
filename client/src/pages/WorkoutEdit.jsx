@@ -53,7 +53,6 @@ import {
 } from '../utils/workoutShareStats.js';
 import WorkoutShareModal from '../components/WorkoutShareModal.jsx';
 import ExerciseIcon from '../components/ExerciseIcon.jsx';
-import AiWorkoutReview from '../components/AiWorkoutReview.jsx';
 import PostWorkoutRecapModal from '../components/PostWorkoutRecapModal.jsx';
 import { isStandalonePwa } from '../utils/pwaDisplayMode.js';
 import { playRestEndSound } from '../utils/restEndSound.js';
@@ -1551,7 +1550,6 @@ export default function WorkoutEdit() {
         </section>
       ) : null}
 
-      {!isNew && serverCompleted && id ? <AiWorkoutReview workoutId={id} /> : null}
 
       <div className="space-y-4">
         {exercises.map((ex, exIdx) => (
@@ -2072,7 +2070,6 @@ export default function WorkoutEdit() {
       {!isNew && id ? (
         <PostWorkoutRecapModal
           open={postWorkoutRecapOpen}
-          workoutId={id}
           onClose={() => setPostWorkoutRecapOpen(false)}
         />
       ) : null}
