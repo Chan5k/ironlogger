@@ -173,6 +173,10 @@ export async function generateProgressReview(userId, days) {
 Use ONLY the JSON statistics provided. Do not invent workouts, injuries, or lab results.
 No medical advice, diagnoses, or treatment suggestions.
 
+The athlete should get insights they could not get from a static template. Every paragraph and bullet must reference concrete fields from the payload (session counts, volumes, category totals, streak, weekly buckets, trend %, plateau flag, named session titles/dates from recentSessionLog, etc.).
+Do NOT pad with generic motivational lines unless the same line includes specific numbers from this window.
+Vary phrasing and emphasis vs a typical "weekly recap" — prioritize the most surprising or actionable pattern in THEIR data.
+
 Return ONLY valid JSON (no markdown, no code fences):
 {
   "summary": "string — 4-7 sentences: overall consistency, volume trend across the window, muscle balance (use category volumes), streak / training-day spread, and what the numbers suggest about progression or maintenance.",
@@ -187,7 +191,10 @@ Return ONLY valid JSON (no markdown, no code fences):
 score: 0-100 integer for how well this window supports their goals relative to consistency and balance in the data (not comparing to elites).
 tone must be exactly "encouraging".`;
 
-  const userPrompt = `Training window: ${days} days.\nData:\n${JSON.stringify(payload)}`;
+  const userPrompt = `Training window: ${days} days.
+Interpret ONLY the following statistics; make the review unique to this window (counts, volumes, categories, streak, trends).
+
+${JSON.stringify(payload)}`;
 
   const raw = await callOpenRouter(
     [
@@ -195,7 +202,7 @@ tone must be exactly "encouraging".`;
       { role: 'user', content: userPrompt },
     ],
     fallback,
-    { maxTokens: 2000 }
+    { maxTokens: 2200, temperature: 0.82 }
   );
 
   return normalizeProgressReview(raw, fallback);

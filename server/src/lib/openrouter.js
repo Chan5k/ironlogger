@@ -3,10 +3,11 @@ const PER_MODEL_TIMEOUT_MS = 45_000;
 const RETRY_DELAY_MS = 1200;
 
 /**
- * Auto-router that picks from any available free model on OpenRouter.
+ * Default: Qwen 3.6 Plus (free) on OpenRouter, then the generic free auto-router as fallback.
  * Override with OPENROUTER_MODEL_CHAIN (comma-separated).
  */
 export const DEFAULT_MODEL_CHAIN = [
+  'qwen/qwen3.6-plus:free',
   'openrouter/free',
 ];
 
@@ -43,8 +44,17 @@ function logOpenRouterEvent(level, message, details) {
   fn(`[OpenRouter] ${message}`, payload);
 }
 
+/** Strip common model "thinking" wrappers so JSON parse still works. */
+export function stripThinkingBlocks(text) {
+  let s = String(text || '');
+  s = s.replace(/<think>[\s\S]*?<\/think>/gi, '');
+  s = s.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '');
+  s = s.replace(/<reasoning>[\s\S]*?<\/reasoning>/gi, '');
+  return s.trim();
+}
+
 export function tryParseJsonFromAI(raw) {
-  let text = String(raw || '').trim();
+  let text = stripThinkingBlocks(String(raw || '').trim());
   const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fenceMatch) text = fenceMatch[1].trim();
   const braceStart = text.indexOf('{');
@@ -77,11 +87,13 @@ function extractAssistantText(choice) {
   const msg = choice?.message;
   if (!msg) return '';
   const content = String(msg.content ?? '').trim();
+  const reasoning = String(msg.reasoning ?? '').trim();
+  if (reasoning && content) return `${reasoning}\n\n${content}`.trim();
   if (content) return content;
-  return String(msg.reasoning ?? '').trim();
+  return reasoning;
 }
 
-async function openRouterFetchOnce({ endpoint, model, messages, maxTokens, signal, temperature = 0.4 }) {
+async function openRouterFetchOnce({ endpoint, model, messages, maxTokens, signal, temperature = 0.5 }) {
   const res = await fetch(endpoint, {
     method: 'POST',
     signal,
@@ -109,13 +121,13 @@ async function openRouterFetchOnce({ endpoint, model, messages, maxTokens, signa
  *   { type: 'retryable' }
  *   { type: 'fatal' }
  */
-async function tryModelWithTimeout({ endpoint, model, messages, maxTokens, timeoutMs, phase }) {
+async function tryModelWithTimeout({ endpoint, model, messages, maxTokens, timeoutMs, phase, temperature }) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const { ok, status, bodyText, data } = await openRouterFetchOnce({
-      endpoint, model, messages, maxTokens, signal: controller.signal,
+      endpoint, model, messages, maxTokens, signal: controller.signal, temperature,
     });
 
     if (!ok) {
@@ -183,6 +195,7 @@ async function tryModelWithTimeout({ endpoint, model, messages, maxTokens, timeo
  * @param {string[]} [options.models]
  * @param {string}   [options.endpoint]
  * @param {number}   [options.perModelTimeoutMs]
+ * @param {number}   [options.temperature] 0–2; higher = more varied wording (default 0.5)
  */
 export async function callOpenRouter(messages, fallback, options = {}) {
   const cfg = getOpenRouterConfig();
@@ -190,6 +203,10 @@ export async function callOpenRouter(messages, fallback, options = {}) {
   const perModelTimeoutMs = options.perModelTimeoutMs ?? cfg.perModelTimeoutMs;
   const models = options.models ?? cfg.models;
   const maxTokens = clampMaxTokens(options.maxTokens);
+  const temperature =
+    typeof options.temperature === 'number' && Number.isFinite(options.temperature)
+      ? Math.min(1.5, Math.max(0, options.temperature))
+      : 0.5;
 
   if (!process.env.OPENROUTER_API_KEY) {
     logOpenRouterEvent('warn', 'OPENROUTER_API_KEY not set — using fallback JSON', {});
@@ -208,7 +225,7 @@ export async function callOpenRouter(messages, fallback, options = {}) {
     if (i > 0) await sleep(RETRY_DELAY_MS);
 
     const result = await tryModelWithTimeout({
-      endpoint, model, messages, maxTokens, timeoutMs: perModelTimeoutMs, phase,
+      endpoint, model, messages, maxTokens, timeoutMs: perModelTimeoutMs, phase, temperature,
     });
 
     if (result.type === 'ok') {

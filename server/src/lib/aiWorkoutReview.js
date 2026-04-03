@@ -215,6 +215,11 @@ export async function generateWorkoutReview(workoutId, userId) {
 Use ONLY the JSON data provided. Do not invent exercises, weights, PRs, injuries, or medical facts.
 Do not give medical advice, diagnoses, or treatment. If data is missing, say so briefly instead of guessing.
 
+Your reply must be USEFUL and SPECIFIC to this single session. Every sentence should cite at least one concrete fact from the payload (exercise names, set counts, volume numbers, duration, muscle categories, comparison vs last session, notes preview, or 14-day frequency).
+Do NOT fill space with generic platitudes ("great job", "keep pushing", "consistency is key", "stay motivated") unless the same sentence also names a number or lift from the data.
+Do NOT reuse a fixed template: vary how you open the summary and how you order ideas from one answer to the next.
+If volume vs previous session or category balance is in the data, mention it explicitly with the figures given.
+
 Return ONLY valid JSON (no markdown, no code fences) with this exact shape:
 {
   "summary": "string — 3-5 sentences tying together volume, duration, muscle balance vs recent sessions, and effort pattern. Reference specific numbers from the payload when helpful.",
@@ -231,7 +236,12 @@ Return ONLY valid JSON (no markdown, no code fences) with this exact shape:
 score: integer 0-100 for session quality vs their own recent pattern (not vs elite standards).
 tone must be exactly "encouraging".`;
 
-  const userPrompt = `Analyze this workout and recent context:\n${JSON.stringify(payload)}`;
+  const sessionLabel = payload.session?.title || 'Workout';
+  const dateLabel = payload.session?.completedDate || 'unknown date';
+  const userPrompt = `Analyze this workout and recent context only.
+Session: "${sessionLabel}" (${dateLabel}). Give feedback that would not apply verbatim to a different log — tie everything to the JSON below.
+
+${JSON.stringify(payload)}`;
 
   const raw = await callOpenRouter(
     [
@@ -239,7 +249,7 @@ tone must be exactly "encouraging".`;
       { role: 'user', content: userPrompt },
     ],
     fallback,
-    { maxTokens: 1800 }
+    { maxTokens: 2000, temperature: 0.82 }
   );
 
   return normalizeWorkoutReview(raw, fallback);
