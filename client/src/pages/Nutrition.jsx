@@ -25,6 +25,7 @@ import {
 import api from '../api/client.js';
 import { useTheme } from '../context/ThemeContext.jsx';
 import BarcodeScannerModal from '../components/nutrition/BarcodeScannerModal.jsx';
+import NutriScoreBadge from '../components/nutrition/NutriScoreBadge.jsx';
 import { appAlert, appConfirm } from '../lib/appDialogApi.js';
 import {
   dayKeyInBucharest,
@@ -1606,9 +1607,22 @@ export default function Nutrition() {
                 className="mx-auto max-h-28 max-w-full rounded-lg border border-slate-200 dark:border-slate-800 object-contain"
               />
             ) : null}
-            <p className="text-sm text-slate-900 dark:text-white">{pick.name}</p>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <p className="text-sm text-slate-900 dark:text-white">{pick.name}</p>
+              {pick.source === 'openfoodfacts' && pick.nutriScore ? (
+                <NutriScoreBadge
+                  className="shrink-0 sm:pt-0.5"
+                  grade={pick.nutriScore}
+                  points={pick.nutriScorePoints}
+                  version={pick.nutriScoreVersion}
+                />
+              ) : null}
+            </div>
             {pick.source === 'openfoodfacts' ? (
-              <p className="text-xs text-slate-500">Source: Open Food Facts (values per 100 g unless adjusted).</p>
+              <p className="text-xs text-slate-500">
+                Source: Open Food Facts (values per 100 g unless adjusted). Nutri-Score uses data contributors have
+                entered for this product.
+              </p>
             ) : null}
             {pick.source === 'ro_reference' ? (
               <p className="text-xs text-slate-500">

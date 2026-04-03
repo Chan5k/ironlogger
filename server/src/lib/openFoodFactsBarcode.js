@@ -33,6 +33,43 @@ function parseServingGramsHint(servingSize) {
   return num;
 }
 
+/** Nutri-Score letter a–e from Open Food Facts product fields (API v2). */
+function extractOffNutriGradeLetter(product) {
+  if (!product || typeof product !== 'object') return null;
+  const letterFromString = (s) => {
+    if (s == null || typeof s !== 'string') return null;
+    const ch = s.trim().toLowerCase().charAt(0);
+    return 'abcde'.includes(ch) ? ch : null;
+  };
+
+  const fromDirect =
+    letterFromString(product.nutriscore_grade) ?? letterFromString(product.nutrition_grade_fr);
+  if (fromDirect) return fromDirect;
+
+  const grades = product.nutrition_grades;
+  if (typeof grades === 'string' && grades.trim()) {
+    const first = grades.split(',')[0];
+    const g = letterFromString(first);
+    if (g) return g;
+  }
+
+  const tags = product.nutrition_grades_tags;
+  if (Array.isArray(tags)) {
+    for (const tag of tags) {
+      const t = String(tag);
+      const m = t.match(/nutrition-grade-([a-e])/i) || t.match(/^([a-e])$/i);
+      if (m) return m[1].toLowerCase();
+    }
+  }
+  return null;
+}
+
+function toIntOrNull(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const n = typeof v === 'number' ? v : parseInt(String(v), 10);
+  return Number.isFinite(n) ? n : null;
+}
+
 function normalizeOffProduct(product, code, lookupHost) {
   if (!product || typeof product !== 'object') return null;
 
@@ -77,6 +114,14 @@ function normalizeOffProduct(product, code, lookupHost) {
         ? product.image_url
         : null;
 
+  const nutriLetter = extractOffNutriGradeLetter(product);
+  const nutriScore = nutriLetter ? nutriLetter.toUpperCase() : null;
+  const nutriScorePoints = toIntOrNull(product.nutriscore_score);
+  const nutriScoreVersion =
+    typeof product.nutriscore_version === 'string' && product.nutriscore_version.trim()
+      ? product.nutriscore_version.trim().slice(0, 20)
+      : null;
+
   return {
     externalId: String(code || product.code || '').trim() || null,
     name: name.slice(0, 200),
@@ -89,7 +134,9 @@ function normalizeOffProduct(product, code, lookupHost) {
     sugarPer100g: sugar,
     servingLabel,
     servingGrams,
-    nutriScore: typeof product.nutrition_grade_fr === 'string' ? product.nutrition_grade_fr : null,
+    nutriScore,
+    nutriScorePoints,
+    nutriScoreVersion,
     imageUrl,
     source: 'openfoodfacts',
     lookupHost,

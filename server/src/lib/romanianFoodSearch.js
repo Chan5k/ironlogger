@@ -95,6 +95,8 @@ function toApiRow(row) {
     servingLabel: row.servingLabel || null,
     servingGrams: row.servingG != null ? Number(row.servingG) : null,
     nutriScore: null,
+    nutriScorePoints: null,
+    nutriScoreVersion: null,
     source: 'ro_reference',
   };
 }
