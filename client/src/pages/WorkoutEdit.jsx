@@ -562,6 +562,12 @@ export default function WorkoutEdit() {
   const sessionInProgress = !endedISO;
   const liveNow = useLiveClock(sessionInProgress);
 
+  useEffect(() => {
+    if (sessionInProgress) return;
+    setRestSecondsLeft(0);
+    setRestTotal(0);
+  }, [sessionInProgress]);
+
   const skipRestMediaRef = useRef(() => {});
   const extendRestMediaRef = useRef(() => {});
   skipRestMediaRef.current = () => setRestSecondsLeft(0);
