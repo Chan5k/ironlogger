@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(write plan:*)",
+      "Bash(apply_patch:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)"
+    ]
+  }
+}
