@@ -6,6 +6,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { registerSW } from 'virtual:pwa-register';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { ThemeProvider } from './context/ThemeContext.jsx';
+import ApiKeepAlive from './components/ApiKeepAlive.jsx';
 import AppDialogProvider from './components/AppDialogProvider.jsx';
 import App from './App.jsx';
 import './index.css';
@@ -28,6 +29,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter basename={routerBasename()}>
       <SpeedInsightsRouteBridge />
       <ThemeProvider>
+        <ApiKeepAlive />
         <AuthProvider>
           <AppDialogProvider>
             <App />

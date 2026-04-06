@@ -25,7 +25,7 @@ import {
 import api from '../api/client.js';
 import { useTheme } from '../context/ThemeContext.jsx';
 import BarcodeScannerModal from '../components/nutrition/BarcodeScannerModal.jsx';
-import NutriScoreBadge from '../components/nutrition/NutriScoreBadge.jsx';
+import OpenFoodFactsScoresPanel from '../components/nutrition/OpenFoodFactsScoresPanel.jsx';
 import { appAlert, appConfirm } from '../lib/appDialogApi.js';
 import {
   dayKeyInBucharest,
@@ -212,6 +212,8 @@ export default function Nutrition() {
   const [recentFoods, setRecentFoods] = useState([]);
 
   const [pick, setPick] = useState(null);
+  /** True when log sheet was opened from a barcode scan (animate OFF scores). */
+  const [pickFromBarcode, setPickFromBarcode] = useState(false);
   const [logGrams, setLogGrams] = useState('100');
   const [logMeal, setLogMeal] = useState('lunch');
   const [logManualMacros, setLogManualMacros] = useState({
@@ -405,8 +407,9 @@ export default function Nutrition() {
     }
   }
 
-  const openLogFromSearch = useCallback((row) => {
+  const openLogFromSearch = useCallback((row, opts = {}) => {
     logMacrosManualRef.current = false;
+    setPickFromBarcode(!!opts.fromBarcode);
     setPick(row);
     const g =
       row?.servingGrams && safeNonNeg(row.servingGrams, 0) > 0
@@ -433,7 +436,7 @@ export default function Nutrition() {
         const { data } = await api.get(`/nutrition/barcode/${encodeURIComponent(code)}`);
         if (seq !== barcodeLookupSeqRef.current) return;
         if (data.found && data.product) {
-          openLogFromSearch(data.product);
+          openLogFromSearch(data.product, { fromBarcode: true });
           return;
         }
         setNotFoundBarcode(String(data.barcode || code));
@@ -600,6 +603,7 @@ export default function Nutrition() {
       });
       setSheet(null);
       setPick(null);
+      setPickFromBarcode(false);
       await loadLog();
       await loadHistory();
     } catch (e) {
@@ -1596,10 +1600,23 @@ export default function Nutrition() {
         onClose={() => {
           setSheet(null);
           setPick(null);
+          setPickFromBarcode(false);
         }}
       >
         {pick ? (
           <div className="space-y-3">
+            {pick.source === 'openfoodfacts' ? (
+              <OpenFoodFactsScoresPanel
+                className="w-full"
+                nutriScore={pick.nutriScore}
+                nutriScorePoints={pick.nutriScorePoints}
+                nutriScoreVersion={pick.nutriScoreVersion}
+                ecoScore={pick.ecoScore}
+                ecoScorePoints={pick.ecoScorePoints}
+                novaGroup={pick.novaGroup}
+                animated={pickFromBarcode}
+              />
+            ) : null}
             {pick.imageUrl ? (
               <img
                 src={pick.imageUrl}
@@ -1607,16 +1624,8 @@ export default function Nutrition() {
                 className="mx-auto max-h-28 max-w-full rounded-lg border border-slate-200 dark:border-slate-800 object-contain"
               />
             ) : null}
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <p className="text-sm text-slate-900 dark:text-white">{pick.name}</p>
-              {pick.source === 'openfoodfacts' && pick.nutriScore ? (
-                <NutriScoreBadge
-                  className="shrink-0 sm:pt-0.5"
-                  grade={pick.nutriScore}
-                  points={pick.nutriScorePoints}
-                  version={pick.nutriScoreVersion}
-                />
-              ) : null}
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-medium text-slate-900 dark:text-white">{pick.name}</p>
             </div>
             {pick.source === 'openfoodfacts' ? (
               <p className="text-xs text-slate-500">

@@ -40,11 +40,16 @@ function userPayload(user) {
   };
 }
 
+function jwtExpiresIn() {
+  const raw = process.env.JWT_EXPIRES_IN?.trim();
+  return raw || '90d';
+}
+
 function signUserToken(userDoc) {
   return jwt.sign(
     { sub: userDoc._id.toString(), email: userDoc.email },
     process.env.JWT_SECRET,
-    { expiresIn: '14d' }
+    { expiresIn: jwtExpiresIn() }
   );
 }
 
@@ -172,6 +177,21 @@ router.get('/me', authRequired, async (req, res) => {
   const user = await User.findById(req.user.id).select('-passwordHash');
   if (!user) return res.status(404).json({ error: 'User not found' });
   res.json({
+    user: userPayload(user),
+    impersonating: !!req.user.actorId,
+    actorId: req.user.actorId || null,
+  });
+});
+
+/** New JWT with fresh expiry (sliding session). Requires valid Bearer. */
+router.post('/refresh', authRequired, async (req, res) => {
+  const user = await User.findById(req.user.id).select('-passwordHash');
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  const token = req.user.actorId
+    ? signImpersonationToken(user, req.user.actorId)
+    : signUserToken(user);
+  res.json({
+    token,
     user: userPayload(user),
     impersonating: !!req.user.actorId,
     actorId: req.user.actorId || null,

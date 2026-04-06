@@ -1,9 +1,15 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import api, { setAuthToken } from '../api/client.js';
 
 const AuthContext = createContext(null);
 const STORAGE_KEY = 'ironlog_token';
 const USER_KEY = 'ironlog_user';
+
+const ME_ATTEMPTS = 4;
+
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 export function AuthProvider({ children }) {
   const [token, setTokenState] = useState(() => localStorage.getItem(STORAGE_KEY));
@@ -18,41 +24,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(!!localStorage.getItem(STORAGE_KEY));
   const [impersonating, setImpersonating] = useState(false);
 
-  useEffect(() => {
-    setAuthToken(token || null);
-    if (!token) {
-      setLoading(false);
-      setImpersonating(false);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        const { data } = await api.get('/auth/me');
-        if (!cancelled) {
-          setUser(data.user);
-          setImpersonating(!!data.impersonating);
-          localStorage.setItem(USER_KEY, JSON.stringify(data.user));
-        }
-      } catch {
-        if (!cancelled) {
-          setTokenState(null);
-          setUser(null);
-          setImpersonating(false);
-          localStorage.removeItem(STORAGE_KEY);
-          localStorage.removeItem(USER_KEY);
-          setAuthToken(null);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [token]);
-
-  const setToken = (t, u) => {
+  const setToken = useCallback((t, u) => {
     if (t) {
       localStorage.setItem(STORAGE_KEY, t);
       setTokenState(t);
@@ -68,7 +40,81 @@ export function AuthProvider({ children }) {
       setImpersonating(false);
     }
     setAuthToken(t || null);
-  };
+  }, []);
+
+  useEffect(() => {
+    setAuthToken(token || null);
+    if (!token) {
+      setLoading(false);
+      setImpersonating(false);
+      return;
+    }
+    let cancelled = false;
+
+    (async () => {
+      try {
+        for (let attempt = 0; attempt < ME_ATTEMPTS; attempt++) {
+          try {
+            const { data } = await api.get('/auth/me');
+            if (cancelled) return;
+            setUser(data.user);
+            setImpersonating(!!data.impersonating);
+            localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+            return;
+          } catch (e) {
+            if (cancelled) return;
+            const status = e.response?.status;
+            if (status === 401) {
+              setToken(null);
+              return;
+            }
+            if (attempt < ME_ATTEMPTS - 1) {
+              await sleep(2000 * (attempt + 1));
+              continue;
+            }
+            // Cold start / network: keep token and cached profile (localStorage user already in state)
+          }
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token, setToken]);
+
+  /** Sliding session: new JWT when tab becomes visible (throttled). */
+  useEffect(() => {
+    if (!token) return;
+    let last = 0;
+    let cancelled = false;
+
+    const run = async () => {
+      const now = Date.now();
+      if (now - last < 60_000) return;
+      last = now;
+      try {
+        const { data } = await api.post('/auth/refresh');
+        if (cancelled) return;
+        setToken(data.token, data.user);
+        setImpersonating(!!data.impersonating);
+      } catch {
+        // Expired / revoked token: next API call returns 401; avoid logging out on transient errors here
+      }
+    };
+
+    const onVis = () => {
+      if (document.visibilityState === 'visible') run();
+    };
+
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, [token, setToken]);
 
   const refreshUser = async () => {
     const { data } = await api.get('/auth/me');
@@ -97,7 +143,7 @@ export function AuthProvider({ children }) {
       endImpersonation,
       logout: () => setToken(null),
     }),
-    [token, user, loading, impersonating]
+    [token, user, loading, impersonating, setToken]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

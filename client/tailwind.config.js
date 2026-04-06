@@ -126,6 +126,20 @@ export default {
           '0%, 100%': { opacity: '0.6', transform: 'scale(1)' },
           '50%': { opacity: '1', transform: 'scale(1.08)' },
         },
+        /** Open Food Facts score panel (barcode scan) */
+        offScoreReveal: {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        offNutriPop: {
+          '0%': { opacity: '0', transform: 'scale(0.35) rotate(-14deg)' },
+          '58%': { opacity: '1', transform: 'scale(1.1) rotate(3deg)' },
+          '100%': { opacity: '1', transform: 'scale(1) rotate(0deg)' },
+        },
+        offChipPop: {
+          '0%': { opacity: '0', transform: 'scale(0.82) translateY(4px)' },
+          '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+        },
       },
       animation: {
         'ui-page-in': 'uiPageIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both',
@@ -151,6 +165,11 @@ export default {
           'workoutDockIn 380ms cubic-bezier(0.32, 0.72, 0, 1) both',
         'workout-dock-out':
           'workoutDockOut 340ms cubic-bezier(0.32, 0.72, 0, 1) both',
+        'off-score-reveal':
+          'offScoreReveal 420ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        'off-nutri-pop':
+          'offNutriPop 0.72s cubic-bezier(0.34, 1.45, 0.64, 1) both',
+        'off-chip-pop': 'offChipPop 0.45s cubic-bezier(0.22, 1, 0.36, 1) both',
       },
     },
   },

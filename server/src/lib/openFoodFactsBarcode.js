@@ -70,6 +70,41 @@ function toIntOrNull(v) {
   return Number.isFinite(n) ? n : null;
 }
 
+/** Eco-Score letter a–e from Open Food Facts (when present). */
+function extractOffEcoGradeLetter(product) {
+  if (!product || typeof product !== 'object') return null;
+  const letterFromString = (s) => {
+    if (s == null || typeof s !== 'string') return null;
+    const ch = s.trim().toLowerCase().charAt(0);
+    return 'abcde'.includes(ch) ? ch : null;
+  };
+  const fromDirect =
+    letterFromString(product.ecoscore_grade) ??
+    letterFromString(product.ecoscore_data?.grade) ??
+    letterFromString(product.ecoscore);
+  if (fromDirect) return fromDirect;
+  const tags = product.ecoscore_tags;
+  if (Array.isArray(tags)) {
+    for (const tag of tags) {
+      const m = String(tag).match(/([a-e])(?:-|$)/i);
+      if (m) return m[1].toLowerCase();
+    }
+  }
+  return null;
+}
+
+/** NOVA group 1–4 (processing level) when OFF provides it. */
+function extractNovaGroup(product) {
+  if (!product || typeof product !== 'object') return null;
+  const raw = product.nova_group ?? product.nova_groups;
+  if (raw == null || raw === '') return null;
+  if (typeof raw === 'number' && raw >= 1 && raw <= 4) return Math.round(raw);
+  const s = String(raw);
+  const m = s.match(/([1-4])/);
+  if (m) return Number(m[1]);
+  return null;
+}
+
 function normalizeOffProduct(product, code, lookupHost) {
   if (!product || typeof product !== 'object') return null;
 
@@ -122,6 +157,11 @@ function normalizeOffProduct(product, code, lookupHost) {
       ? product.nutriscore_version.trim().slice(0, 20)
       : null;
 
+  const ecoLetter = extractOffEcoGradeLetter(product);
+  const ecoScore = ecoLetter ? ecoLetter.toUpperCase() : null;
+  const ecoScorePoints = toIntOrNull(product.ecoscore_score);
+  const novaGroup = extractNovaGroup(product);
+
   return {
     externalId: String(code || product.code || '').trim() || null,
     name: name.slice(0, 200),
@@ -137,6 +177,9 @@ function normalizeOffProduct(product, code, lookupHost) {
     nutriScore,
     nutriScorePoints,
     nutriScoreVersion,
+    ecoScore,
+    ecoScorePoints,
+    novaGroup,
     imageUrl,
     source: 'openfoodfacts',
     lookupHost,
